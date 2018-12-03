@@ -1,0 +1,448 @@
+#include <pass1.h>
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <symbol_table.h>
+#include <tokenizer.h>
+
+pass1_item_t *pass1_list_first = NULL;
+pass1_item_t *pass1_list_last = NULL;
+
+static void _pass1(void);
+static uint32_t convert_to_int(char *l);
+static void append_to_pass1_list(pass1_item_t *x);
+
+//TODO: přidat podporu pro více jmených prostorů
+
+void pass1(void){
+    _pass1();
+}
+
+static void _pass1(void){
+    unsigned int location_counter = 0;
+
+    for(tok_t * t = toklist_first; t != NULL; t = t->next){
+        if(t->type == TOKEN_IS_INSTR){
+
+            //create space for copy of line
+            char *op_line = (char *) malloc(sizeof(char) * (strlen(t->payload.i->line) + 1));
+            char *op_code = (char *) malloc(sizeof(char) * (strlen(t->payload.i->line) + 1));
+
+            if(op_line == NULL || op_code == NULL){
+                fprintf(stderr, "Malloc failed!\n");
+                exit(EXIT_FAILURE);
+            }
+
+            //make copy of line
+            strcpy(op_line, t->payload.i->line);
+            strcpy(op_code, t->payload.i->line);
+
+            //cut opcode from that line
+            for(int i = 0; op_code[i] != '\0'; i++){
+                if(op_code[i] == ';'){
+                    op_code[i] = '\0';
+                }
+            }
+
+            //check if instruction have valid args
+            if(check_instruction_args(op_line) == 0){
+                fprintf(stderr, "Syntax error in instruction '%s' from file '%s' at line %d!", op_code, t->fileInfo->name, t->lineNumber);
+                exit(EXIT_FAILURE);
+            }
+
+            //create structure for pass1_item
+            pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+
+            if(x == NULL){
+                fprintf(stderr, "Malloc failed!");
+                exit(EXIT_FAILURE);
+            }
+
+            //fill data into pass1_item
+            x->token = t;
+            x->location = location_counter;
+            x->type = TYPE_INSTRUCTION;
+            x->payload.i = t->payload.i;
+            x->next = NULL;
+            x->prev = NULL;
+
+            //count location for next instruction
+            location_counter += get_instruction_size(t->payload.i);
+
+            append_to_pass1_list(x);
+
+            //free memory agin
+            free(op_line);
+            free(op_code);
+        }
+        else if(t->type == TOKEN_IS_LABEL){
+            //copy label and split ':'
+            char *label_name = (char *) malloc(strlen(t->payload.l->line) + 1);
+            strcpy(label_name, t->payload.l->line);
+            for(int i = 0; label_name[i] != '\0'; i++){
+                if(label_name[i] == ':') label_name[i] = '\0';
+            }
+
+            //make new symbol in table
+            new_symbol(label_name, location_counter, STYPE_RELOCATION, t);
+
+            //cleanup
+            free(label_name);
+        }
+        else if(t->type == TOKEN_IS_PSEUD){
+
+            //create space for copy of line
+            char *cmd = (char *) malloc(sizeof(char) * (strlen(t->payload.p->line) + 1));
+
+            if(cmd == NULL){
+                fprintf(stderr, "Malloc failed!\n");
+                exit(EXIT_FAILURE);
+            }
+
+            //make copy of line
+            strcpy(cmd, t->payload.p->line);
+
+            //cut opcode from that line
+            for(int i = 0; cmd[i] != '\0'; i++){
+                if(cmd[i] == ';'){
+                    cmd[i] = '\0';
+                }
+            }
+
+            if(strcmp(cmd, ".ORG") == 0){
+            //TODO: dokončit
+            }
+            else if(strcmp(cmd, ".CONS") == 0){
+                char * cons_name = NULL;    //do not free them!
+                char * cons_value = NULL;
+                unsigned int x = 0;
+                uint32_t cons_value_int = 0;
+
+                //put x to "point" to next string in cmd
+                x = (unsigned int)strlen(cmd);
+                cons_name = &(cmd[++x]);
+
+                //put x to "point" to next string in cmd
+                x += (unsigned int)strlen(cons_name);
+                cons_value = &(cmd[++x]);
+
+                //convert value into integer
+                cons_value_int = convert_to_int(cons_value);
+
+                //add this symbol into symbol table
+                new_symbol(cons_name, cons_value_int, STYPE_ABSOLUTE, t);
+            }
+            else if(strcmp(cmd, ".DAT_W") == 0){
+                //get position of first argument
+                char *arg = cmd + strlen(".DAT_W") + 1;
+
+                //count all given arguments
+                unsigned int arg_count = 0;
+                for(int i = 0; t->payload.p->line[i] != '\0'; i++){
+                    if(t->payload.p->line[i] == ';'){
+                        arg_count++;
+                    }
+                }
+
+                //malloc needed space
+                pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+                blob_t *b = (blob_t *)malloc(sizeof(blob_t));
+                uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count * 4);
+
+                if(x == NULL || b == NULL || b_data == NULL){
+                    fprintf(stderr, "Malloc failed!");
+                    exit(EXIT_FAILURE);
+                }
+
+                //iterate over all arguments
+                for(unsigned int i = 0; i < arg_count; i++){
+                    uint32_t val = convert_to_int(arg);
+
+                    //fill data
+                    *(b_data + 4*i) = (uint8_t)(val & 0xFF);
+                    *(b_data + 4*i + 1) = (uint8_t)((val >> 8) & 0xFF);
+                    *(b_data + 4*i + 2) = (uint8_t)((val >> 16) & 0xFF);
+                    *(b_data + 4*i + 3) = (uint8_t)((val >> 24) & 0xFF);
+
+                    //get next argument
+                    arg = arg + strlen(arg) + 1;
+                }
+
+                //prepare blob
+                b->blob_len = arg_count * 4;
+                b->blob_data = b_data;
+
+                //preprase pass1_item
+                x->token = t;
+                x->location = location_counter;
+                x->type = TYPE_BLOB;
+                x->payload.b = b;
+                x->next = NULL;
+                x->prev = NULL;
+
+                //insert it into list
+                append_to_pass1_list(x);
+
+                //update location counter
+                location_counter += arg_count * 4;
+            }
+            else if(strcmp(cmd, ".DAT_H") == 0){
+                //get position of first argument
+                char *arg = cmd + strlen(".DAT_H") + 1;
+
+                //count all given arguments
+                unsigned int arg_count = 0;
+                for(int i = 0; t->payload.p->line[i] != '\0'; i++){
+                    if(t->payload.p->line[i] == ';'){
+                        arg_count++;
+                    }
+                }
+
+                //malloc needed space
+                pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+                blob_t *b = (blob_t *)malloc(sizeof(blob_t));
+                uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count * 2);
+
+                if(x == NULL || b == NULL || b_data == NULL){
+                    fprintf(stderr, "Malloc failed!");
+                    exit(EXIT_FAILURE);
+                }
+
+                //iterate over all arguments
+                for(unsigned int i = 0; i < arg_count; i++){
+                    uint32_t val = convert_to_int(arg);
+
+                    //check size of data
+                    if(val > 0xFFFF){
+                        fprintf(stderr, "Syntax error! File '%s' at line '%d'.\n", t->fileInfo->name, t->lineNumber);
+                        fprintf(stderr, ".DAT_B argument value is too large!\n");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    //fill data
+                    *(b_data + 2*i) = (uint8_t)(val & 0xFF);
+                    *(b_data + 2*i + 1) = (uint8_t)((val & 0xFF00) >> 8);
+
+                    //get next argument
+                    arg = arg + strlen(arg) + 1;
+                }
+
+                //prepare blob
+                b->blob_len = arg_count * 2;
+                b->blob_data = b_data;
+
+                //preprase pass1_item
+                x->token = t;
+                x->location = location_counter;
+                x->type = TYPE_BLOB;
+                x->payload.b = b;
+                x->next = NULL;
+                x->prev = NULL;
+
+                //insert it into list
+                append_to_pass1_list(x);
+
+                //update location counter
+                location_counter += arg_count * 2;
+            }
+            else if(strcmp(cmd, ".DAT_B") == 0){
+                //get position of first argument
+                char *arg = cmd + strlen(".DAT_B") + 1;
+
+                //count all given arguments
+                unsigned int arg_count = 0;
+                for(int i = 0; t->payload.p->line[i] != '\0'; i++){
+                    if(t->payload.p->line[i] == ';'){
+                        arg_count++;
+                    }
+                }
+
+                //malloc needed space
+                pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+                blob_t *b = (blob_t *)malloc(sizeof(blob_t));
+                uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count);
+
+                if(x == NULL || b == NULL || b_data == NULL){
+                    fprintf(stderr, "Malloc failed!");
+                    exit(EXIT_FAILURE);
+                }
+
+                //iterate over all arguments
+                for(unsigned int i = 0; i < arg_count; i++){
+                    uint32_t val = convert_to_int(arg);
+
+                    //check size of data
+                    if(val > 0xFF){
+                        fprintf(stderr, "Syntax error! File '%s' at line '%d'.\n", t->fileInfo->name, t->lineNumber);
+                        fprintf(stderr, ".DAT_B argument value is too large!\n");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    //fill data
+                    *(b_data + i) = (uint8_t)val;
+
+                    //get next argument
+                    arg = arg + strlen(arg) + 1;
+                }
+
+                //prepare blob
+                b->blob_len = arg_count;
+                b->blob_data = b_data;
+
+                //preprase pass1_item
+                x->token = t;
+                x->location = location_counter;
+                x->type = TYPE_BLOB;
+                x->payload.b = b;
+                x->next = NULL;
+                x->prev = NULL;
+
+                //insert it into list
+                append_to_pass1_list(x);
+
+                //update location counter
+                location_counter += arg_count;
+            }
+            else if(strcmp(cmd, ".DS") == 0){
+                //get pointer to argument string
+                char *arg = cmd + strlen(".DS") + 1;
+
+                //get len from pseud
+                uint32_t len = convert_to_int(arg);
+
+                //create structure for pass1_item and blob
+                pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+                blob_t *b = (blob_t *)malloc(sizeof(blob_t));
+                uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * len);
+
+                if(x == NULL || b == NULL || b_data == NULL){
+                    fprintf(stderr, "Malloc failed!");
+                    exit(EXIT_FAILURE);
+                }
+
+                //fill blob data
+                for(unsigned int i = 0; i < len; i++) *(b_data + i) = 0x00;
+
+                b->blob_data = b_data;
+                b->blob_len = len;
+
+                //fill data into pass1_item
+                x->token = t;
+                x->location = location_counter;
+                x->type = TYPE_BLOB;
+                x->payload.b = b;
+                x->next = NULL;
+                x->prev = NULL;
+
+                //append into list
+                append_to_pass1_list(x);
+
+                //update location counter
+                location_counter += len;
+            }
+            else if(strcmp(cmd, ".EXPORT") == 0){
+                char * export_name = NULL;
+                unsigned int x = 0;
+
+                //get address of argument
+                x = (unsigned int) strlen(cmd);
+                export_name = &(cmd[++x]);
+
+                //add export into symbol table
+                new_symbol(export_name, 0, STYPE_EXPORT, t);
+            }
+            else if(strcmp(cmd, ".IMPORT") == 0){
+                char * import_name = NULL;
+                unsigned int x = 0;
+
+                //get address of argument
+                x = (unsigned int) strlen(cmd);
+                import_name = &(cmd[++x]);
+
+                //add export into symbol table
+                new_symbol(import_name, 0, STYPE_IMPORT, t);
+            }
+            else{
+                fprintf(stderr, "Syntax error, pass1 doesn't know that label! Label '%s' from: %s at line %d.\n", cmd, t->fileInfo->name, t->lineNumber);
+                exit(EXIT_FAILURE);
+            }
+
+            //free mem again :) we don't want any leaks :P
+            free(cmd);
+        }
+        else{
+            fprintf(stderr, "Token doesn't have valid flag!\n");
+            exit(EXIT_FAILURE);
+        }
+
+    }
+}
+
+void pass1_cleanup(void){
+    //TODO: dokončit
+    return;
+}
+
+static uint32_t convert_to_int(char *l){
+    size_t len = strlen(l);
+
+    if(len < 1){
+        fprintf(stderr, "Convert int error!\n");
+        exit(EXIT_FAILURE);
+    }
+    else if(len == 1){
+        //can be only decimal
+        return (uint32_t) atoi(l);
+    }
+    else{
+        if(l[0] == '0' && l[1] == 'x'){
+            //hex number
+            //TODO: přidat podporu po hexa čísla
+            fprintf(stderr, "Hex numbers are not supported!\n");
+            exit(EXIT_FAILURE);
+        }
+        else if(l[0] == '0' && l[1] == 'b'){
+            //binary
+            //TODO: přidat podporu po bin čísla
+            fprintf(stderr, "Binary numbers are not supported!\n");
+            exit(EXIT_FAILURE);
+        }
+        else{
+            //should be decimal
+            return (uint32_t) atoi(l);
+        }
+    }
+}
+
+static void append_to_pass1_list(pass1_item_t *x){
+    if(pass1_list_first == NULL){
+        pass1_list_first = x;
+        pass1_list_last = x;
+    }
+    else{
+        pass1_list_last->next = x;
+        x->prev = pass1_list_last;
+        pass1_list_last = x;
+    }
+}
+
+#ifdef DEBUG
+void print_pass1_buffer(void){
+    printf("\npass1 buffer: \n");
+    for(pass1_item_t *t = pass1_list_first; t != NULL; t = t->next){
+        if(t->type == TYPE_INSTRUCTION){
+            printf("  - from %s @ %d \t Addr: 0x%X \t Instr: '%s'\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
+        }
+        else if(t->type == TYPE_BLOB){
+            printf("  - from %s @ %d \t Addr: 0x%X \t BLOB with len of %d bytes\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
+        }
+        else{
+            fprintf(stderr, "Internal error in pass1, unknown pass1_item type!\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+#endif

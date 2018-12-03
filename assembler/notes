@@ -1,0 +1,13 @@
+Macros are not implemented, they was removed
+
+Added new preprocessor cmd #constant <name> <value>
+    <value> have to be single string withou spaces and so on
+
+.MVI pseudoinstruction was removed
+
+.DAT pseudoinstruction was removed
+    .DAT_B, .DAT_H and .DAT_W is implemented instead of it
+
+    .DAT_B -> bytes
+    .DAT_H -> halfword (16bit)
+    .DAT_W -> word (32bit)
