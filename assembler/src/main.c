@@ -43,22 +43,11 @@ int main(int argc, char* argv[]){
 }
 
 static void print_start(int x){
-    printf("\n\n\n");
-    printf("/----------------------------------------------------------------------\\\n");
-    printf("|                                                                      |\n");
-    printf("|                           PASS %d START!                              |\n", x);
-    printf("|                                                                      |\n");
-    printf("\\----------------------------------------------------------------------/\n");
+    printf("\n----* PASS %d START! *----\n", x);
 }
 
 static void print_end(int x){
-    printf("\n");
-    printf("/----------------------------------------------------------------------\\\n");
-    printf("|                                                                      |\n");
-    printf("|                            PASS %d END!                               |\n", x);
-    printf("|                                                                      |\n");
-    printf("\\----------------------------------------------------------------------/\n");
-    printf("\n\n\n");
+    printf("\n----* PASS %d END! *----\n", x);
 }
 
 #endif

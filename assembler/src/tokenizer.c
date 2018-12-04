@@ -267,15 +267,16 @@ static const char *is_pseudo(char *s){
      * N - unknown (used for reporting nonpseudo instruciton)
      */
 
-         if (strcmp(s, ".ORG")    == 0) return "PD";
-    else if (strcmp(s, ".CONS")   == 0) return "PSD";
-    else if (strcmp(s, ".DAT_B")  == 0) return "Pd";
-    else if (strcmp(s, ".DAT_H")  == 0) return "Pd";
-    else if (strcmp(s, ".DAT_W")  == 0) return "Pd";
-    else if (strcmp(s, ".DS")     == 0) return "PD";
-    else if (strcmp(s, ".EXPORT") == 0) return "PS";
-    else if (strcmp(s, ".IMPORT") == 0) return "PS";
-    else                                return "N";
+         if (strcmp(s, ".ORG")     == 0) return "PD";
+    else if (strcmp(s, ".CONS")    == 0) return "PSD";
+    else if (strcmp(s, ".DAT_B")   == 0) return "Pd";
+    else if (strcmp(s, ".DAT_H")   == 0) return "Pd";
+    else if (strcmp(s, ".DAT_W")   == 0) return "Pd";
+    else if (strcmp(s, ".DS")      == 0) return "PD";
+    else if (strcmp(s, ".EXPORT")  == 0) return "PS";
+    else if (strcmp(s, ".IMPORT")  == 0) return "PS";
+    else if (strcmp(s, ".SECTION") == 0) return "PS";
+    else                                 return "N";
 }
 
 static const char* is_prepr(char* s){
@@ -1001,40 +1002,60 @@ void tokenizer_cleanup(void){
 
 void print_filelist(void){
     printf("\nFile info list: \n");
-    for(fileInfoOut_t *t = filelist_first; t != NULL; t = t->next){
-        printf("  - '%s'\n", t->absName);
+    if(filelist_first == NULL){
+        printf("  - List is empty\n");
+    }
+    else{
+        for(fileInfoOut_t *t = filelist_first; t != NULL; t = t->next){
+            printf("  - '%s'\n", t->absName);
+        }
     }
 }
 
 void print_defs(void){
     printf("\nDefines:\n");
-    for(def_t* item = def_list; item != NULL; item = item->next){
-        printf("- '%s'\n", item->constant);
+    if(def_list == NULL){
+        printf("  - List is empty\n");
+    }
+    else{
+        for(def_t* item = def_list; item != NULL; item = item->next){
+            printf("  - '%s'\n", item->constant);
+        }
     }
 }
 
 void print_cons(void){
     printf("\nConstants:\n");
-    for(cons_t* item = cons_list; item != NULL; item = item->next){
-        printf("- '%s' : '%s'\n", item->constant, item->value);
+    if(cons_list == NULL){
+        printf("  - List is empty\n");
+    }
+    else{
+        for(cons_t* item = cons_list; item != NULL; item = item->next){
+            printf("  - '%s' : '%s'\n", item->constant, item->value);
+        }
     }
 }
 
 void print_toklist(void){
     printf("\nOutput token list: \n");
-    for(tok_t *t = toklist_first; t != NULL; t = t->next){
-        if(t->type == TOKEN_IS_INSTR){
-            printf("  - from %s @ %d \t Instr: '%s'\n", t->fileInfo->name, t->lineNumber, t->payload.i->line);
-        }
-        else if(t->type == TOKEN_IS_LABEL){
-            printf("  - from %s @ %d \t Label: '%s'\n", t->fileInfo->name, t->lineNumber, t->payload.l->line);
-        }
-        else if(t->type == TOKEN_IS_PSEUD){
-            printf("  - from %s @ %d \t Pseud: '%s'\n", t->fileInfo->name, t->lineNumber, t->payload.p->line);
-        }
-        else{
-            fprintf(stderr, "Internal error in tokenizer!\n");
-            exit(EXIT_FAILURE);
+    if(toklist_first == NULL){
+        printf("  - List is empty\n");
+    }
+    else{
+        for(tok_t *t = toklist_first; t != NULL; t = t->next){
+            if(t->type == TOKEN_IS_INSTR){
+                printf("  - from %s @ %d \t Instr: '%s'\n", t->fileInfo->name, t->lineNumber, t->payload.i->line);
+            }
+            else if(t->type == TOKEN_IS_LABEL){
+                printf("  - from %s @ %d \t Label: '%s'\n", t->fileInfo->name, t->lineNumber, t->payload.l->line);
+            }
+            else if(t->type == TOKEN_IS_PSEUD){
+                printf("  - from %s @ %d \t Pseud: '%s'\n", t->fileInfo->name, t->lineNumber, t->payload.p->line);
+            }
+            else{
+                fprintf(stderr, "Internal error in tokenizer!\n");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 }

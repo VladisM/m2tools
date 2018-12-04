@@ -28,8 +28,17 @@ typedef struct pass1_item_s{
     pass1_item_type_t type;
 }pass1_item_t;
 
-extern pass1_item_t *pass1_list_first;
-extern pass1_item_t *pass1_list_last;
+typedef struct pass1_section_s{
+    struct pass1_section_s *prev;
+    struct pass1_section_s *next;
+    pass1_item_t *first_element;
+    pass1_item_t *last_element;
+    unsigned int last_location_counter;
+    char *section_name;
+}pass1_section_t;
+
+extern pass1_section_t *pass1_list_first;
+extern pass1_section_t *pass1_list_last;
 
 void pass1(void);
 void pass1_cleanup(void);

@@ -8,14 +8,22 @@
 #include <symbol_table.h>
 #include <tokenizer.h>
 
-pass1_item_t *pass1_list_first = NULL;
-pass1_item_t *pass1_list_last = NULL;
+pass1_section_t *pass1_list_first = NULL;
+pass1_section_t *pass1_list_last = NULL;
+
+pass1_section_t *actual_section = NULL;
+
+//TODO: přidat pořádké komentáře
 
 static void _pass1(void);
 static uint32_t convert_to_int(char *l);
 static void append_to_pass1_list(pass1_item_t *x);
 
-//TODO: přidat podporu pro více jmených prostorů
+static void handle_section(char *section_name);
+static inline pass1_section_t *make_new_section(char *section_name);
+static inline pass1_section_t *get_current_section(void);
+static inline pass1_section_t *is_section_exist(char *section_name);
+static inline void append_to_section_list(pass1_section_t *section);
 
 void pass1(void){
     _pass1();
@@ -113,7 +121,28 @@ static void _pass1(void){
             }
 
             if(strcmp(cmd, ".ORG") == 0){
-            //TODO: dokončit
+                //get position of section name
+                char *arg = cmd + strlen(".ORG") + 1;
+
+                uint32_t new_location = convert_to_int(arg);
+
+                location_counter = new_location;
+            }
+            else if(strcmp(cmd, ".SECTION") == 0){
+                //get position of section name
+                char *arg = cmd + strlen(".SECTION") + 1;
+
+                pass1_section_t *s = get_current_section();
+
+                if(s == NULL){
+                    handle_section(arg);
+                }
+                else{
+                    s->last_location_counter = location_counter;
+                    handle_section(arg);
+                    s = get_current_section();
+                    location_counter = s->last_location_counter;
+                }
             }
             else if(strcmp(cmd, ".CONS") == 0){
                 char * cons_name = NULL;    //do not free them!
@@ -418,30 +447,126 @@ static uint32_t convert_to_int(char *l){
 }
 
 static void append_to_pass1_list(pass1_item_t *x){
-    if(pass1_list_first == NULL){
-        pass1_list_first = x;
-        pass1_list_last = x;
+    pass1_section_t * s = get_current_section();
+
+    if(s == NULL){
+        fprintf(stderr, "Error! Any section dosn't exist! You have to create at least one!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(s->first_element == NULL){
+        s->first_element = x;
+        s->last_element = x;
     }
     else{
-        pass1_list_last->next = x;
-        x->prev = pass1_list_last;
-        pass1_list_last = x;
+        s->last_element->next = x;
+        x->prev = s->last_element;
+        s->last_element = x;
     }
 }
+
+
+/* ---------------------------------------------------------------------
+ * Functions to handle sections
+ */
+
+static void handle_section(char *section_name){
+
+    pass1_section_t *s = is_section_exist(section_name);
+
+    if(s != NULL){ //section exist
+        actual_section = s;
+    }
+    else{
+        s = make_new_section(section_name);
+        append_to_section_list(s);
+        actual_section = s;
+    }
+
+}
+
+static inline pass1_section_t *make_new_section(char *section_name){
+
+    pass1_section_t *new_section = (pass1_section_t *)malloc(sizeof(pass1_section_t));
+    char *x = (char *) malloc(sizeof(char) * (strlen(section_name) + 1));
+
+    //check malloc result
+    if(new_section == NULL || x == NULL){
+        fprintf(stderr, "Malloc failed!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //copy path
+    strcpy(x, section_name);
+
+    //insert content of the new item
+    new_section->section_name = x;
+    new_section->last_location_counter = 0;
+    new_section->prev = NULL;
+    new_section->next = NULL;
+    new_section->last_element = NULL;
+    new_section->first_element = NULL;
+
+    return new_section;
+}
+
+static inline pass1_section_t *get_current_section(void){
+    return actual_section;
+}
+
+static inline pass1_section_t *is_section_exist(char *section_name){
+    for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
+        if(strcmp(section_name, s->section_name) == 0){
+            return s;
+        }
+    }
+    return NULL;
+}
+
+static inline void append_to_section_list(pass1_section_t *section){
+    if(pass1_list_first == NULL){
+        pass1_list_first = section;
+        pass1_list_last = section;
+    }
+    else{
+        pass1_list_last->next = section;
+        section->prev = pass1_list_last;
+        pass1_list_last = section;
+    }
+}
+
+/* ---------------------------------------------------------------------
+ * Debuging functions.
+ */
 
 #ifdef DEBUG
 void print_pass1_buffer(void){
     printf("\npass1 buffer: \n");
-    for(pass1_item_t *t = pass1_list_first; t != NULL; t = t->next){
-        if(t->type == TYPE_INSTRUCTION){
-            printf("  - from %s @ %d \t Addr: 0x%X \t Instr: '%s'\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
-        }
-        else if(t->type == TYPE_BLOB){
-            printf("  - from %s @ %d \t Addr: 0x%X \t BLOB with len of %d bytes\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
-        }
-        else{
-            fprintf(stderr, "Internal error in pass1, unknown pass1_item type!\n");
-            exit(EXIT_FAILURE);
+
+    if(pass1_list_first == NULL){
+        printf("  - Section list is empty\n");
+    }
+    else{
+        for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
+
+            printf("  - Section '%s':\n", s->section_name);
+            if(s->first_element == NULL){
+                printf("      - List is empty\n");
+            }
+            else{
+                for(pass1_item_t *t = s->first_element; t != NULL; t = t->next){
+                    if(t->type == TYPE_INSTRUCTION){
+                        printf("      - from %s @ %d \t Addr: 0x%X \t Instr: '%s'\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
+                    }
+                    else if(t->type == TYPE_BLOB){
+                        printf("      - from %s @ %d \t Addr: 0x%X \t BLOB with len of %d bytes\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
+                    }
+                    else{
+                        fprintf(stderr, "Internal error in pass1, unknown pass1_item type!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            }
         }
     }
 }
