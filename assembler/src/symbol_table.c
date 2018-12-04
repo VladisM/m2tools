@@ -51,9 +51,14 @@ void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t * parent){
 #ifdef DEBUG
 void print_symboltable(void){
     printf("\nSymbol table: \n");
-    for(symbol_t *t = symbol_first; t != NULL; t = t->next){
-        //TODO: přidat lepší formátování
-        printf("  - %-30s \t Value: 0x%08X   Stype: 0x%02X\n", t->label, t->address, t->stype);
+    if(symbol_first == NULL){
+        printf("  - List is empty\n");
+    }
+    else{
+        for(symbol_t *t = symbol_first; t != NULL; t = t->next){
+            //TODO: přidat lepší formátování
+            printf("  - %-30s \t Value: 0x%08X   Stype: 0x%02X\n", t->label, t->address, t->stype);
+        }
     }
 }
 #endif
