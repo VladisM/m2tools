@@ -21,7 +21,6 @@ override WARNINGS += \
 	-Waggregate-return \
 	-Wfloat-equal \
 	-Wswitch-enum \
-	-Wpadded \
 	-Wconversion
 
 override CFLAGS += \
