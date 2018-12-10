@@ -422,26 +422,43 @@ static uint32_t convert_to_int(char *l){
         fprintf(stderr, "Convert int error!\n");
         exit(EXIT_FAILURE);
     }
-    else if(len == 1){
-        //can be only decimal
-        return (uint32_t) atoi(l);
-    }
     else{
+        uint32_t temp = 0;
+        char *end_ptr = NULL;
+
         if(l[0] == '0' && l[1] == 'x'){
-            //hex number
-            //TODO: přidat podporu po hexa čísla
-            fprintf(stderr, "Hex numbers are not supported!\n");
-            exit(EXIT_FAILURE);
+            temp = strtol(l, &end_ptr, 16);
+
+            if(end_ptr != l){
+                return temp;
+            }
+            else{
+                fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
+                exit(EXIT_FAILURE);
+            }
         }
         else if(l[0] == '0' && l[1] == 'b'){
-            //binary
-            //TODO: přidat podporu po bin čísla
-            fprintf(stderr, "Binary numbers are not supported!\n");
-            exit(EXIT_FAILURE);
+            char *nptr = l + 2;
+            temp = strtol(nptr, &end_ptr, 2);
+
+            if(end_ptr != nptr){
+                return temp;
+            }
+            else{
+                fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
+                exit(EXIT_FAILURE);
+            }
         }
         else{
-            //should be decimal
-            return (uint32_t) atoi(l);
+            temp = strtol(l, &end_ptr, 10);
+
+            if(end_ptr != l){
+                return temp;
+            }
+            else{
+                fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
+                exit(EXIT_FAILURE);
+            }
         }
     }
 }
