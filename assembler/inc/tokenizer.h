@@ -6,11 +6,6 @@
 
 #include <isa.h>
 
-//these flags determine valid member of union in tok_t
-#define FLAGS_IS_LABEL 0x00000001U
-#define FLAGS_IS_PSEUD 0x00000002U
-#define FLAGS_IS_INSTR 0x00000004U
-
 typedef enum{
     TOKEN_IS_LABEL,
     TOKEN_IS_PSEUD,
