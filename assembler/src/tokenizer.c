@@ -946,15 +946,15 @@ void tokenizer_cleanup(void){
             tmp = head;
             head = head->next;
 
-            if(tmp->type == FLAGS_IS_INSTR){
+            if(tmp->type == TOKEN_IS_INSTR){
                 cleanup_istruction_struct(tmp->payload.i);
                 free(tmp->payload.i);
             }
-            else if(tmp->type == FLAGS_IS_LABEL){
+            else if(tmp->type == TOKEN_IS_LABEL){
                 free(tmp->payload.l->line);
                 free(tmp->payload.l);
             }
-            else if(tmp->type == FLAGS_IS_PSEUD){
+            else if(tmp->type == TOKEN_IS_PSEUD){
                 free(tmp->payload.p->line);
                 free(tmp->payload.p);
             }
