@@ -13,10 +13,23 @@ pass1_section_t *pass1_list_last = NULL;
 
 pass1_section_t *actual_section = NULL;
 
+typedef union{
+    uint8_t byte;
+    uint16_t hword;
+    uint32_t word;
+}val_t;
+
+typedef enum{
+    BYTE,
+    HWORD,
+    WORD
+}val_types_t;
+
 //TODO: přidat pořádké komentáře
 
 static void _pass1(void);
-static uint32_t convert_to_int(char *l);
+static long int convert_to_int(char *l);
+static int format_integer(val_types_t size, val_t *out_val, long int val);
 static void append_to_pass1_list(pass1_item_t *x);
 
 static void handle_section(char *section_name);
@@ -30,7 +43,7 @@ void pass1(void){
 }
 
 static void _pass1(void){
-    unsigned int location_counter = 0;
+    uint32_t location_counter = 0;
 
     for(tok_t * t = toklist_first; t != NULL; t = t->next){
         if(t->type == TOKEN_IS_INSTR){
@@ -123,10 +136,16 @@ static void _pass1(void){
             if(strcmp(cmd, ".ORG") == 0){
                 //get position of section name
                 char *arg = cmd + strlen(".ORG") + 1;
+                val_t new_location;
 
-                uint32_t new_location = convert_to_int(arg);
+                if(format_integer(WORD, &new_location, convert_to_int(arg)) == 1){
+                    location_counter = new_location.word;
+                }
+                else{
+                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                    exit(EXIT_FAILURE);
+                }
 
-                location_counter = new_location;
             }
             else if(strcmp(cmd, ".SECTION") == 0){
                 //get position of section name
@@ -148,7 +167,7 @@ static void _pass1(void){
                 char * cons_name = NULL;    //do not free them!
                 char * cons_value = NULL;
                 unsigned int x = 0;
-                uint32_t cons_value_int = 0;
+                val_t val;
 
                 //put x to "point" to next string in cmd
                 x = (unsigned int)strlen(cmd);
@@ -159,10 +178,13 @@ static void _pass1(void){
                 cons_value = &(cmd[++x]);
 
                 //convert value into integer
-                cons_value_int = convert_to_int(cons_value);
+                if(format_integer(WORD, &val, convert_to_int(cons_value)) == 0){
+                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                    exit(EXIT_FAILURE);
+                }
 
                 //add this symbol into symbol table
-                new_symbol(cons_name, cons_value_int, STYPE_ABSOLUTE, t);
+                new_symbol(cons_name, val.word, STYPE_ABSOLUTE, t);
             }
             else if(strcmp(cmd, ".DAT_W") == 0){
                 //get position of first argument
@@ -188,13 +210,19 @@ static void _pass1(void){
 
                 //iterate over all arguments
                 for(unsigned int i = 0; i < arg_count; i++){
-                    uint32_t val = convert_to_int(arg);
+                    val_t val;
+
+                    //convert value into integer
+                    if(format_integer(WORD, &val, convert_to_int(arg)) == 0){
+                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                        exit(EXIT_FAILURE);
+                    }
 
                     //fill data
-                    *(b_data + 4*i) = (uint8_t)(val & 0xFF);
-                    *(b_data + 4*i + 1) = (uint8_t)((val >> 8) & 0xFF);
-                    *(b_data + 4*i + 2) = (uint8_t)((val >> 16) & 0xFF);
-                    *(b_data + 4*i + 3) = (uint8_t)((val >> 24) & 0xFF);
+                    *(b_data + 4*i) = (uint8_t)(val.word & 0xFF);
+                    *(b_data + 4*i + 1) = (uint8_t)((val.word >> 8) & 0xFF);
+                    *(b_data + 4*i + 2) = (uint8_t)((val.word >> 16) & 0xFF);
+                    *(b_data + 4*i + 3) = (uint8_t)((val.word >> 24) & 0xFF);
 
                     //get next argument
                     arg = arg + strlen(arg) + 1;
@@ -242,18 +270,17 @@ static void _pass1(void){
 
                 //iterate over all arguments
                 for(unsigned int i = 0; i < arg_count; i++){
-                    uint32_t val = convert_to_int(arg);
+                    val_t val;
 
-                    //check size of data
-                    if(val > 0xFFFF){
-                        fprintf(stderr, "Syntax error! File '%s' at line '%d'.\n", t->fileInfo->name, t->lineNumber);
-                        fprintf(stderr, ".DAT_B argument value is too large!\n");
+                    //convert value into integer
+                    if(format_integer(HWORD, &val, convert_to_int(arg)) == 0){
+                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
                         exit(EXIT_FAILURE);
                     }
 
                     //fill data
-                    *(b_data + 2*i) = (uint8_t)(val & 0xFF);
-                    *(b_data + 2*i + 1) = (uint8_t)((val & 0xFF00) >> 8);
+                    *(b_data + 2*i) = (uint8_t)(val.hword & 0xFF);
+                    *(b_data + 2*i + 1) = (uint8_t)((val.hword & 0xFF00) >> 8);
 
                     //get next argument
                     arg = arg + strlen(arg) + 1;
@@ -301,17 +328,16 @@ static void _pass1(void){
 
                 //iterate over all arguments
                 for(unsigned int i = 0; i < arg_count; i++){
-                    uint32_t val = convert_to_int(arg);
+                    val_t val;
 
-                    //check size of data
-                    if(val > 0xFF){
-                        fprintf(stderr, "Syntax error! File '%s' at line '%d'.\n", t->fileInfo->name, t->lineNumber);
-                        fprintf(stderr, ".DAT_B argument value is too large!\n");
+                    //convert value into integer
+                    if(format_integer(BYTE, &val, convert_to_int(arg)) == 0){
+                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
                         exit(EXIT_FAILURE);
                     }
 
                     //fill data
-                    *(b_data + i) = (uint8_t)val;
+                    *(b_data + i) = val.byte;
 
                     //get next argument
                     arg = arg + strlen(arg) + 1;
@@ -340,7 +366,15 @@ static void _pass1(void){
                 char *arg = cmd + strlen(".DS") + 1;
 
                 //get len from pseud
-                uint32_t len = convert_to_int(arg);
+                val_t val;
+                uint32_t len;
+
+                if(format_integer(WORD, &val, convert_to_int(arg)) == 0){
+                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                    exit(EXIT_FAILURE);
+                }
+
+                len = val.word;
 
                 //create structure for pass1_item and blob
                 pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
@@ -353,7 +387,8 @@ static void _pass1(void){
                 }
 
                 //fill blob data
-                for(unsigned int i = 0; i < len; i++) *(b_data + i) = 0x00;
+                for(uint32_t i = 0; i < len; i++) *(b_data + i) = 0;
+
 
                 b->blob_data = b_data;
                 b->blob_len = len;
@@ -415,7 +450,7 @@ void pass1_cleanup(void){
     return;
 }
 
-static uint32_t convert_to_int(char *l){
+static long int convert_to_int(char *l){
     size_t len = strlen(l);
 
     if(len < 1){
@@ -423,16 +458,13 @@ static uint32_t convert_to_int(char *l){
         exit(EXIT_FAILURE);
     }
     else{
-        uint32_t temp = 0;
+        long int temp = 0;
         char *end_ptr = NULL;
 
         if(l[0] == '0' && l[1] == 'x'){
             temp = strtol(l, &end_ptr, 16);
 
-            if(end_ptr != l){
-                return temp;
-            }
-            else{
+            if(end_ptr == l){
                 fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
                 exit(EXIT_FAILURE);
             }
@@ -441,10 +473,7 @@ static uint32_t convert_to_int(char *l){
             char *nptr = l + 2;
             temp = strtol(nptr, &end_ptr, 2);
 
-            if(end_ptr != nptr){
-                return temp;
-            }
-            else{
+            if(end_ptr == nptr){
                 fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
                 exit(EXIT_FAILURE);
             }
@@ -452,15 +481,37 @@ static uint32_t convert_to_int(char *l){
         else{
             temp = strtol(l, &end_ptr, 10);
 
-            if(end_ptr != l){
-                return temp;
-            }
-            else{
+            if(end_ptr == l){
                 fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
                 exit(EXIT_FAILURE);
             }
         }
+
+        return temp;
     }
+}
+
+static int format_integer(val_types_t size, val_t *out_val, long int val){
+    switch(size){
+        case BYTE:
+            if(val >= -128 && val <= 127) out_val->byte = (uint8_t) val;
+            else return 0;
+            break;
+        case HWORD:
+            if(val >= -32768 && val <= 32767) out_val->hword = (uint16_t) val;
+            else return 0;
+            break;
+        case WORD:
+            if(val >= -2147483648 && val <= 2147483647) out_val->word = (uint32_t) val;
+            else return 0;
+            break;
+        default:
+            fprintf(stderr, "Internal code error!\n");
+            exit(EXIT_FAILURE);
+            break;
+    }
+
+    return 1;
 }
 
 static void append_to_pass1_list(pass1_item_t *x){

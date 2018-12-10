@@ -24,7 +24,7 @@ typedef struct pass1_item_s{
         blob_t *b;
         tInstruction *i;
     }payload;
-    unsigned int location;
+    uint32_t location;
     pass1_item_type_t type;
 }pass1_item_t;
 
@@ -33,7 +33,7 @@ typedef struct pass1_section_s{
     struct pass1_section_s *next;
     pass1_item_t *first_element;
     pass1_item_t *last_element;
-    unsigned int last_location_counter;
+    uint32_t last_location_counter;
     char *section_name;
 }pass1_section_t;
 
