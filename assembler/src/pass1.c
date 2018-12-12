@@ -446,7 +446,33 @@ static void _pass1(void){
 }
 
 void pass1_cleanup(void){
-    //TODO: dokončit
+    pass1_section_t *tmp_sec = NULL;
+    pass1_section_t *head_sec = pass1_list_first;
+
+    while(head_sec != NULL){
+        tmp_sec = head_sec;
+        head_sec = head_sec->next;
+
+        pass1_item_t *tmp_item = NULL;
+        pass1_item_t *head_item = tmp_sec->first_element;
+
+        while(head_item != NULL){
+            tmp_item = head_item;
+            head_item = head_item->next;
+
+            if(tmp_item->type == TYPE_BLOB){
+                free(tmp_item->payload.b->blob_data);
+                free(tmp_item->payload.b);
+            }
+
+            free(tmp_item);
+        }
+
+        //clean up section itself
+        free(tmp_sec->section_name);
+        free(tmp_sec);
+    }
+
     return;
 }
 
