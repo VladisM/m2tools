@@ -108,7 +108,7 @@ static void _pass1(void){
             }
 
             //make new symbol in table
-            new_symbol(label_name, location_counter, STYPE_RELOCATION, t);
+            new_symbol(label_name, location_counter, STYPE_RELOCATION, t, (void *)get_current_section());
 
             //cleanup
             free(label_name);
@@ -184,7 +184,7 @@ static void _pass1(void){
                 }
 
                 //add this symbol into symbol table
-                new_symbol(cons_name, val.word, STYPE_ABSOLUTE, t);
+                new_symbol(cons_name, val.word, STYPE_ABSOLUTE, t, (void *)get_current_section());
             }
             else if(strcmp(cmd, ".DAT_W") == 0){
                 //get position of first argument
@@ -416,7 +416,7 @@ static void _pass1(void){
                 export_name = &(cmd[++x]);
 
                 //add export into symbol table
-                new_symbol(export_name, 0, STYPE_EXPORT, t);
+                new_symbol(export_name, 0, STYPE_EXPORT, t, (void *)get_current_section());
             }
             else if(strcmp(cmd, ".IMPORT") == 0){
                 char * import_name = NULL;
@@ -427,7 +427,7 @@ static void _pass1(void){
                 import_name = &(cmd[++x]);
 
                 //add export into symbol table
-                new_symbol(import_name, 0, STYPE_IMPORT, t);
+                new_symbol(import_name, 0, STYPE_IMPORT, t, (void *)get_current_section());
             }
             else{
                 fprintf(stderr, "Syntax error, pass1 doesn't know that label! Label '%s' from: %s at line %d.\n", cmd, t->fileInfo->name, t->lineNumber);

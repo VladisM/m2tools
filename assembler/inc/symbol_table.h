@@ -16,10 +16,11 @@ typedef struct symbol_s{
     char *label;
     uint32_t address;
     uint8_t stype;
-    tok_t * parent;
+    tok_t *parent;
+    void *section;
 }symbol_t;
 
-void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t *parent);
+void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t *parent, void *section);
 void symbol_table_cleanup(void);
 
 #ifdef DEBUG

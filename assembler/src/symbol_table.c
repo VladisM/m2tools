@@ -10,7 +10,7 @@ static symbol_t *symbol_last = NULL;
 
 static int is_equal(symbol_t *x1, symbol_t *x2);
 
-void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t * parent){
+void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t * parent, void *section){
     symbol_t *x = (symbol_t *) malloc( sizeof(symbol_t) );
     char *l = (char *) malloc( sizeof(char) * (strlen(label) + 1) );
 
@@ -25,6 +25,7 @@ void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t * parent){
     x->parent = parent;
     x->prev = NULL;
     x->next = NULL;
+    x->section = section;
 
     strcpy(l, label);
 
@@ -48,21 +49,6 @@ void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t * parent){
     }
 }
 
-#ifdef DEBUG
-void print_symboltable(void){
-    printf("\nSymbol table: \n");
-    if(symbol_first == NULL){
-        printf("  - List is empty\n");
-    }
-    else{
-        for(symbol_t *t = symbol_first; t != NULL; t = t->next){
-            //TODO: přidat lepší formátování
-            printf("  - %-30s \t Value: 0x%08X   Stype: 0x%02X\n", t->label, t->address, t->stype);
-        }
-    }
-}
-#endif
-
 void symbol_table_cleanup(void){
     symbol_t *tmp, *head;
 
@@ -83,3 +69,19 @@ static int is_equal(symbol_t *x1, symbol_t *x2){
     ) return 1;
     else return 0;
 }
+
+#ifdef DEBUG
+#include <pass1.h>
+
+void print_symboltable(void){
+    printf("\nSymbol table: \n");
+    if(symbol_first == NULL){
+        printf("  - List is empty\n");
+    }
+    else{
+        for(symbol_t *t = symbol_first; t != NULL; t = t->next){
+            printf("  - %-30s \t Value: 0x%08X \t Stype: %d \t Section: '%s'\n", t->label, t->address, t->stype, ((pass1_section_t *)(t->section))->section_name);
+        }
+    }
+}
+#endif
