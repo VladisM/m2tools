@@ -241,6 +241,9 @@ int get_instruction_24CONST_operand(tInstruction *i, uint32_t *operand){
         return -1;
     }
 
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wswitch-enum"
+
     switch(opcode){
         case ISA_CALL:
             *operand = (i->word & 0x0FFFFFF0) >> 4;
@@ -266,6 +269,8 @@ int get_instruction_24CONST_operand(tInstruction *i, uint32_t *operand){
             break;
     }
 
+    #pragma GCC diagnostic pop
+
     return 0;
 }
 
@@ -278,6 +283,9 @@ int set_instruction_24CONST_operand(tInstruction *i, uint32_t operand){
     if(ret != 0){
         return -1;
     }
+
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wswitch-enum"
 
     switch(opcode){
         case ISA_CALL:
@@ -309,6 +317,8 @@ int set_instruction_24CONST_operand(tInstruction *i, uint32_t operand){
             return -1;
             break;
     }
+
+    #pragma GCC diagnostic pop
 
     return 0;
 }
@@ -436,13 +446,18 @@ const char* is_instruction(char *s){
 
 }
 
-void cleanup_istruction_struct(tInstruction *i){
+void free_istruction_struct(tInstruction *i){
     free(i->line);
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 unsigned int get_instruction_size(tInstruction *i){
     return 4;
 }
+
+#pragma GCC diagnostic pop
 
 int check_instruction_args(char *i){
     //TODO: add valid check

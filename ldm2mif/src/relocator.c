@@ -5,6 +5,8 @@
 
 #include "error.h"
 
+#include <stdlib.h>
+
 int relocate_buffer(ldm_buffer_item_t *b, unsigned int base_address){
 
     for(;b != NULL ; b=b->next){

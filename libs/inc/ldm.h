@@ -5,8 +5,6 @@
  * @file ldm.h
  *
  * @brief Library for manipulating LDM files.
- *
- * @todo use stdint.h variables to ensure correct lenght
  */
 
 /**
@@ -43,7 +41,7 @@
  * @{
  */
 
-#include <stdio.h>
+#include <stdint.h>
 
 /**
  * @brief Error codes
@@ -52,7 +50,7 @@
  * be used to get more information about potential error.
  */
 typedef enum{
-    LDMERR_OK = 0,              /**< @brief Ewerithing is ok ... have a nice day :) */
+    LDMERR_OK = 0,              /**< @brief Everything is ok ... have a nice day :) */
     LDMERR_BAD_LDM_FORMAT,      /**< @brief LDM file have bad format. */
     LDMERR_FILE_OPEN_ERROR,     /**< @brief Error when openning LDM file.*/
     LDMERR_LINE_READ_FAILED,    /**< @brief Error on reading line from LDM file.*/
@@ -78,8 +76,8 @@ typedef enum{
  * care if it is valid instruction or plain binary data (for example variables).
  */
 typedef struct ldm_buffer_item_s{
-    unsigned int address; /**< @brief Address of the item parsed from LDM file. */
-    unsigned int value;  /**< @brief Value of the item. */
+    uint32_t address; /**< @brief Address of the item parsed from LDM file. */
+    uint32_t value;  /**< @brief Value of the item. */
     unsigned int relocation; /**< @brief Retarget flag. */
     struct ldm_buffer_item_s * next; /**< @brief Pointer to the next item. It is linked list.*/
 }ldm_buffer_item_t;

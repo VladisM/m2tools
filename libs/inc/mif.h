@@ -104,7 +104,7 @@ void clear_miflib_errno(void);
  *
  * @return -1 on failure otherwise 0
  */
-int mif_read(char * filename, mif_buffer_item_t** mif_buffer);
+int mif_load(char * filename, mif_buffer_item_t** mif_buffer);
 
 /**
  * @brief write mif file.

@@ -260,7 +260,7 @@ void clear_miflib_errno(void){
     miflib_errno = 0;
 }
 
-int mif_read(char * filename, mif_buffer_item_t** mif_buffer){
+int mif_load(char * filename, mif_buffer_item_t** mif_buffer){
 
     mif_info_t* mif_info;
     FILE* fp;
