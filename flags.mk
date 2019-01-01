@@ -15,6 +15,7 @@ override WARNINGS += \
 	-Wstrict-prototypes \
 	-Wbad-function-cast \
 	-Wunused \
+	-Wunused-result \
 	-Wuninitialized \
 	-Wmissing-declarations \
 	-Wlogical-op \

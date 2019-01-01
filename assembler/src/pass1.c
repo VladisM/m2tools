@@ -25,8 +25,6 @@ typedef enum{
     WORD
 }val_types_t;
 
-//TODO: přidat pořádké komentáře
-
 static void _pass1(void);
 static long int convert_to_int(char *l);
 static int format_integer(val_types_t size, val_t *out_val, long int val);

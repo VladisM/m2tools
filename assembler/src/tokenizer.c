@@ -947,7 +947,7 @@ void tokenizer_cleanup(void){
             head = head->next;
 
             if(tmp->type == TOKEN_IS_INSTR){
-                cleanup_istruction_struct(tmp->payload.i);
+                free_istruction_struct(tmp->payload.i);
                 free(tmp->payload.i);
             }
             else if(tmp->type == TOKEN_IS_LABEL){

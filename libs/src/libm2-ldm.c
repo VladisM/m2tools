@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
+#include <stdint.h>
 
 #include "ldm.h"
 
@@ -87,7 +87,8 @@ static int decode_line(ldm_buffer_item_t* i, char* line){
      */
 
     char buff[32];
-    unsigned int adr, val = 0;
+    uint32_t adr= 0;
+    uint32_t val = 0;
 
     int ret = sscanf(line, "%x:%x:%s", &adr, &val, buff);
 

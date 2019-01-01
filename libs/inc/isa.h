@@ -212,7 +212,7 @@ int is_comparison(char *s);
  *
  * @param i Structure to clean.
  */
-void cleanup_istruction_struct(tInstruction *i);
+void free_istruction_struct(tInstruction *i);
 
 /**
  * @brief Return instruction size in bytes
