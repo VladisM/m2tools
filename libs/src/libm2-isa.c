@@ -450,19 +450,33 @@ void free_istruction_struct(tInstruction *i){
     free(i->line);
 }
 
+#if defined ( __GNUC__ )
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 
 unsigned int get_instruction_size(tInstruction *i){
     return 4;
 }
 
+#if defined ( __GNUC__ )
 #pragma GCC diagnostic pop
+#endif
+
+//TODO: remove this pragmas for ignore flag
+#if defined ( __GNUC__ )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 
 int check_instruction_args(char *i){
     //TODO: add valid check
     return 1;
 }
+
+#if defined ( __GNUC__ )
+#pragma GCC diagnostic pop
+#endif
 
 /*
  *
