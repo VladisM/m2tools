@@ -1,0 +1,3 @@
+.SECTION text
+.ORG 0x100
+OR R1 R1 R1

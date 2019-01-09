@@ -1,0 +1,6 @@
+.SECTION text
+.DAT_B 10 20 30 40
+.DAT_H 10 20
+.DAT_W 10
+INC R1 R1
+.DS 8
