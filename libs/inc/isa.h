@@ -30,7 +30,11 @@ typedef enum {
     ISAERR_OK = 0,                           /**< @brief There isn't any error. */
     ISAERR_INSTRUCTION_NOT_RECOGNIZED,       /**< @brief Instruction is not recognized, probably not an instruction. */
     ISAERR_INSTRUCTION_DOESNT_HAVE_24CONST,  /**< @brief Instruction dosn't have 24bit constant as operand, but you wan't to separate it anyway... */
-    ISAERR_INSTRUCTION_ARG_OVERFLOW          /**< @brief Constant argument is larger than its width in instruction word. */
+    ISAERR_INSTRUCTION_ARG_OVERFLOW,         /**< @brief Constant argument is larger than its width in instruction word. */
+    ISAERR_NULL_PTR,
+    ISAERR_MALLOC_FAIL,
+    ISAERR_INTER_ERR,
+    ISAERR_FORMAT_ERR
 } tIsaError;
 
 /**
@@ -90,6 +94,8 @@ typedef enum {
 typedef struct sInstruction{
     uint32_t word; /**< @brief Instruction word. */
     char* line; /**< @brief Instruction as output from tokenizer, semicollon separed tokens. */
+    uint8_t special; /**< @brief Used in linker and assembler, specify if instruction operand pointing into special symbol table. */
+    uint8_t relocation; /**< @brief Used in liner and assembler, specify if instruction operand have to be relocated during linking. */
 } tInstruction;
 
 /**
@@ -231,6 +237,29 @@ unsigned int get_instruction_size(tInstruction *i);
  * @return 1 - if tokens are valid, 0 - if tokens are invalid
  */
 int check_instruction_args(char *i);
+
+/**
+ * @brief Create line for writing instruction into object file.
+ *
+ * @param inst Pointer to structure to be written.
+ * @param line Pointer to string buffer where line be stored.
+ *
+ * @warning line have to be allocated before entering this function
+ * and have to be atleast 32 chars wide
+ *
+ * @return 1 if ok; 0 if fail
+ */
+int export_into_object_file_line(tInstruction *inst, char *line);
+
+/**
+ * @brief Read line from object file into intruction structure.
+ *
+ * @param inst Pointer to structure where result will be stored.
+ * @param line Pointer to string buffer where line is stored.
+ *
+ * @return 1 if ok; 0 if fail
+ */
+int import_from_object_file_line(tInstruction *inst, char *line);
 
 /**
  * @}

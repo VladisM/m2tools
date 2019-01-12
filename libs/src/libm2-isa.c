@@ -478,6 +478,50 @@ int check_instruction_args(char *i){
 #pragma GCC diagnostic pop
 #endif
 
+int export_into_object_file_line(tInstruction *inst, char *line){
+    if(inst == NULL || line == NULL){
+        SET_ERROR(ISAERR_NULL_PTR);
+        return 0;
+    }
+
+    if(inst->relocation > 1 || inst->special > 1){
+        SET_ERROR(ISAERR_INTER_ERR);
+        return 0;
+    }
+
+    int ret = snprintf(line, 32, "0x%08X;%d;%d", inst->word, inst->relocation, inst->special);
+
+    if(ret < 0){
+        SET_ERROR(ISAERR_INTER_ERR);
+        return 0;
+    }
+
+    return 1;
+
+}
+
+int import_from_object_file_line(tInstruction *inst, char *line){
+
+    if(line == NULL || inst == NULL){
+        SET_ERROR(ISAERR_NULL_PTR);
+        return 0;
+    }
+
+    for(int i = 0; line[i] != '\0'; i++) if(line[i] == ';') line[i] = ' ';
+
+    if(sscanf(line, "%X %d %d", &(inst->word), &(inst->relocation), &(inst->special)) != 3){
+        SET_ERROR(ISAERR_FORMAT_ERR);
+        return 0;
+    }
+
+    if(inst->relocation > 1 || inst->special > 1){
+        SET_ERROR(ISAERR_INTER_ERR);
+        return 0;
+    }
+
+    return 1;
+}
+
 /*
  *
  * End of exported functions definitions
