@@ -262,6 +262,14 @@ int export_into_object_file_line(tInstruction *inst, char *line);
 int import_from_object_file_line(tInstruction *inst, char *line);
 
 /**
+ * @brief Create new instance of tInstruction structure and fill it
+ * with default values.
+ *
+ * @return Pointer to new struct if succed, NULL otherwise.
+ */
+tInstruction *new_instru(void);
+
+/**
  * @}
  */
 
