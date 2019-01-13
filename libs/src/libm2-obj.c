@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "obj.h"
 
@@ -52,6 +53,10 @@ void free_object_file(obj_file_t *o){
             tmp_data = head_data;
             head_data = head_data->next;
 
+            if(tmp_data->type == DATA_IS_BLOB) free(tmp_data->payload.blob->payload);
+            else if(tmp_data->type == DATA_IS_INST) free_istruction_struct(tmp_data->payload.inst);
+            else exit(EXIT_FAILURE);
+
             free(tmp_data);
         }
 
@@ -63,7 +68,6 @@ void free_object_file(obj_file_t *o){
 
             free(tmp_spec->name);
             free(tmp_spec);
-
         }
 
         free(tmp_section->section_name);
@@ -72,9 +76,7 @@ void free_object_file(obj_file_t *o){
 
     free(o->object_file_name);
     free(o);
-
 }
-
 
 int obj_load(char *filename, obj_file_t **o){
 
@@ -227,48 +229,156 @@ section_care:
 
                 break;
             case DATA_SYMBOL:
-
-                if(strcmp(line, ".section") == 0){
-                    load_decoder_state = SECTION_NAME;
-                    goto section_care;
-                }
-                else if(strcmp(line, ".end") == 0){
-                    end_of_file = 1;
-                    goto section_care;
-                }
-                else{
-                    uint32_t address = 0;
-                    uint32_t value = 0;
-                    uint8_t flags = 0;
-
-                    unsigned int address_, value_, flags_;
-
-                    data_symbol_t *new_data = NULL;
-
-                    for(int i = 0; line[i] != '\0'; i++) if(line[i] == ':') line[i] = ' ';
-
-                    if(sscanf(line, "0x%X 0x%X %d", &address_, &value_, &flags_) != 3){
-                        SET_ERROR(OBJRET_BROKEN_FILE);
-                        return -1;
+                {
+                    if(strcmp(line, ".section") == 0){
+                        load_decoder_state = SECTION_NAME;
+                        goto section_care;
                     }
-
-                    address = (uint32_t)address_;
-                    value = (uint32_t)value_;
-                    flags = (uint8_t)flags_;
-
-                    int relocation = 0, special = 0;
-
-                    if((flags & FLAG_DATA_RELOCATION) == FLAG_DATA_RELOCATION) relocation = 1;
-                    if((flags & FLAG_DATA_SPECIAL) == FLAG_DATA_SPECIAL) special = 1;
-
-                    if(new_data_symbol(address, value, relocation, special, &new_data)){
-                        return -1;
+                    else if(strcmp(line, ".end") == 0){
+                        end_of_file = 1;
+                        goto section_care;
                     }
+                    else{
 
-                    if(append_data_symbol_to_section(my_new_section, new_data)){
-                        return -1;
+                        if(line[0] == 'B'){
+
+                            uint32_t address;
+                            char buff[80];
+                            data_symbol_t *new_data = NULL;
+                            int base = 2;
+
+                            datablob_t *blob = (datablob_t *)malloc(sizeof(datablob_t));
+
+                            if(blob == NULL){
+                                SET_ERROR(OBJRET_MALLOC_FAIL);
+                                return -1;
+                            }
+
+                            for(int i = 2; line[i] != ':'; i++){
+                                if(i == 80){
+                                    SET_ERROR(OBJRET_INTERNAL_ERR);
+                                    return -1;
+                                }
+
+                                buff[i - 2] = line[i];
+                                buff[i - 1] = '\0';
+                            }
+
+                            if(sscanf(buff, "0x%"SCNx32 , &address) != 1){
+                                SET_ERROR(OBJRET_BROKEN_FILE);
+                                return -1;
+                            }
+
+                            uint8_t num_buff[80];
+                            unsigned int num_buff_index = 0;
+
+                            while(1){
+                                base += (int)strlen(buff) + 1;
+
+                                for(int i = base; line[i] != ':'; i++){
+                                    if(i == 80){
+                                        SET_ERROR(OBJRET_INTERNAL_ERR);
+                                        return -1;
+                                    }
+
+                                    buff[i - base] = line[i];
+                                    buff[i - base + 1] = '\0';
+                                }
+
+                                uint8_t num = 0;
+
+                                if(sscanf(buff, "0x%" SCNx8, &num) != 1){
+                                    SET_ERROR(OBJRET_BROKEN_FILE);
+                                    return -1;
+                                }
+
+                                num_buff[num_buff_index++] = num;
+
+                                if(line[base + (int)strlen(buff) + 1] == '\0'){
+                                    break;
+                                }
+
+                            }
+
+                            blob->lenght = num_buff_index;
+                            blob->payload = (uint8_t *)malloc(sizeof(uint8_t) * num_buff_index);
+
+                            if(blob->payload == NULL){
+                                SET_ERROR(OBJRET_MALLOC_FAIL);
+                                return -1;
+                            }
+
+                            for(unsigned int i = 0; i < num_buff_index; i++){
+                                blob->payload[i] = num_buff[i];
+                            }
+
+                            if(new_data_symbol(address, DATA_IS_BLOB, (void *)blob, &new_data)){
+                                return -1;
+                            }
+
+                            if(append_data_symbol_to_section(my_new_section, new_data)){
+                                return -1;
+                            }
+
+                        }
+                        else if(line[0] == 'I'){
+                            uint32_t address;
+                            char buff[80];
+                            data_symbol_t *new_data = NULL;
+
+                            tInstruction *inst = new_instru();
+
+                            if(inst == NULL){
+                                SET_ERROR(OBJRET_MALLOC_FAIL);
+                                return -1;
+                            }
+
+                            for(int i = 2; line[i] != ':'; i++){
+                                if(i == 80){
+                                    SET_ERROR(OBJRET_INTERNAL_ERR);
+                                    return -1;
+                                }
+
+                                buff[i - 2] = line[i];
+                                buff[i - 1] = '\0';
+                            }
+
+                            if(sscanf(buff, "0x%"SCNx32 , &address) != 1){
+                                SET_ERROR(OBJRET_BROKEN_FILE);
+                                return -1;
+                            }
+
+                            int base = (int)(strlen(buff)) + 2;
+
+                            for(int i = base; line[i] != '\0'; i++){
+                                if(i == 80){
+                                    SET_ERROR(OBJRET_INTERNAL_ERR);
+                                    return -1;
+                                }
+
+                                buff[i - base] = line[i];
+                                buff[i - base + 1] = '\0';
+                            }
+
+                            if(import_from_object_file_line(inst, buff) != 1){
+                                SET_ERROR(OBJRET_INTERNAL_ERR);
+                                return -1;
+                            }
+
+                            if(new_data_symbol(address, DATA_IS_INST, (void *)inst, &new_data)){
+                                return -1;
+                            }
+
+                            if(append_data_symbol_to_section(my_new_section, new_data)){
+                                return -1;
+                            }
+
+                        }
+                        else{
+                            SET_ERROR(OBJRET_BROKEN_FILE);
+                            return -1;
+                        }
                     }
-
                 }
 
                 break;
@@ -317,7 +427,7 @@ int obj_write(char *filename, obj_file_t *o){
 
         while(head_spec_symbol != NULL){
 
-            fprintf(fp, "%s:0x%08X:", head_spec_symbol->name, head_spec_symbol->value);
+            fprintf(fp, "%s:0x%" PRIx32 ":", head_spec_symbol->name, head_spec_symbol->value);
 
             if(head_spec_symbol->type == SYMBOL_EXPORT){
                 fprintf(fp, "export\n");
@@ -339,7 +449,50 @@ int obj_write(char *filename, obj_file_t *o){
         data_symbol_t *head_data = head_section->data_first;
 
         while(head_data != NULL){
-            fprintf(fp, "0x%08X:0x%08X:%d\n", head_data->address, head_data->value, head_data->flags);
+            if(head_data->type == DATA_IS_BLOB){
+
+                fprintf(fp, "B:");
+
+                if(head_data->payload.blob->lenght > 0){
+
+                    fprintf(fp, "0x%" PRIx32 ":0x%" PRIx8, head_data->address, head_data->payload.blob->payload[0]);
+                    for(unsigned int i = 1; i < head_data->payload.blob->lenght; i++){
+                        fprintf(fp, ":0x%" PRIx8, head_data->payload.blob->payload[i]);
+                    }
+                    fprintf(fp, "\n");
+
+                }
+                else{
+                    SET_ERROR(OBJRET_BROKEN_OBJ);
+                    return  -1;
+                }
+
+            }
+            else if(head_data->type == DATA_IS_INST){
+
+                fprintf(fp, "I:");
+
+                char *line = (char *)malloc(sizeof(char) * 64);
+
+                if(line == NULL){
+                    SET_ERROR(OBJRET_MALLOC_FAIL);
+                    return -1;
+                }
+
+                if(export_into_object_file_line(head_data->payload.inst, line) < 0){
+                    SET_ERROR(OBJRET_INTERNAL_ERR);
+                    return -1;
+                }
+
+                fprintf(fp, "0x%"PRIx32":%s\n", head_data->address, line);
+
+                free(line);
+            }
+            else{
+                SET_ERROR(OBJRET_INTERNAL_ERR);
+                return -1;
+            }
+
             head_data = head_data->next;
         }
 
@@ -382,7 +535,7 @@ int new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_
     return 0;
 }
 
-int new_data_symbol(uint32_t address, uint32_t value, int relocation, int special, data_symbol_t **d){
+int new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d){
 
     if(d == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
@@ -399,15 +552,17 @@ int new_data_symbol(uint32_t address, uint32_t value, int relocation, int specia
     (*d)->prev = NULL;
     (*d)->next = NULL;
     (*d)->address = address;
-    (*d)->value = value;
-    (*d)->flags = 0;
+    (*d)->type = type;
 
-    if(special == 1){
-        (*d)->flags |= FLAG_DATA_SPECIAL;
+    if(type == DATA_IS_BLOB){
+        (*d)->payload.blob = (datablob_t *)payload_ptr;
     }
-
-    if(relocation == 1){
-        (*d)->flags |= FLAG_DATA_RELOCATION;
+    else if(type == DATA_IS_INST){
+        (*d)->payload.inst = (tInstruction *)payload_ptr;
+    }
+    else{
+        SET_ERROR(OBJRET_INTERNAL_ERR);
+        return -1;
     }
 
     return 0;

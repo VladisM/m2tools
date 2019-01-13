@@ -24,21 +24,32 @@
  */
 
 #include <stdint.h>
-
-#define FLAG_DATA_RELOCATION 0x01
-#define FLAG_DATA_SPECIAL    0x02
+#include <isa.h>
 
 typedef enum{
     SYMBOL_EXPORT = 0,
     SYMBOL_IMPORT
 }symbol_type_t;
 
+typedef enum{
+    DATA_IS_BLOB = 0,
+    DATA_IS_INST
+}data_symbol_type_t;
+
+typedef struct{
+    unsigned int lenght;
+    uint8_t *payload;
+}datablob_t;
+
 typedef struct data_symbol_s{
     struct data_symbol_s *next;
     struct data_symbol_s *prev;
+    data_symbol_type_t type;
     uint32_t address;
-    uint32_t value;
-    uint8_t flags;
+    union{
+        datablob_t *blob;
+        tInstruction *inst;
+    }payload;
 }data_symbol_t;
 
 typedef struct spec_symbol_s{
@@ -93,7 +104,7 @@ int obj_write(char *filename, obj_file_t *o);
 int new_obj(char * object_file_name, obj_file_t **o);
 int new_section(char *secion_name, section_t **s);
 int new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s);
-int new_data_symbol(uint32_t address, uint32_t value, int relocation, int special, data_symbol_t **d);
+int new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d);
 
 //přidává do objektového souboru či do sekce
 int append_section_to_obj(obj_file_t *o, section_t *s);
