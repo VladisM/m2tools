@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include <obj.h>
+#include <isa.h>
 
 int main(int argc, char **argv){
 
@@ -60,8 +61,20 @@ int main(int argc, char **argv){
 
     for(int i = 0; i < 10; i++){
         data_symbol_t *data_symbol = NULL;
+        data_symbol_t *data_symbol_2 = NULL;
 
-        if(new_data_symbol(i * 4, i, 0, 0, &data_symbol)){
+        tInstruction *new_instruction = new_instru();
+        tInstruction *new_instruction_2 = new_instru();
+
+        if(new_instruction == NULL || new_instruction_2 == NULL){
+            fprintf(stderr, "Error in allocating new instruction! isalib_error_no: %d\n", get_isalib_errno());
+            exit(EXIT_FAILURE);
+        }
+
+        new_instruction->word = i;
+        new_instruction_2->word = i;
+
+        if(new_data_symbol(i * 4, DATA_IS_INST, (void *)new_instruction, &data_symbol)){
             fprintf(stderr, "Failed to create data symbol for section 1 in iteration %d! error_no %d\n", i, get_objlib_errno());
             exit(EXIT_FAILURE);
         }
@@ -71,8 +84,29 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         }
 
-        if(new_data_symbol(100 + (i * 4), i, 0, 0, &data_symbol)){
+        if(new_data_symbol(0x100 + (i * 4), DATA_IS_INST, (void *)new_instruction_2, &data_symbol_2)){
             fprintf(stderr, "Failed to create data symbol for section 2 in iteration %d! error_no %d\n", i, get_objlib_errno());
+            exit(EXIT_FAILURE);
+        }
+
+        if(append_data_symbol_to_section(my_section_2, data_symbol_2)){
+            fprintf(stderr, "Failed append new data symbol into section 2 in iteration %d! error_no %d\n", i, get_objlib_errno());
+            exit(EXIT_FAILURE);
+        }
+
+    }
+
+    for(int i = 0; i < 6; i++){
+        data_symbol_t *data_symbol = NULL;
+        datablob_t *data_blob = (datablob_t *)malloc(sizeof(datablob_t));
+
+        data_blob->lenght = 4;
+        data_blob->payload = (uint8_t *)malloc(sizeof(uint8_t) * 4);
+
+        for(int ii = 0; ii < 4; ii++) data_blob->payload[ii] = ii * i;
+
+        if(new_data_symbol(0x200 + (i * 4), DATA_IS_BLOB, (void *)(data_blob), &data_symbol)){
+            fprintf(stderr, "Failed to create blobdata symbol for section 2 in iteration %d! error_no %d\n", i, get_objlib_errno());
             exit(EXIT_FAILURE);
         }
 

@@ -1,4 +1,4 @@
-USED_LIBS = obj
+USED_LIBS = obj isa
 override CFLAGS += -I inc/ -I ../../libs/inc/
 SRC_DIR = src/
 
