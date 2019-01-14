@@ -29,8 +29,6 @@ obj_file_err_t get_objlib_errno(void){
     return objlib_errno;
 }
 
-
-
 void free_object_file(obj_file_t *o){
 
     section_t *tmp_section, *head_section;
@@ -507,8 +505,6 @@ int obj_write(char *filename, obj_file_t *o){
 
 }
 
-
-
 int new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s){
 
     if(name == NULL || s == NULL){
@@ -622,8 +618,6 @@ int new_section(char *section_name, section_t **s){
     return 0;
 }
 
-
-
 int append_section_to_obj(obj_file_t *o, section_t *s){
 
     if(o == NULL || s == NULL){
@@ -648,6 +642,19 @@ int append_section_to_obj(obj_file_t *o, section_t *s){
             SET_ERROR(OBJRET_BROKEN_OBJ);
             return -1;
         }
+
+        section_t *head = o->first_section;
+
+        while(head != NULL){
+
+            if(strcmp(s->section_name, head->section_name) == 0){
+                SET_ERROR(OBJRET_SECTION_EXIST_ALREADY);
+                return -1;
+            }
+
+            head = head->next;
+        }
+
 
         o->last_section->next = s;
         s->prev = o->last_section;
@@ -725,4 +732,3 @@ int append_data_symbol_to_section(section_t *section, data_symbol_t *data){
     return 0;
 
 }
-

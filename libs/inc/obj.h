@@ -11,8 +11,6 @@
  * @todo Dopsat pořádné komentáře
  *
  * @todo Napsat example použití do dokumentace
- *
- * @todo přidat podporu pro kontrolu již existujících sekcí v objektu při vkládání - není možno mít dvě sekce stejného jména
  */
 
 /**
@@ -86,7 +84,8 @@ typedef enum{
     OBJRET_BROKEN_SECTION,
     OBJRET_FOPEN_ERROR,
     OBJRET_INTERNAL_ERR,
-    OBJRET_BROKEN_FILE
+    OBJRET_BROKEN_FILE,
+    OBJRET_SECTION_EXIST_ALREADY
 }obj_file_err_t;
 
 //funkce pro práci s chybama v modulu
