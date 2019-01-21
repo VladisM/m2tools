@@ -68,7 +68,7 @@ static void _pass1(void){
 
             //check if instruction have valid args
             if(check_instruction_args(op_line) == 0){
-                fprintf(stderr, "Syntax error in instruction '%s' from file '%s' at line %d!", op_code, t->fileInfo->name, t->lineNumber);
+                fprintf(stderr, "Syntax error in instruction '%s' from file '%s' at line %d!\n", op_code, t->fileInfo->name, t->lineNumber);
                 exit(EXIT_FAILURE);
             }
 
@@ -76,7 +76,7 @@ static void _pass1(void){
             pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
 
             if(x == NULL){
-                fprintf(stderr, "Malloc failed!");
+                fprintf(stderr, "Malloc failed!\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -140,7 +140,7 @@ static void _pass1(void){
                     location_counter = new_location.word;
                 }
                 else{
-                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!\n", cmd, t->fileInfo->name, t->lineNumber);
                     exit(EXIT_FAILURE);
                 }
 
@@ -177,7 +177,7 @@ static void _pass1(void){
 
                 //convert value into integer
                 if(format_integer(WORD, &val, convert_to_int(cons_value)) == 0){
-                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!\n", cmd, t->fileInfo->name, t->lineNumber);
                     exit(EXIT_FAILURE);
                 }
 
@@ -202,7 +202,7 @@ static void _pass1(void){
                 uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count * 4);
 
                 if(x == NULL || b == NULL || b_data == NULL){
-                    fprintf(stderr, "Malloc failed!");
+                    fprintf(stderr, "Malloc failed!\n");
                     exit(EXIT_FAILURE);
                 }
 
@@ -212,7 +212,7 @@ static void _pass1(void){
 
                     //convert value into integer
                     if(format_integer(WORD, &val, convert_to_int(arg)) == 0){
-                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!\n", cmd, t->fileInfo->name, t->lineNumber);
                         exit(EXIT_FAILURE);
                     }
 
@@ -262,7 +262,7 @@ static void _pass1(void){
                 uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count * 2);
 
                 if(x == NULL || b == NULL || b_data == NULL){
-                    fprintf(stderr, "Malloc failed!");
+                    fprintf(stderr, "Malloc failed!\n");
                     exit(EXIT_FAILURE);
                 }
 
@@ -272,7 +272,7 @@ static void _pass1(void){
 
                     //convert value into integer
                     if(format_integer(HWORD, &val, convert_to_int(arg)) == 0){
-                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!\n", cmd, t->fileInfo->name, t->lineNumber);
                         exit(EXIT_FAILURE);
                     }
 
@@ -320,7 +320,7 @@ static void _pass1(void){
                 uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count);
 
                 if(x == NULL || b == NULL || b_data == NULL){
-                    fprintf(stderr, "Malloc failed!");
+                    fprintf(stderr, "Malloc failed!\n");
                     exit(EXIT_FAILURE);
                 }
 
@@ -330,7 +330,7 @@ static void _pass1(void){
 
                     //convert value into integer
                     if(format_integer(BYTE, &val, convert_to_int(arg)) == 0){
-                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                        fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!\n", cmd, t->fileInfo->name, t->lineNumber);
                         exit(EXIT_FAILURE);
                     }
 
@@ -368,7 +368,7 @@ static void _pass1(void){
                 uint32_t len;
 
                 if(format_integer(WORD, &val, convert_to_int(arg)) == 0){
-                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!", cmd, t->fileInfo->name, t->lineNumber);
+                    fprintf(stderr, "Syntax error in pseudo '%s' from file '%s' at line %d! Argument is too large!\n", cmd, t->fileInfo->name, t->lineNumber);
                     exit(EXIT_FAILURE);
                 }
 
@@ -380,7 +380,7 @@ static void _pass1(void){
                 uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * len);
 
                 if(x == NULL || b == NULL || b_data == NULL){
-                    fprintf(stderr, "Malloc failed!");
+                    fprintf(stderr, "Malloc failed!\n");
                     exit(EXIT_FAILURE);
                 }
 

@@ -630,7 +630,7 @@ static void append_token(char * token){
     }
 
     if(token_eval_buff_top + (unsigned int)strlen(token) > TOKEN_EVAL_BUFF_MAX){
-        fprintf(stderr, "Internal error! Buffer overflow!");
+        fprintf(stderr, "Internal error! Buffer overflow!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -774,7 +774,7 @@ static void save_def(char * s){
     char * ns = malloc(sizeof(char)*(strlen(s) + 1));
 
     if(newconst == NULL || ns == NULL){
-        fprintf(stderr, "malloc failed!");
+        fprintf(stderr, "Malloc failed!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -807,7 +807,7 @@ static void save_cons(char * s, char * v){
     char* nv = malloc(sizeof(char)*(strlen(v) + 1));
 
     if(newconst == NULL || ns == NULL || nv == NULL){
-        fprintf(stderr, "malloc failed!");
+        fprintf(stderr, "Malloc failed!\n");
         exit(EXIT_FAILURE);
     }
 
