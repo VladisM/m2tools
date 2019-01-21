@@ -4,7 +4,7 @@
 #include <tokenizer.h>
 #include <pass1.h>
 #include <symbol_table.h>
-
+#include <pass2.h>
 
 #ifdef DEBUG
 static void print_start(int x);
@@ -15,6 +15,7 @@ int main(int argc, char* argv[]){
     atexit(tokenizer_cleanup);
     atexit(pass1_cleanup);
     atexit(symbol_table_cleanup);
+    atexit(pass2_cleanup);
 
     if(argc == 2){
         print_start(0);
@@ -33,6 +34,12 @@ int main(int argc, char* argv[]){
         print_pass1_buffer();
 
         print_end(1);
+        print_start(2);
+
+        pass2();
+        print_symboltable();
+
+        print_end(2);
 
         exit(EXIT_SUCCESS);
     }

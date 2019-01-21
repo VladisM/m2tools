@@ -5,8 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
-static symbol_t *symbol_first = NULL;
-static symbol_t *symbol_last = NULL;
+symbol_t *symbol_first = NULL;
+symbol_t *symbol_last = NULL;
 
 static int is_equal(symbol_t *x1, symbol_t *x2);
 
@@ -60,6 +60,19 @@ void symbol_table_cleanup(void){
         free(tmp->label);
         free(tmp);
     }
+}
+
+symbol_t * find_exported_symbol_definition(symbol_t *e){
+
+    for(symbol_t *i = symbol_first; i != NULL; i = i->next){
+        if(
+            (strcmp(e->label, i->label) == 0) &&
+            ((i->stype & STYPE_EXPORT) != STYPE_EXPORT) &&
+            ((i->stype & STYPE_IMPORT) != STYPE_IMPORT)
+        ) return i;
+    }
+
+    return NULL;
 }
 
 static int is_equal(symbol_t *x1, symbol_t *x2){

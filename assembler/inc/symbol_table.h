@@ -20,8 +20,13 @@ typedef struct symbol_s{
     void *section;
 }symbol_t;
 
+extern symbol_t *symbol_first;
+extern symbol_t *symbol_last;
+
 void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t *parent, void *section);
 void symbol_table_cleanup(void);
+
+symbol_t * find_exported_symbol_definition(symbol_t *e);
 
 #ifdef DEBUG
 void print_symboltable(void);
