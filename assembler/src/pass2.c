@@ -8,6 +8,8 @@
 #include <symbol_table.h>
 #include <pass1.h>
 
+static symbol_t * find_exported_symbol_definition(symbol_t *e);
+
 void pass2(void){
 
     for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
@@ -20,7 +22,7 @@ void pass2(void){
             symbol_t *e = find_exported_symbol_definition(t);
 
             if(e == NULL){
-                fprintf(stderr, "Error! Exporting symbol '%s' from file '%s' that is not defined!\n", t->label, t->parent->fileInfo->name);
+                fprintf(stderr, "Error! Exporting symbol '%s' from file '%s@%d' that is not defined!\n", t->label, t->parent->fileInfo->name, t->parent->lineNumber);
                 exit(EXIT_FAILURE);
             }
 
@@ -36,4 +38,18 @@ void pass2(void){
 
 void pass2_cleanup(void){
     return;
+}
+
+static symbol_t * find_exported_symbol_definition(symbol_t *exported_symbol){
+
+    for(symbol_t *i = symbol_first; i != NULL; i = i->next){
+        if(
+            (strcmp(exported_symbol->label, i->label) == 0) &&
+            (strcmp(((pass1_section_t *)(exported_symbol->section))->section_name, ((pass1_section_t *)(i->section))->section_name) == 0) &&
+            ((i->stype & STYPE_EXPORT) != STYPE_EXPORT) &&
+            ((i->stype & STYPE_IMPORT) != STYPE_IMPORT)
+        ) return i;
+    }
+
+    return NULL;
 }

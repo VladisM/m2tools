@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <pass1.h>
+
 symbol_t *symbol_first = NULL;
 symbol_t *symbol_last = NULL;
 
@@ -62,22 +64,10 @@ void symbol_table_cleanup(void){
     }
 }
 
-symbol_t * find_exported_symbol_definition(symbol_t *e){
-
-    for(symbol_t *i = symbol_first; i != NULL; i = i->next){
-        if(
-            (strcmp(e->label, i->label) == 0) &&
-            ((i->stype & STYPE_EXPORT) != STYPE_EXPORT) &&
-            ((i->stype & STYPE_IMPORT) != STYPE_IMPORT)
-        ) return i;
-    }
-
-    return NULL;
-}
-
 static int is_equal(symbol_t *x1, symbol_t *x2){
     if(
         (strcmp(x1->label, x2->label) == 0) &&
+        (strcmp(((pass1_section_t *)(x1->section))->section_name, ((pass1_section_t *)(x2->section))->section_name) == 0) &&
         (x1->stype == x2->stype)
     ) return 1;
     else return 0;
