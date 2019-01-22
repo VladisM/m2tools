@@ -34,7 +34,8 @@ typedef enum {
     ISAERR_NULL_PTR,
     ISAERR_MALLOC_FAIL,
     ISAERR_INTER_ERR,
-    ISAERR_FORMAT_ERR
+    ISAERR_FORMAT_ERR,
+    ISAERR_MISSING_CALLBACK
 } tIsaError;
 
 /**
@@ -268,6 +269,23 @@ int import_from_object_file_line(tInstruction *inst, char *line);
  * @return Pointer to new struct if succed, NULL otherwise.
  */
 tInstruction *new_instru(void);
+
+/**
+ * @brief Assemble instruction from string.
+ *
+ * @warning If someone want to use this function you have to set-up callback
+ * first for searching symbol table. Use register_callback_search_for_symbol function for that.
+ *
+ * @param i Instruction to assemble
+ * @param section_ptr void pointer given to callback together with symbol label. Used for specifing section.
+ *
+ * @return 1 if ok; 0 if fail
+ */
+int assemble_instruction(tInstruction * i, void * section_ptr);
+
+//TODO: add comments
+
+int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) );
 
 /**
  * @}
