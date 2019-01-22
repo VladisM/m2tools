@@ -23,6 +23,8 @@
  *
  */
 
+static uint32_t * seach_for_symbol(char *l, void *s);
+
 /*
  *
  * End of statit functions declarations
@@ -32,6 +34,7 @@
  */
 
 static tIsaError isalib_errno;
+static uint32_t *(*search_for_symbol_handler)(char *, void *)  = NULL;
 
 /*
  *
@@ -40,6 +43,17 @@ static tIsaError isalib_errno;
  * Static functions definitions
  *
  */
+
+//TODO: add coments
+static uint32_t * seach_for_symbol(char *l, void *s){
+    if(search_for_symbol_handler == NULL) {
+        SET_ERROR(ISAERR_MISSING_CALLBACK);
+        return NULL;
+    }
+
+    return (*search_for_symbol_handler)(l, s);
+
+}
 
 /*
  *
@@ -548,6 +562,26 @@ tInstruction *new_instru(void){
 
     return tmp;
 
+}
+
+int assemble_instruction(tInstruction * i, void * section_ptr){
+    //TODO: implement this!
+}
+
+int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) ){
+    if(f == NULL){
+        SET_ERROR(ISAERR_NULL_PTR);
+        return 0;
+    }
+
+    if(search_for_symbol_handler != NULL){
+        SET_ERROR(ISAERR_INTER_ERR);
+        return 0;
+    }
+
+    search_for_symbol_handler = f;
+
+    return 1;
 }
 
 /*
