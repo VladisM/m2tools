@@ -31,11 +31,11 @@ typedef enum {
     ISAERR_INSTRUCTION_NOT_RECOGNIZED,       /**< @brief Instruction is not recognized, probably not an instruction. */
     ISAERR_INSTRUCTION_DOESNT_HAVE_24CONST,  /**< @brief Instruction dosn't have 24bit constant as operand, but you wan't to separate it anyway... */
     ISAERR_INSTRUCTION_ARG_OVERFLOW,         /**< @brief Constant argument is larger than its width in instruction word. */
-    ISAERR_NULL_PTR,
-    ISAERR_MALLOC_FAIL,
-    ISAERR_INTER_ERR,
-    ISAERR_FORMAT_ERR,
-    ISAERR_MISSING_CALLBACK
+    ISAERR_NULL_PTR,                         /**< @brief Given pointer argument is NULL. */
+    ISAERR_MALLOC_FAIL,                      /**< @brief Failed to allocate memory, if you need this something is probably horrible wrong. */
+    ISAERR_INTER_ERR,                        /**< @brief Probably bug in library, didn't you call register_callback twice? */
+    ISAERR_FORMAT_ERR,                       /**< @brief Failed to decode string for object file library. */
+    ISAERR_MISSING_CALLBACK                  /**< @brief Callback function isn't registered but it was needed. */
 } tIsaError;
 
 /**
@@ -283,8 +283,25 @@ tInstruction *new_instru(void);
  */
 int assemble_instruction(tInstruction * i, void * section_ptr);
 
-//TODO: add comments
-
+/**
+ * @brief Register call back function for ISA library module.
+ *
+ * This function register callback function for ISA library, this callback
+ * is used when assembling instructions is required. It got called when
+ * value of specified symbol from symbol table is needed.
+ *
+ * It suppose to return pointer to its value or NULL when no value is found.
+ * First argument have to be pointer to string label of symbol, and second
+ * pointer is pointer given in assemble_instruction function for specifiing
+ * section.
+ *
+ * @param f Pointer to function for search in symbol table.
+ *
+ * @return 1 if ok; 0 if fail
+ *
+ * @warning Call this function only once and before any assemble_instruction is called.
+ * Otherwise you may cause error.
+ */
 int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) );
 
 /**
