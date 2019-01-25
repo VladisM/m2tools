@@ -23,7 +23,24 @@
  *
  */
 
+/**
+ * @brief Find symbol in actual section. Search in symbol table.
+ *
+ * @param l string with label to find
+ * @param s pointer given when calling function assemble_instruction() - point to section
+ *
+ * @return pointer to value, NULL if not found
+ */
 static uint32_t * seach_for_symbol(char *l, void *s);
+
+/**
+ * @brief Read string and return instruction opcode.
+ *
+ * @param s Pointer to string with instruction opcode
+ *
+ * @return type of instruction decoded from string
+ */
+static i_opcode get_opcode_from_name(char *s);
 
 /*
  *
@@ -36,6 +53,7 @@ static uint32_t * seach_for_symbol(char *l, void *s);
 static tIsaError isalib_errno;
 static uint32_t *(*search_for_symbol_handler)(char *, void *)  = NULL;
 
+
 /*
  *
  * End of static variables
@@ -44,7 +62,6 @@ static uint32_t *(*search_for_symbol_handler)(char *, void *)  = NULL;
  *
  */
 
-//TODO: add coments
 static uint32_t * seach_for_symbol(char *l, void *s){
     if(search_for_symbol_handler == NULL) {
         SET_ERROR(ISAERR_MISSING_CALLBACK);
@@ -53,6 +70,54 @@ static uint32_t * seach_for_symbol(char *l, void *s){
 
     return (*search_for_symbol_handler)(l, s);
 
+}
+
+static i_opcode get_opcode_from_name(char *s){
+         if( strcmp(s,"RET")   == 0) return ISA_RET;
+    else if( strcmp(s,"RETI")  == 0) return ISA_RETI;
+    else if( strcmp(s,"CALLI") == 0) return ISA_CALLI;
+    else if( strcmp(s,"PUSH")  == 0) return ISA_PUSH;
+    else if( strcmp(s,"POP")   == 0) return ISA_POP;
+    else if( strcmp(s,"LDI")   == 0) return ISA_LDI;
+    else if( strcmp(s,"STI")   == 0) return ISA_STI;
+    else if( strcmp(s,"BZI")   == 0) return ISA_BZI;
+    else if( strcmp(s,"BNZI")  == 0) return ISA_BNZI;
+    else if( strcmp(s,"CMPI")  == 0) return ISA_CMPI;
+    else if( strcmp(s,"CMPF")  == 0) return ISA_CMPF;
+    else if( strcmp(s,"MULU")  == 0) return ISA_MULU;
+    else if( strcmp(s,"MUL")   == 0) return ISA_MUL;
+    else if( strcmp(s,"ADD")   == 0) return ISA_ADD;
+    else if( strcmp(s,"SUB")   == 0) return ISA_SUB;
+    else if( strcmp(s,"INC")   == 0) return ISA_INC;
+    else if( strcmp(s,"DEC")   == 0) return ISA_DEC;
+    else if( strcmp(s,"AND")   == 0) return ISA_AND;
+    else if( strcmp(s,"OR")    == 0) return ISA_OR;
+    else if( strcmp(s,"XOR")   == 0) return ISA_XOR;
+    else if( strcmp(s,"NOT")   == 0) return ISA_NOT;
+    else if( strcmp(s,"DIVU")  == 0) return ISA_DIVU;
+    else if( strcmp(s,"DIV")   == 0) return ISA_DIV;
+    else if( strcmp(s,"REMU")  == 0) return ISA_REMU;
+    else if( strcmp(s,"REM")   == 0) return ISA_REM;
+    else if( strcmp(s,"LSL")   == 0) return ISA_LSL;
+    else if( strcmp(s,"LSR")   == 0) return ISA_LSR;
+    else if( strcmp(s,"ROL")   == 0) return ISA_ROL;
+    else if( strcmp(s,"ROR")   == 0) return ISA_ROR;
+    else if( strcmp(s,"ASL")   == 0) return ISA_ASL;
+    else if( strcmp(s,"ASR")   == 0) return ISA_ASR;
+    else if( strcmp(s,"FSUB")  == 0) return ISA_FSUB;
+    else if( strcmp(s,"FADD")  == 0) return ISA_FADD;
+    else if( strcmp(s,"FMUL")  == 0) return ISA_FMUL;
+    else if( strcmp(s,"FDIV")  == 0) return ISA_FDIV;
+    else if( strcmp(s,"MVIL")  == 0) return ISA_MVIL;
+    else if( strcmp(s,"MVIH")  == 0) return ISA_MVIH;
+    else if( strcmp(s,"CALL")  == 0) return ISA_CALL;
+    else if( strcmp(s,"LD")    == 0) return ISA_LD;
+    else if( strcmp(s,"ST")    == 0) return ISA_ST;
+    else if( strcmp(s,"BZ")    == 0) return ISA_BZ;
+    else if( strcmp(s,"BNZ")   == 0) return ISA_BNZ;
+    else if( strcmp(s,"MVIA")  == 0) return ISA_MVIA;
+    else if( strcmp(s,"SWI")   == 0) return ISA_SWI;
+    else                             return ISA_UNDEF;
 }
 
 /*
@@ -564,8 +629,240 @@ tInstruction *new_instru(void){
 
 }
 
-int assemble_instruction(tInstruction * i, void * section_ptr){
+int assemble_instruction(tInstruction * inst, void * section_ptr){
     //TODO: implement this!
+
+    if(inst == NULL || section_ptr == NULL){
+        SET_ERROR(ISAERR_NULL_PTR);
+        return 0;
+    }
+
+    if(inst->line != NULL){
+        SET_ERROR(ISAERR_NULL_PTR);
+        return 0;
+    }
+
+    //create local copy of line
+    char * line_copy = (char *)malloc(sizeof(char) * (strlen(inst->line) + 1));
+    char * opcode_copy = (char *)malloc(sizeof(char) * (strlen(inst->line) + 1));
+
+    if(line_copy == NULL || opcode_copy == NULL){
+        SET_ERROR(ISAERR_MALLOC_FAIL);
+        return 0;
+    }
+
+    strcpy(line_copy, inst->line);
+    strcpy(opcode_copy, inst->line);
+
+    //replace ';' with '\0'
+    for(int i = 0; opcode_copy[i] != '\0'; i++) if(opcode_copy[i] == ';') opcode_copy[i] = '\0';
+
+    //check if i is valid instruction
+    const char * format_string = is_instruction(opcode_copy);
+
+    if(format_string[0] != 'I'){
+        SET_ERROR(ISAERR_INSTRUCTION_NOT_RECOGNIZED);
+        return 0;
+    }
+
+    //detect instruction
+    i_opcode op = get_opcode_from_name(opcode_copy);
+
+    switch(op){
+        case ISA_UNDEF:
+            {
+                SET_ERROR(ISAERR_INTER_ERR);
+                return 0;
+            }
+            break;
+        case ISA_RET:
+            {
+                inst->word = 0x01000000;
+            }
+            break;
+        case ISA_RETI:
+            {
+                inst->word = 0x0200000;
+            }
+            break;
+        case ISA_CALLI:
+            {
+            }
+            break;
+        case ISA_PUSH:
+            {
+            }
+            break;
+        case ISA_POP:
+            {
+            }
+            break;
+        case ISA_LDI:
+            {
+            }
+            break;
+        case ISA_STI:
+            {
+            }
+            break;
+        case ISA_BZI:
+            {
+            }
+            break;
+        case ISA_BNZI:
+            {
+            }
+            break;
+        case ISA_CMPI:
+            {
+            }
+            break;
+        case ISA_CMPF:
+            {
+            }
+            break;
+        case ISA_MULU:
+            {
+            }
+            break;
+        case ISA_MUL:
+            {
+            }
+            break;
+        case ISA_ADD:
+            {
+            }
+            break;
+        case ISA_SUB:
+            {
+            }
+            break;
+        case ISA_INC:
+            {
+            }
+            break;
+        case ISA_DEC:
+            {
+            }
+            break;
+        case ISA_AND:
+            {
+            }
+            break;
+        case ISA_OR:
+            {
+            }
+            break;
+        case ISA_XOR:
+            {
+            }
+            break;
+        case ISA_NOT:
+            {
+            }
+            break;
+        case ISA_DIVU:
+            {
+            }
+            break;
+        case ISA_DIV:
+            {
+            }
+            break;
+        case ISA_REMU:
+            {
+            }
+            break;
+        case ISA_REM:
+            {
+            }
+            break;
+        case ISA_LSL:
+            {
+            }
+            break;
+        case ISA_LSR:
+            {
+            }
+            break;
+        case ISA_ROL:
+            {
+            }
+            break;
+        case ISA_ROR:
+            {
+            }
+            break;
+        case ISA_ASL:
+            {
+            }
+            break;
+        case ISA_ASR:
+            {
+            }
+            break;
+        case ISA_FSUB:
+            {
+            }
+            break;
+        case ISA_FADD:
+            {
+            }
+            break;
+        case ISA_FMUL:
+            {
+            }
+            break;
+        case ISA_FDIV:
+            {
+            }
+            break;
+        case ISA_MVIL:
+            {
+            }
+            break;
+        case ISA_MVIH:
+            {
+            }
+            break;
+        case ISA_CALL:
+            {
+            }
+            break;
+        case ISA_LD:
+            {
+            }
+            break;
+        case ISA_ST:
+            {
+            }
+            break;
+        case ISA_BZ:
+            {
+            }
+            break;
+        case ISA_BNZ:
+            {
+            }
+            break;
+        case ISA_MVIA:
+            {
+            }
+            break;
+        case ISA_SWI:
+            {
+                inst->word = 0x14000000;
+            }
+            break;
+        default:
+            SET_ERROR(ISAERR_INTER_ERR);
+            return 0;
+    }
+
+    free(line_copy);
+    free(opcode_copy);
+
+    return 1;
 }
 
 int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) ){

@@ -35,7 +35,7 @@ typedef enum {
     ISAERR_MALLOC_FAIL,                      /**< @brief Failed to allocate memory, if you need this something is probably horrible wrong. */
     ISAERR_INTER_ERR,                        /**< @brief Probably bug in library, didn't you call register_callback twice? */
     ISAERR_FORMAT_ERR,                       /**< @brief Failed to decode string for object file library. */
-    ISAERR_MISSING_CALLBACK                  /**< @brief Callback function isn't registered but it was needed. */
+    ISAERR_MISSING_CALLBACK,                 /**< @brief Callback function isn't registered but it was needed. */
 } tIsaError;
 
 /**
