@@ -7,6 +7,33 @@
 
 #include "isa.h"
 
+typedef struct{
+    const char * line;
+    uint32_t code;
+}my_register_t;
+
+#define MY_REGS_LEN 18
+my_register_t my_regs[MY_REGS_LEN] = {
+    {"R0", 0x0},
+    {"R1", 0x1},
+    {"R2", 0x2},
+    {"R3", 0x3},
+    {"R4", 0x4},
+    {"R5", 0x5},
+    {"R6", 0x6},
+    {"R7", 0x7},
+    {"R8", 0x8},
+    {"R9", 0x9},
+    {"R10", 0xA},
+    {"R11", 0xB},
+    {"R12", 0xC},
+    {"R13", 0xD},
+    {"R14", 0xE},
+    {"R15", 0xF},
+    {"SP", 0xF},
+    {"PC", 0xE}
+};
+
 /*
  * ---------------------------------------------------------------------
  * Macro definitions
@@ -42,6 +69,15 @@ static uint32_t * seach_for_symbol(char *l, void *s);
  */
 static i_opcode get_opcode_from_name(char *s);
 
+/**
+ * @brief Decode name of register into code for instruction opcode
+ *
+ * @param name String with register name.
+ *
+ * @return Pointer to code of register if exist, NULL othervise
+ */
+static uint32_t * decode_register_name_for_opcode(char *name);
+
 /*
  *
  * End of statit functions declarations
@@ -52,7 +88,6 @@ static i_opcode get_opcode_from_name(char *s);
 
 static tIsaError isalib_errno;
 static uint32_t *(*search_for_symbol_handler)(char *, void *)  = NULL;
-
 
 /*
  *
@@ -118,6 +153,15 @@ static i_opcode get_opcode_from_name(char *s){
     else if( strcmp(s,"MVIA")  == 0) return ISA_MVIA;
     else if( strcmp(s,"SWI")   == 0) return ISA_SWI;
     else                             return ISA_UNDEF;
+}
+
+static uint32_t * decode_register_name_for_opcode(char *name){
+
+    for(int i = 0; i < MY_REGS_LEN; i++){
+        if(strcmp(my_regs[i].line, name) == 0) return &(my_regs[i].code);
+    }
+
+    return NULL;
 }
 
 /*
@@ -454,25 +498,11 @@ int is_comparison(char *s){
 
 int is_reg(char *s){
 
-         if( strcmp(s, "R0")  == 0) return 1;
-    else if( strcmp(s, "R1")  == 0) return 1;
-    else if( strcmp(s, "R2")  == 0) return 1;
-    else if( strcmp(s, "R3")  == 0) return 1;
-    else if( strcmp(s, "R4")  == 0) return 1;
-    else if( strcmp(s, "R5")  == 0) return 1;
-    else if( strcmp(s, "R6")  == 0) return 1;
-    else if( strcmp(s, "R7")  == 0) return 1;
-    else if( strcmp(s, "R8")  == 0) return 1;
-    else if( strcmp(s, "R9")  == 0) return 1;
-    else if( strcmp(s, "R10") == 0) return 1;
-    else if( strcmp(s, "R11") == 0) return 1;
-    else if( strcmp(s, "R12") == 0) return 1;
-    else if( strcmp(s, "R13") == 0) return 1;
-    else if( strcmp(s, "R14") == 0) return 1;
-    else if( strcmp(s, "R15") == 0) return 1;
-    else if( strcmp(s, "SP")  == 0) return 1;
-    else if( strcmp(s, "PC")  == 0) return 1;
-    else                            return 0;
+    for(int i = 0; i < MY_REGS_LEN; i++){
+        if(strcmp(my_regs[i].line, s) == 0) return 1;
+    }
+
+    return 0;
 
 }
 
@@ -637,7 +667,7 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
         return 0;
     }
 
-    if(inst->line != NULL){
+    if(inst->line == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
         return 0;
     }

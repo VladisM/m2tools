@@ -9,8 +9,14 @@
 #include <pass1.h>
 
 static symbol_t * find_exported_symbol_definition(symbol_t *e);
+static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section);
 
 void pass2(void){
+
+    if(register_callback_search_for_symbol(&find_symbol_for_instruction_assemble) != 1){
+        fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
+        exit(EXIT_FAILURE);
+    }
 
     for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
         s->last_location_counter = 0;
@@ -34,6 +40,27 @@ void pass2(void){
 
     }
 
+    //go for all section and all instructions(blobs too) in it
+    for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
+        for(pass1_item_t *item = s->first_element; item != NULL; item = item->next){
+
+            if(item->type == TYPE_INSTRUCTION){
+                if(assemble_instruction(item->payload.i, (void *)s) != 1){
+                    fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if(item->type == TYPE_BLOB){
+                //Nothing to do here :)
+            }
+            else{
+                fprintf(stderr, "Internal error in pass2!\n");
+                exit(EXIT_FAILURE);
+            }
+
+        }
+    }
+
 }
 
 void pass2_cleanup(void){
@@ -51,5 +78,10 @@ static symbol_t * find_exported_symbol_definition(symbol_t *exported_symbol){
         ) return i;
     }
 
+    return NULL;
+}
+
+static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section){
+    //TODO: implementovat
     return NULL;
 }
