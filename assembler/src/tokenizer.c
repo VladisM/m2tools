@@ -6,6 +6,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <util.h>
+
 #define TOKEN_EVAL_BUFF_MAX 160
 
 /* -----------------------------------------------------------------------------
@@ -58,7 +60,6 @@ static void eval_tok(char * token, char separator, fileInfo_t * fileInfo, unsign
 static void append_token(char * token);
 static void clean_eval_buff(void);
 static int is_string(char * token);
-static int is_numero(char * token);
 
 static void eval_pseudo(char * token, fileInfo_t * fileInfo, unsigned int line, unsigned int *false_if);
 static void eval_label(char * token, fileInfo_t * fileInfo, unsigned int line, unsigned int *fasle_if);
@@ -492,7 +493,7 @@ void eval_tok(char * token, char separator, fileInfo_t * fileInfo, unsigned int 
         if(actual_eval == EVAL_PSEUD){
 
             if(format_string[iteration] == 'D'){
-                if(is_numero(token)){
+                if(is_number(token)){
                     append_token(token);
                 }
                 else{
@@ -510,7 +511,7 @@ void eval_tok(char * token, char separator, fileInfo_t * fileInfo, unsigned int 
                 }
             }
             else if(format_string[iteration] == 'd'){
-                if(is_numero(token)){
+                if(is_number(token)){
                     append_token(token);
                     if(separator == ' ') iteration--;
                 }
@@ -540,7 +541,7 @@ void eval_tok(char * token, char separator, fileInfo_t * fileInfo, unsigned int 
         }
         else if(actual_eval == EVAL_PREPR){
             if(format_string[iteration] == 'D'){
-                if(is_numero(token)){
+                if(is_number(token)){
                     append_token(token);
                 }
                 else{
@@ -653,16 +654,6 @@ static int is_string(char * token){
         if(isalnum(token[i])) continue;
         if(token[i] == '_') continue;
         if(token[i] == '.') continue;
-        return 0;
-    }
-    return 1;
-}
-
-static int is_numero(char * token){
-    for(int i = 0; token[i] != '\0'; i++){
-        if(isxdigit(token[i])) continue;
-        if(token[i] == 'x') continue;
-        if(token[i] == 'b') continue;
         return 0;
     }
     return 1;

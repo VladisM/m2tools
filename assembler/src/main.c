@@ -38,6 +38,7 @@ int main(int argc, char* argv[]){
 
         pass2();
         print_symboltable();
+        print_pass2_buffer();
 
         print_end(2);
 
@@ -50,11 +51,11 @@ int main(int argc, char* argv[]){
 }
 
 static void print_start(int x){
-    printf("\n----* PASS %d START! *----\n", x);
+    printf("\n\n\n--------------------* PASS %d START! *--------------------\n", x);
 }
 
 static void print_end(int x){
-    printf("\n----* PASS %d END! *----\n", x);
+    printf("\n--------------------*  PASS %d END!  *--------------------\n\n\n", x);
 }
 
 #endif

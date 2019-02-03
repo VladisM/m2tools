@@ -12,8 +12,29 @@ typedef struct{
     uint32_t code;
 }my_register_t;
 
-#define MY_REGS_LEN 18
-my_register_t my_regs[MY_REGS_LEN] = {
+typedef struct{
+    const char * line;
+    const char * format;
+    i_opcode opcode;
+    unsigned int size;
+    uint32_t base_of_opcode;
+}my_instruction_t;
+
+typedef struct{
+    const char * line;
+    uint32_t code_CMPI;
+    uint32_t code_CMPF;
+    uint8_t can_be_CMPF;
+}my_comp_t;
+
+#define MOVE_TO_REGC(X) (X)
+#define MOVE_TO_REGB(X) (X << 4)
+#define MOVE_TO_REGA(X) (X << 8)
+#define MOVE_TO_FLAG(X) (X << 20)
+#define MOVE_TO_COND(X) (X << 20)
+
+#define MY_REGS_LEN (sizeof(my_regs) / sizeof(my_register_t))
+my_register_t my_regs[] = {
     {"R0", 0x0},
     {"R1", 0x1},
     {"R2", 0x2},
@@ -32,6 +53,68 @@ my_register_t my_regs[MY_REGS_LEN] = {
     {"R15", 0xF},
     {"SP", 0xF},
     {"PC", 0xE}
+};
+
+#define MY_INSTRS_LEN (sizeof(my_instrs) / sizeof(my_instruction_t))
+my_instruction_t my_instrs[] = {
+    {"RET"  , "I"    , ISA_RET   , 4, 0x01000000},
+    {"RETI" , "I"    , ISA_RETI  , 4, 0x02000000},
+    {"CALLI", "IR"   , ISA_CALLI , 4, 0x03000000},
+    {"PUSH" , "IR"   , ISA_PUSH  , 4, 0x04000000},
+    {"POP"  , "IR"   , ISA_POP   , 4, 0x05000000},
+    {"LDI"  , "IRR"  , ISA_LDI   , 4, 0x06000000},
+    {"STI"  , "IRR"  , ISA_STI   , 4, 0x07000000},
+    {"BNZI" , "IRR"  , ISA_BNZI  , 4, 0x08000000},
+    {"BZI"  , "IRR"  , ISA_BZI   , 4, 0x09000000},
+    {"CMPI" , "IcRRR", ISA_CMPI  , 4, 0x0A000000},
+    {"CMPF" , "IcRRR", ISA_CMPF  , 4, 0x0B000000},
+    {"MULU" , "IRRR" , ISA_MULU  , 4, 0x0C000000},
+    {"MUL"  , "IRRR" , ISA_MUL   , 4, 0x0C100000},
+    {"ADD"  , "IRRR" , ISA_ADD   , 4, 0x0C600000},
+    {"SUB"  , "IRRR" , ISA_SUB   , 4, 0x0C700000},
+    {"INC"  , "IRR"  , ISA_INC   , 4, 0x0C800000},
+    {"DEC"  , "IRR"  , ISA_DEC   , 4, 0x0C900000},
+    {"AND"  , "IRRR" , ISA_AND   , 4, 0x0CA00000},
+    {"OR"   , "IRRR" , ISA_OR    , 4, 0x0CB00000},
+    {"XOR"  , "IRRR" , ISA_XOR   , 4, 0x0CC00000},
+    {"NOT"  , "IRR"  , ISA_NOT   , 4, 0x0CD00000},
+    {"DIVU" , "IRRR" , ISA_DIVU  , 4, 0x0D200000},
+    {"DIV"  , "IRRR" , ISA_DIV   , 4, 0x0D300000},
+    {"REMU" , "IRRR" , ISA_REMU  , 4, 0x0D400000},
+    {"REM"  , "IRRR" , ISA_REM   , 4, 0x0D500000},
+    {"LSL"  , "IRRR" , ISA_LSL   , 4, 0x0E000000},
+    {"LSR"  , "IRRR" , ISA_LSR   , 4, 0x0E100000},
+    {"ROL"  , "IRRR" , ISA_ROL   , 4, 0x0E200000},
+    {"ROR"  , "IRRR" , ISA_ROR   , 4, 0x0E300000},
+    {"ASL"  , "IRRR" , ISA_ASL   , 4, 0x0E400000},
+    {"ASR"  , "IRRR" , ISA_ASR   , 4, 0x0E500000},
+    {"FSUB" , "IRRR" , ISA_FSUB  , 4, 0x0F000000},
+    {"FADD" , "IRRR" , ISA_FADD  , 4, 0x0F300000},
+    {"FMUL" , "IRRR" , ISA_FMUL  , 4, 0x10100000},
+    {"FDIV" , "IRRR" , ISA_FDIV  , 4, 0x11200000},
+    {"MVIL" , "IR6"  , ISA_MVIL  , 4, 0x12000000},
+    {"MVIH" , "IR6"  , ISA_MVIH  , 4, 0x13000000},
+    {"CALL" , "I4"   , ISA_CALL  , 4, 0x80000000},
+    {"LD"   , "I4R"  , ISA_LD    , 4, 0x90000000},
+    {"ST"   , "IR4"  , ISA_ST    , 4, 0xA0000000},
+    {"BZ"   , "IR4"  , ISA_BZ    , 4, 0xB0000000},
+    {"BNZ"  , "IR4"  , ISA_BNZ   , 4, 0xC0000000},
+    {"MVIA" , "IR4"  , ISA_MVIA  , 4, 0xD0000000},
+    {"SWI"  , "I"    , ISA_SWI   , 4, 0x14000000}
+};
+
+#define MY_COMP_LEN (sizeof(my_comp) / sizeof(my_comp_t))
+my_comp_t my_comp[] = {
+    {"EQ" , 6 , 0, 1},
+    {"NEQ", 7 , 5, 1},
+    {"L"  , 10, 3, 1},
+    {"LU" , 14, 0, 0},
+    {"LE" , 11, 4, 1},
+    {"LEU", 15, 0, 0},
+    {"G"  , 8 , 1, 1},
+    {"GU" , 12, 2, 1},
+    {"GE" , 9 , 0, 0},
+    {"GEU", 13, 0, 0}
 };
 
 /*
@@ -74,9 +157,21 @@ static i_opcode get_opcode_from_name(char *s);
  *
  * @param name String with register name.
  *
- * @return Pointer to code of register if exist, NULL othervise
+ * @return Code of register if exist, NULL othervise
  */
-static uint32_t * decode_register_name_for_opcode(char *name);
+static uint32_t decode_register_name_for_opcode(char *name);
+
+/**
+ * @brief Convert string to long int.
+ *
+ * @param l String to convert.
+ *
+ * @return Converted value.
+ *
+ * This function is implemented as calling call back from user code.
+ * If converting fail, user code may terminate execution.
+ */
+static long int convert_to_int(char *l);
 
 /*
  *
@@ -86,9 +181,11 @@ static uint32_t * decode_register_name_for_opcode(char *name);
  *
  */
 
-static tIsaError isalib_errno;
-static uint32_t *(*search_for_symbol_handler)(char *, void *)  = NULL;
-
+static tIsaError isalib_errno = ISAERR_OK;
+static uint32_t *(*search_for_symbol_handler)(char *, void *) = NULL;
+static long int (*convert_to_int_handler)(char *) = NULL;
+static int (*is_number_handler)(char *) = NULL;
+inline static int put_adr_arg_into_inst(tInstruction * inst, char * adr_ptr, void * section_ptr);
 /*
  *
  * End of static variables
@@ -107,61 +204,75 @@ static uint32_t * seach_for_symbol(char *l, void *s){
 
 }
 
-static i_opcode get_opcode_from_name(char *s){
-         if( strcmp(s,"RET")   == 0) return ISA_RET;
-    else if( strcmp(s,"RETI")  == 0) return ISA_RETI;
-    else if( strcmp(s,"CALLI") == 0) return ISA_CALLI;
-    else if( strcmp(s,"PUSH")  == 0) return ISA_PUSH;
-    else if( strcmp(s,"POP")   == 0) return ISA_POP;
-    else if( strcmp(s,"LDI")   == 0) return ISA_LDI;
-    else if( strcmp(s,"STI")   == 0) return ISA_STI;
-    else if( strcmp(s,"BZI")   == 0) return ISA_BZI;
-    else if( strcmp(s,"BNZI")  == 0) return ISA_BNZI;
-    else if( strcmp(s,"CMPI")  == 0) return ISA_CMPI;
-    else if( strcmp(s,"CMPF")  == 0) return ISA_CMPF;
-    else if( strcmp(s,"MULU")  == 0) return ISA_MULU;
-    else if( strcmp(s,"MUL")   == 0) return ISA_MUL;
-    else if( strcmp(s,"ADD")   == 0) return ISA_ADD;
-    else if( strcmp(s,"SUB")   == 0) return ISA_SUB;
-    else if( strcmp(s,"INC")   == 0) return ISA_INC;
-    else if( strcmp(s,"DEC")   == 0) return ISA_DEC;
-    else if( strcmp(s,"AND")   == 0) return ISA_AND;
-    else if( strcmp(s,"OR")    == 0) return ISA_OR;
-    else if( strcmp(s,"XOR")   == 0) return ISA_XOR;
-    else if( strcmp(s,"NOT")   == 0) return ISA_NOT;
-    else if( strcmp(s,"DIVU")  == 0) return ISA_DIVU;
-    else if( strcmp(s,"DIV")   == 0) return ISA_DIV;
-    else if( strcmp(s,"REMU")  == 0) return ISA_REMU;
-    else if( strcmp(s,"REM")   == 0) return ISA_REM;
-    else if( strcmp(s,"LSL")   == 0) return ISA_LSL;
-    else if( strcmp(s,"LSR")   == 0) return ISA_LSR;
-    else if( strcmp(s,"ROL")   == 0) return ISA_ROL;
-    else if( strcmp(s,"ROR")   == 0) return ISA_ROR;
-    else if( strcmp(s,"ASL")   == 0) return ISA_ASL;
-    else if( strcmp(s,"ASR")   == 0) return ISA_ASR;
-    else if( strcmp(s,"FSUB")  == 0) return ISA_FSUB;
-    else if( strcmp(s,"FADD")  == 0) return ISA_FADD;
-    else if( strcmp(s,"FMUL")  == 0) return ISA_FMUL;
-    else if( strcmp(s,"FDIV")  == 0) return ISA_FDIV;
-    else if( strcmp(s,"MVIL")  == 0) return ISA_MVIL;
-    else if( strcmp(s,"MVIH")  == 0) return ISA_MVIH;
-    else if( strcmp(s,"CALL")  == 0) return ISA_CALL;
-    else if( strcmp(s,"LD")    == 0) return ISA_LD;
-    else if( strcmp(s,"ST")    == 0) return ISA_ST;
-    else if( strcmp(s,"BZ")    == 0) return ISA_BZ;
-    else if( strcmp(s,"BNZ")   == 0) return ISA_BNZ;
-    else if( strcmp(s,"MVIA")  == 0) return ISA_MVIA;
-    else if( strcmp(s,"SWI")   == 0) return ISA_SWI;
-    else                             return ISA_UNDEF;
-}
-
-static uint32_t * decode_register_name_for_opcode(char *name){
-
-    for(int i = 0; i < MY_REGS_LEN; i++){
-        if(strcmp(my_regs[i].line, name) == 0) return &(my_regs[i].code);
+static long int convert_to_int(char *l){
+    if(convert_to_int_handler == NULL) {
+        SET_ERROR(ISAERR_MISSING_CALLBACK);
+        return -1;
     }
 
-    return NULL;
+    return (*convert_to_int_handler)(l);
+
+}
+
+//TODO: je to k něčemu?
+static i_opcode get_opcode_from_name(char *s){
+
+    for(unsigned int i = 0; i < MY_INSTRS_LEN; i++){
+        if(strcmp(s, my_instrs[i].line) == 0) return my_instrs[i].opcode;
+    }
+
+    return ISA_UNDEF;
+}
+
+static uint32_t decode_register_name_for_opcode(char *name){
+
+    for(unsigned int i = 0; i < MY_REGS_LEN; i++){
+        if(strcmp(my_regs[i].line, name) == 0) return my_regs[i].code;
+    }
+
+    return (uint32_t)-1;
+}
+
+static int is_number(char *s){
+    if(is_number_handler == NULL) {
+        SET_ERROR(ISAERR_MISSING_CALLBACK);
+        return -1;
+    }
+
+    return (*is_number_handler)(s);
+}
+
+inline static int put_adr_arg_into_inst(tInstruction * inst, char * adr_ptr, void * section_ptr){
+    int ret = is_number(adr_ptr);
+
+    if(ret == 1){
+        //instruction have constant as argument
+        long int adr = convert_to_int(adr_ptr);
+
+        if(!((adr >= -8388608 && adr <= 8388607) || (unsigned)adr < 0xFFFFFF)){
+            SET_ERROR(ISAERR_ARG_OVERFLOW);
+            return 0;
+        }
+
+        set_instruction_24CONST_operand(inst, (uint32_t)adr);
+    }
+    else if(ret == 0){
+        //instruction have symbol as arg
+        uint32_t *adr = seach_for_symbol(adr_ptr, section_ptr);
+
+        if(adr == NULL){
+            SET_ERROR(ISAERR_ARG_UNKOWN_SYMBOL);
+            return 0;
+        }
+
+        set_instruction_24CONST_operand(inst, *adr);
+    }
+    else{
+        SET_ERROR(ISAERR_INTER_ERR);
+        return 0;
+    }
+
+    return 1;
 }
 
 /*
@@ -482,23 +593,17 @@ void clear_isalib_errno(void){
 
 int is_comparison(char *s){
 
-         if(strcmp(s, "EQ")  == 0) return 1;
-    else if(strcmp(s, "NEQ") == 0) return 1;
-    else if(strcmp(s, "L")   == 0) return 1;
-    else if(strcmp(s, "LU")  == 0) return 1;
-    else if(strcmp(s, "LE")  == 0) return 1;
-    else if(strcmp(s, "LEU") == 0) return 1;
-    else if(strcmp(s, "G")   == 0) return 1;
-    else if(strcmp(s, "GU")  == 0) return 1;
-    else if(strcmp(s, "GE")  == 0) return 1;
-    else if(strcmp(s, "GEU") == 0) return 1;
-    else return 0;
+    for(unsigned int i = 0; i < MY_COMP_LEN; i++){
+        if(strcmp(my_comp[i].line, s) == 0) return 1;
+    }
+
+    return 0;
 
 }
 
 int is_reg(char *s){
 
-    for(int i = 0; i < MY_REGS_LEN; i++){
+    for(unsigned int i = 0; i < MY_REGS_LEN; i++){
         if(strcmp(my_regs[i].line, s) == 0) return 1;
     }
 
@@ -508,51 +613,11 @@ int is_reg(char *s){
 
 const char* is_instruction(char *s){
 
-         if( strcmp(s,"RET")   == 0) return "I";
-    else if( strcmp(s,"RETI")  == 0) return "I";
-    else if( strcmp(s,"CALLI") == 0) return "IR";
-    else if( strcmp(s,"PUSH")  == 0) return "IR";
-    else if( strcmp(s,"POP")   == 0) return "IR";
-    else if( strcmp(s,"LDI")   == 0) return "IRR";
-    else if( strcmp(s,"STI")   == 0) return "IRR";
-    else if( strcmp(s,"BZI")   == 0) return "IRR";
-    else if( strcmp(s,"BNZI")  == 0) return "IRR";
-    else if( strcmp(s,"CMPI")  == 0) return "IcRRR";
-    else if( strcmp(s,"CMPF")  == 0) return "IcRRR";
-    else if( strcmp(s,"MULU")  == 0) return "IRRR";
-    else if( strcmp(s,"MUL")   == 0) return "IRRR";
-    else if( strcmp(s,"ADD")   == 0) return "IRRR";
-    else if( strcmp(s,"SUB")   == 0) return "IRRR";
-    else if( strcmp(s,"INC")   == 0) return "IRR";
-    else if( strcmp(s,"DEC")   == 0) return "IRR";
-    else if( strcmp(s,"AND")   == 0) return "IRRR";
-    else if( strcmp(s,"OR")    == 0) return "IRRR";
-    else if( strcmp(s,"XOR")   == 0) return "IRRR";
-    else if( strcmp(s,"NOT")   == 0) return "IRR";
-    else if( strcmp(s,"DIVU")  == 0) return "IRRR";
-    else if( strcmp(s,"DIV")   == 0) return "IRRR";
-    else if( strcmp(s,"REMU")  == 0) return "IRRR";
-    else if( strcmp(s,"REM")   == 0) return "IRRR";
-    else if( strcmp(s,"LSL")   == 0) return "IRRR";
-    else if( strcmp(s,"LSR")   == 0) return "IRRR";
-    else if( strcmp(s,"ROL")   == 0) return "IRRR";
-    else if( strcmp(s,"ROR")   == 0) return "IRRR";
-    else if( strcmp(s,"ASL")   == 0) return "IRRR";
-    else if( strcmp(s,"ASR")   == 0) return "IRRR";
-    else if( strcmp(s,"FSUB")  == 0) return "IRRR";
-    else if( strcmp(s,"FADD")  == 0) return "IRRR";
-    else if( strcmp(s,"FMUL")  == 0) return "IRRR";
-    else if( strcmp(s,"FDIV")  == 0) return "IRRR";
-    else if( strcmp(s,"MVIL")  == 0) return "IR6";
-    else if( strcmp(s,"MVIH")  == 0) return "IR6";
-    else if( strcmp(s,"CALL")  == 0) return "I4";
-    else if( strcmp(s,"LD")    == 0) return "I4R";
-    else if( strcmp(s,"ST")    == 0) return "IR4";
-    else if( strcmp(s,"BZ")    == 0) return "IR4";
-    else if( strcmp(s,"BNZ")   == 0) return "IR4";
-    else if( strcmp(s,"MVIA")  == 0) return "IR4";
-    else if( strcmp(s,"SWI")   == 0) return "I";
-    else                             return "N";
+    for(unsigned int i = 0; i < MY_INSTRS_LEN; i++){
+        if(strcmp(s, my_instrs[i].line) == 0) return my_instrs[i].format;
+    }
+
+    return "N";
 
 }
 
@@ -569,33 +634,41 @@ void free_istruction_struct(tInstruction *i){
 
 }
 
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+int get_instruction_size(tInstruction *inst, unsigned int *size){
 
-unsigned int get_instruction_size(tInstruction *i){
-    return 4;
+    //create local copy of line
+    char * line_copy = (char *)malloc(sizeof(char) * (strlen(inst->line) + 1));
+
+    if(line_copy){
+        SET_ERROR(ISAERR_MALLOC_FAIL);
+        return 0;
+    }
+
+    strcpy(line_copy, inst->line);
+
+    for(int i = 0; line_copy[i] != '\0'; i++){
+        if(line_copy[i] == ';'){
+            line_copy[i] = '\0';
+        }
+    }
+
+    for(unsigned int i = 0; i < MY_INSTRS_LEN; i++){
+        if(strcmp(line_copy, my_instrs[i].line) == 0){
+            *size = my_instrs[i].size;
+            return 1;
+        }
+    }
+
+    free(line_copy);
+
+    return 0;
+
 }
-
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
-
-//TODO: remove this pragmas for ignore flag
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
 
 int check_instruction_args(char *i){
     //TODO: add valid check
     return 1;
 }
-
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 int export_into_object_file_line(tInstruction *inst, char *line){
     if(inst == NULL || line == NULL){
@@ -673,15 +746,13 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
     }
 
     //create local copy of line
-    char * line_copy = (char *)malloc(sizeof(char) * (strlen(inst->line) + 1));
     char * opcode_copy = (char *)malloc(sizeof(char) * (strlen(inst->line) + 1));
 
-    if(line_copy == NULL || opcode_copy == NULL){
+    if(opcode_copy == NULL){
         SET_ERROR(ISAERR_MALLOC_FAIL);
         return 0;
     }
 
-    strcpy(line_copy, inst->line);
     strcpy(opcode_copy, inst->line);
 
     //replace ';' with '\0'
@@ -696,204 +767,203 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
     }
 
     //detect instruction
-    i_opcode op = get_opcode_from_name(opcode_copy);
+    i_opcode op;
+    uint32_t word;
+
+    for(unsigned int i = 0; i < MY_INSTRS_LEN; i++){
+        if(strcmp(opcode_copy, my_instrs[i].line) == 0){
+            op = my_instrs[i].opcode;
+            word = my_instrs[i].base_of_opcode;
+        }
+    }
 
     switch(op){
-        case ISA_UNDEF:
-            {
-                SET_ERROR(ISAERR_INTER_ERR);
-                return 0;
-            }
-            break;
         case ISA_RET:
-            {
-                inst->word = 0x01000000;
-            }
-            break;
         case ISA_RETI:
+        case ISA_SWI:
             {
-                inst->word = 0x0200000;
+                inst->word = word;
             }
             break;
         case ISA_CALLI:
-            {
-            }
-            break;
         case ISA_PUSH:
-            {
-            }
-            break;
         case ISA_POP:
             {
+                char * reg_ptr = (opcode_copy + strlen(opcode_copy) + 1);
+
+                uint32_t reg = decode_register_name_for_opcode(reg_ptr);
+
+                inst->word = word;
+
+                if(op == ISA_CALLI)
+                    inst->word |= MOVE_TO_REGA(reg);
+                if(op == ISA_PUSH)
+                    inst->word |= MOVE_TO_REGB(reg);
+                if(op == ISA_POP)
+                    inst->word |= MOVE_TO_REGC(reg);
             }
             break;
         case ISA_LDI:
-            {
-            }
-            break;
         case ISA_STI:
-            {
-            }
-            break;
         case ISA_BZI:
+        case ISA_BNZI:
+        case ISA_INC:
+        case ISA_DEC:
+        case ISA_NOT:
             {
+                char * reg1_ptr = (opcode_copy + strlen(opcode_copy) + 1);
+                char * reg2_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg1_ptr) + 2);
+
+                uint32_t reg1 = decode_register_name_for_opcode(reg1_ptr);
+                uint32_t reg2 = decode_register_name_for_opcode(reg2_ptr);
+
+                inst->word = word;
+
+                if(op == ISA_LDI)
+                    inst->word |= (MOVE_TO_REGA(reg1) | MOVE_TO_REGC(reg2));
+
+                if(op == ISA_STI)
+                    inst->word |= (MOVE_TO_REGA(reg2) | MOVE_TO_REGC(reg1));
+
+                if(op == ISA_BZI || op == ISA_BNZI)
+                    inst->word |= (MOVE_TO_FLAG(reg1) | MOVE_TO_REGA(reg2));
+
+                if(op == ISA_INC || op == ISA_DEC || op == ISA_NOT)
+                    inst->word |= (MOVE_TO_REGA(reg1) | MOVE_TO_REGC(reg2));
+
             }
             break;
-        case ISA_BNZI:
+        case ISA_MULU:
+        case ISA_MUL:
+        case ISA_ADD:
+        case ISA_SUB:
+        case ISA_AND:
+        case ISA_OR:
+        case ISA_XOR:
+        case ISA_DIVU:
+        case ISA_DIV:
+        case ISA_REMU:
+        case ISA_REM:
+        case ISA_LSL:
+        case ISA_LSR:
+        case ISA_ROL:
+        case ISA_ROR:
+        case ISA_ASL:
+        case ISA_ASR:
+        case ISA_FSUB:
+        case ISA_FADD:
+        case ISA_FMUL:
+        case ISA_FDIV:
             {
+                char * reg1_ptr = (opcode_copy + strlen(opcode_copy) + 1);
+                char * reg2_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg1_ptr) + 2);
+                char * reg3_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg1_ptr) + strlen(reg2_ptr) + 3);
+
+                uint32_t reg1 = decode_register_name_for_opcode(reg1_ptr);
+                uint32_t reg2 = decode_register_name_for_opcode(reg2_ptr);
+                uint32_t reg3 = decode_register_name_for_opcode(reg3_ptr);
+
+                inst->word = word;
+
+                inst->word |= (MOVE_TO_REGA(reg1) | MOVE_TO_REGB(reg2) | MOVE_TO_REGC(reg3));
+
             }
             break;
         case ISA_CMPI:
             {
+                //TODO: přidat překlad této instrukce
             }
             break;
         case ISA_CMPF:
             {
-            }
-            break;
-        case ISA_MULU:
-            {
-            }
-            break;
-        case ISA_MUL:
-            {
-            }
-            break;
-        case ISA_ADD:
-            {
-            }
-            break;
-        case ISA_SUB:
-            {
-            }
-            break;
-        case ISA_INC:
-            {
-            }
-            break;
-        case ISA_DEC:
-            {
-            }
-            break;
-        case ISA_AND:
-            {
-            }
-            break;
-        case ISA_OR:
-            {
-            }
-            break;
-        case ISA_XOR:
-            {
-            }
-            break;
-        case ISA_NOT:
-            {
-            }
-            break;
-        case ISA_DIVU:
-            {
-            }
-            break;
-        case ISA_DIV:
-            {
-            }
-            break;
-        case ISA_REMU:
-            {
-            }
-            break;
-        case ISA_REM:
-            {
-            }
-            break;
-        case ISA_LSL:
-            {
-            }
-            break;
-        case ISA_LSR:
-            {
-            }
-            break;
-        case ISA_ROL:
-            {
-            }
-            break;
-        case ISA_ROR:
-            {
-            }
-            break;
-        case ISA_ASL:
-            {
-            }
-            break;
-        case ISA_ASR:
-            {
-            }
-            break;
-        case ISA_FSUB:
-            {
-            }
-            break;
-        case ISA_FADD:
-            {
-            }
-            break;
-        case ISA_FMUL:
-            {
-            }
-            break;
-        case ISA_FDIV:
-            {
+                //TODO: přidat překlad této instrukce
             }
             break;
         case ISA_MVIL:
-            {
-            }
-            break;
         case ISA_MVIH:
             {
+                char * reg_ptr = (opcode_copy + strlen(opcode_copy) + 1);
+                char * cons_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg_ptr) + 2);
+
+                uint32_t reg = decode_register_name_for_opcode(reg_ptr);
+                long int cons = convert_to_int(cons_ptr);
+
+                inst->word = word;
+
+                inst->word |= (MOVE_TO_REGB(reg) | MOVE_TO_REGC(reg));
+
+                if(!((cons >= -32768 && cons <= 32767) || (unsigned)cons < 0xFFFF)){
+                    SET_ERROR(ISAERR_ARG_OVERFLOW);
+                    return 0;
+                }
+
+                inst->word |= ((uint32_t)cons << 8);
+
             }
             break;
         case ISA_CALL:
             {
+                char *adr_ptr = (opcode_copy + strlen(opcode_copy) + 1);
+
+                inst->word = word;
+
+                if(put_adr_arg_into_inst(inst, adr_ptr, section_ptr) == 0) return 0;
             }
             break;
         case ISA_LD:
-            {
-            }
-            break;
         case ISA_ST:
-            {
-            }
-            break;
         case ISA_BZ:
-            {
-            }
-            break;
         case ISA_BNZ:
-            {
-            }
-            break;
         case ISA_MVIA:
             {
+                char *reg_ptr;
+                char *adr_ptr;
+
+                if(op == ISA_LD){
+                    adr_ptr = (opcode_copy + strlen(opcode_copy) + 1);
+                    reg_ptr = (opcode_copy + strlen(opcode_copy) + strlen(adr_ptr) + 2);
+                }
+                else{
+                    reg_ptr = (opcode_copy + strlen(opcode_copy) + 1);
+                    adr_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg_ptr) + 2);
+                }
+
+                inst->word = word;
+
+                uint32_t reg = decode_register_name_for_opcode(reg_ptr);
+
+                if(op == ISA_MVIA || op == ISA_LD){
+                    inst->word |= MOVE_TO_REGC(reg);
+                }
+                else if(op == ISA_BZ || op == ISA_BNZ){
+                    inst->word |= MOVE_TO_FLAG(reg);
+                }
+                else{
+                    inst->word |= MOVE_TO_REGB(reg);
+                }
+
+                if(put_adr_arg_into_inst(inst, adr_ptr, section_ptr) == 0) return 0;
+
             }
             break;
-        case ISA_SWI:
-            {
-                inst->word = 0x14000000;
-            }
-            break;
+        case ISA_UNDEF:
         default:
             SET_ERROR(ISAERR_INTER_ERR);
             return 0;
     }
 
-    free(line_copy);
     free(opcode_copy);
 
     return 1;
 }
+
+/*
+ *
+ * End of exported functions definitions
+ * ---------------------------------------------------------------------
+ * Callback register functions.
+ *
+ */
 
 int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) ){
     if(f == NULL){
@@ -911,8 +981,35 @@ int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) ){
     return 1;
 }
 
-/*
- *
- * End of exported functions definitions
- * ---------------------------------------------------------------------
- */
+int register_callback_convert_to_int( long int (*f)(char *) ){
+    if(f == NULL){
+        SET_ERROR(ISAERR_NULL_PTR);
+        return 0;
+    }
+
+    if(convert_to_int_handler != NULL){
+        SET_ERROR(ISAERR_INTER_ERR);
+        return 0;
+    }
+
+    convert_to_int_handler = f;
+
+    return 1;
+}
+
+int register_callback_is_number( int (*f)(char *) ){
+    if(f == NULL){
+        SET_ERROR(ISAERR_NULL_PTR);
+        return 0;
+    }
+
+    if(is_number_handler != NULL){
+        SET_ERROR(ISAERR_INTER_ERR);
+        return 0;
+    }
+
+    is_number_handler = f;
+
+    return 1;
+}
+

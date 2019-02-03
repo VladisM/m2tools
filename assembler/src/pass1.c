@@ -7,6 +7,7 @@
 
 #include <symbol_table.h>
 #include <tokenizer.h>
+#include <util.h>
 
 pass1_section_t *pass1_list_first = NULL;
 pass1_section_t *pass1_list_last = NULL;
@@ -26,7 +27,6 @@ typedef enum{
 }val_types_t;
 
 static void _pass1(void);
-static long int convert_to_int(char *l);
 static int format_integer(val_types_t size, val_t *out_val, long int val);
 static void append_to_pass1_list(pass1_item_t *x);
 
@@ -89,8 +89,14 @@ static void _pass1(void){
             x->prev = NULL;
 
             //count location for next instruction
-            location_counter += get_instruction_size(t->payload.i);
+            unsigned int actual_size;
 
+            if(get_instruction_size(t->payload.i, &actual_size) != 0){
+                fprintf(stderr, "Error in ISA library! errno %d\n", get_isalib_errno());
+                exit(EXIT_FAILURE);
+            }
+
+            location_counter += actual_size;
             append_to_pass1_list(x);
 
             //free memory agin
@@ -472,47 +478,6 @@ void pass1_cleanup(void){
     }
 
     return;
-}
-
-static long int convert_to_int(char *l){
-    size_t len = strlen(l);
-
-    if(len < 1){
-        fprintf(stderr, "Convert int error!\n");
-        exit(EXIT_FAILURE);
-    }
-    else{
-        long int temp = 0;
-        char *end_ptr = NULL;
-
-        if(l[0] == '0' && l[1] == 'x'){
-            temp = strtol(l, &end_ptr, 16);
-
-            if(end_ptr == l){
-                fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
-                exit(EXIT_FAILURE);
-            }
-        }
-        else if(l[0] == '0' && l[1] == 'b'){
-            char *nptr = l + 2;
-            temp = strtol(nptr, &end_ptr, 2);
-
-            if(end_ptr == nptr){
-                fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
-                exit(EXIT_FAILURE);
-            }
-        }
-        else{
-            temp = strtol(l, &end_ptr, 10);
-
-            if(end_ptr == l){
-                fprintf(stderr, "Error when converting string '%s' into integer value!\n", l);
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        return temp;
-    }
 }
 
 static int format_integer(val_types_t size, val_t *out_val, long int val){
