@@ -26,6 +26,8 @@ typedef struct pass1_item_s{
     }payload;
     uint32_t location;
     pass1_item_type_t type;
+    uint8_t relocation;
+    uint8_t special;
 }pass1_item_t;
 
 typedef struct pass1_section_s{

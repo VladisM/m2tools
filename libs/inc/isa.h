@@ -36,6 +36,8 @@ typedef enum {
     ISAERR_INTER_ERR,                        /**< @brief Probably bug in library, didn't you call register_callback twice? */
     ISAERR_FORMAT_ERR,                       /**< @brief Failed to decode string for object file library. */
     ISAERR_MISSING_CALLBACK,                 /**< @brief Callback function isn't registered but it was needed. */
+    ISAERR_ARG_OVERFLOW,                     /**< @brief Overflow of an argument in assembling instruction. */
+    ISAERR_ARG_UNKOWN_SYMBOL                 /**< @brief Cant find symbol when assembling instruction. */
 } tIsaError;
 
 /**
@@ -224,11 +226,12 @@ void free_istruction_struct(tInstruction *i);
 /**
  * @brief Return instruction size in bytes
  *
- * @param i Instruction structure
+ * @param inst Instruction structure
+ * @param size Pointer to variable where result will be written
  *
- * @return Int value of bytes needeed by instruction.
+ * @return 1 if ok; 0 if fail
  */
-unsigned int get_instruction_size(tInstruction *i);
+int get_instruction_size(tInstruction *inst, unsigned int * size);
 
 /**
  * @brief Check valid instruction format.
@@ -303,6 +306,42 @@ int assemble_instruction(tInstruction * i, void * section_ptr);
  * Otherwise you may cause error.
  */
 int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) );
+
+/**
+ * @brief Register call back function for ISA library module.
+ *
+ * This function register callback function for translating string into
+ * integers. This function is provided by assembler itself. It is used when
+ * calling assemble_instruction.
+ *
+ * Given function have to translate null terminated string into long int
+ * number. If this conversion is not possible, function can terminate execution
+ * of assembler.
+ *
+ * @param f pointer to such function.
+ *
+ * @return 1 if ok; 0 if fail
+ *
+ * @warning Call this function only once and before any assemble_instruction is called.
+ * Otherwise you may cause error.
+ */
+int register_callback_convert_to_int( long int (*f)(char *) );
+
+/**
+ * @brief Register call back function for ISA library module.
+ *
+ * This function register callback function for checking if string is number.
+ *
+ * Given function have to check if string is acceptable for convert_to_int callback. And if so, return 1. Zero otherwise.
+ *
+ * @param f pointer to such function.
+ *
+ * @return 1 if ok; 0 if fail
+ *
+ * @warning Call this function only once and before any assemble_instruction is called.
+ * Otherwise you may cause error.
+ */
+int register_callback_is_number( int (*f)(char *) );
 
 /**
  * @}

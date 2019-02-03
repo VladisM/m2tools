@@ -7,13 +7,26 @@
 
 #include <symbol_table.h>
 #include <pass1.h>
+#include <util.h>
 
-static symbol_t * find_exported_symbol_definition(symbol_t *e);
+static symbol_t *find_exported_symbol_definition(symbol_t *e);
 static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section);
+
+static symbol_t * last_found_symbol = NULL;
 
 void pass2(void){
 
     if(register_callback_search_for_symbol(&find_symbol_for_instruction_assemble) != 1){
+        fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
+        exit(EXIT_FAILURE);
+    }
+
+    if(register_callback_convert_to_int(&convert_to_int) != 1){
+        fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
+        exit(EXIT_FAILURE);
+    }
+
+    if(register_callback_is_number(&is_number) != 1){
         fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
         exit(EXIT_FAILURE);
     }
@@ -45,9 +58,31 @@ void pass2(void){
         for(pass1_item_t *item = s->first_element; item != NULL; item = item->next){
 
             if(item->type == TYPE_INSTRUCTION){
+
+                last_found_symbol = NULL;
+
                 if(assemble_instruction(item->payload.i, (void *)s) != 1){
                     fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
                     exit(EXIT_FAILURE);
+                }
+
+                if(last_found_symbol != NULL){
+                    if(
+                        ((last_found_symbol->stype & STYPE_ABSOLUTE) != STYPE_ABSOLUTE) &&
+                        ((last_found_symbol->stype & STYPE_RELOCATION) == STYPE_RELOCATION)
+                    ){
+                        item->relocation = 1;
+                    }
+                    else{
+                        item->relocation = 0;
+                    }
+
+                    if((last_found_symbol->stype & STYPE_IMPORT) != STYPE_IMPORT){
+                        item->special = 1;
+                    }
+                    else{
+                        item->special = 0;
+                    }
                 }
             }
             else if(item->type == TYPE_BLOB){
@@ -83,5 +118,44 @@ static symbol_t * find_exported_symbol_definition(symbol_t *exported_symbol){
 
 static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section){
     //TODO: implementovat
+
+    //tato funkce si musí zapamatovat jaký symbol našla a uložit ho do last_found_symbol
     return NULL;
 }
+
+/* ---------------------------------------------------------------------
+ * Debuging functions.
+ */
+
+#ifdef DEBUG
+void print_pass2_buffer(void){
+    printf("\npass1 buffer: \n");
+
+    if(pass1_list_first == NULL){
+        printf("  - Section list is empty\n");
+    }
+    else{
+        for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
+
+            printf("  - Section '%s':\n", s->section_name);
+            if(s->first_element == NULL){
+                printf("      - List is empty\n");
+            }
+            else{
+                for(pass1_item_t *t = s->first_element; t != NULL; t = t->next){
+                    if(t->type == TYPE_INSTRUCTION){
+                        printf("      - from %s @ %d \t Addr: 0x%X \t Instr: '%s' \t Rel: %d \t Spec: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line, t->special, t->relocation);
+                    }
+                    else if(t->type == TYPE_BLOB){
+                        printf("      - from %s @ %d \t Addr: 0x%X \t BLOB with len of %d bytes\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
+                    }
+                    else{
+                        fprintf(stderr, "Internal error in pass1, unknown pass1_item type!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            }
+        }
+    }
+}
+#endif
