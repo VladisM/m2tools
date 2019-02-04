@@ -57,6 +57,9 @@ void pass2(void){
     for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
         for(pass1_item_t *item = s->first_element; item != NULL; item = item->next){
 
+            item->relocation = 0;
+            item->special = 0;
+
             if(item->type == TYPE_INSTRUCTION){
 
                 last_found_symbol = NULL;
@@ -67,21 +70,12 @@ void pass2(void){
                 }
 
                 if(last_found_symbol != NULL){
-                    if(
-                        ((last_found_symbol->stype & STYPE_ABSOLUTE) != STYPE_ABSOLUTE) &&
-                        ((last_found_symbol->stype & STYPE_RELOCATION) == STYPE_RELOCATION)
-                    ){
+                    if( ((last_found_symbol->stype & STYPE_ABSOLUTE) != STYPE_ABSOLUTE) && ((last_found_symbol->stype & STYPE_RELOCATION) == STYPE_RELOCATION) ){
                         item->relocation = 1;
-                    }
-                    else{
-                        item->relocation = 0;
                     }
 
                     if((last_found_symbol->stype & STYPE_IMPORT) != STYPE_IMPORT){
                         item->special = 1;
-                    }
-                    else{
-                        item->special = 0;
                     }
                 }
             }
@@ -117,9 +111,19 @@ static symbol_t * find_exported_symbol_definition(symbol_t *exported_symbol){
 }
 
 static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section){
-    //TODO: implementovat
 
-    //tato funkce si musí zapamatovat jaký symbol našla a uložit ho do last_found_symbol
+    for(symbol_t *i = symbol_first; i != NULL; i = i->next){
+        if(
+            (strcmp(label, i->label) == 0) &&
+            (strcmp( ((pass1_section_t*)section)->section_name, ((pass1_section_t *)(i->section))->section_name) == 0) &&
+            ((i->stype & STYPE_EXPORT) != STYPE_EXPORT) &&
+            ((i->stype & STYPE_IMPORT) != STYPE_IMPORT)
+        ){
+            last_found_symbol = i;
+            return &(i->address);
+        }
+    }
+
     return NULL;
 }
 
@@ -144,7 +148,7 @@ void print_pass2_buffer(void){
             else{
                 for(pass1_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t Instr: '%s' \t Rel: %d \t Spec: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line, t->special, t->relocation);
+                        printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: %d \t Spec: %d \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->special, t->relocation, t->payload.i->line);
                     }
                     else if(t->type == TYPE_BLOB){
                         printf("      - from %s @ %d \t Addr: 0x%X \t BLOB with len of %d bytes\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);

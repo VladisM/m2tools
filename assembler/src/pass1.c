@@ -613,7 +613,7 @@ void print_pass1_buffer(void){
             else{
                 for(pass1_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t Instr: '%s'\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
+                        printf("      - from %s @ %d \t Addr: 0x%X \t INST '%-30s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
                     }
                     else if(t->type == TYPE_BLOB){
                         printf("      - from %s @ %d \t Addr: 0x%X \t BLOB with len of %d bytes\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
