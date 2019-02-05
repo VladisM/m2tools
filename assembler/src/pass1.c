@@ -91,7 +91,7 @@ static void _pass1(void){
             //count location for next instruction
             unsigned int actual_size;
 
-            if(get_instruction_size(t->payload.i, &actual_size) != 0){
+            if(get_instruction_size(t->payload.i, &actual_size) == 0){
                 fprintf(stderr, "Error in ISA library! errno %d\n", get_isalib_errno());
                 exit(EXIT_FAILURE);
             }
