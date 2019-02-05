@@ -639,7 +639,9 @@ int get_instruction_size(tInstruction *inst, unsigned int *size){
     //create local copy of line
     char * line_copy = (char *)malloc(sizeof(char) * (strlen(inst->line) + 1));
 
-    if(line_copy){
+    int ret_val = 0;
+
+    if(line_copy == NULL){
         SET_ERROR(ISAERR_MALLOC_FAIL);
         return 0;
     }
@@ -655,13 +657,13 @@ int get_instruction_size(tInstruction *inst, unsigned int *size){
     for(unsigned int i = 0; i < MY_INSTRS_LEN; i++){
         if(strcmp(line_copy, my_instrs[i].line) == 0){
             *size = my_instrs[i].size;
-            return 1;
+            ret_val = 1;
+            break;
         }
     }
 
     free(line_copy);
-
-    return 0;
+    return ret_val;
 
 }
 
