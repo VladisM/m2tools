@@ -151,7 +151,7 @@ void print_pass2_buffer(void){
                         printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: %d \t Spec: %d \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->special, t->relocation, t->payload.i->line);
                     }
                     else if(t->type == TYPE_BLOB){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t BLOB with len of %d bytes\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
+                        printf("      - from %s @ %d \t Addr: 0x%X \t BLOB \t Len: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
                     }
                     else{
                         fprintf(stderr, "Internal error in pass1, unknown pass1_item type!\n");

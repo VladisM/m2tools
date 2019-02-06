@@ -613,10 +613,10 @@ void print_pass1_buffer(void){
             else{
                 for(pass1_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t INST '%-30s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
+                        printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: - \t Spec: - \t '%s'\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
                     }
                     else if(t->type == TYPE_BLOB){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t BLOB with len of %d bytes\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
+                        printf("      - from %s @ %d \t Addr: 0x%X \t BLOB \t Len: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
                     }
                     else{
                         fprintf(stderr, "Internal error in pass1, unknown pass1_item type!\n");
