@@ -74,7 +74,7 @@ void pass2(void){
                         item->relocation = 1;
                     }
 
-                    if((last_found_symbol->stype & STYPE_IMPORT) != STYPE_IMPORT){
+                    if((last_found_symbol->stype & STYPE_IMPORT) == STYPE_IMPORT){
                         item->special = 1;
                     }
                 }
@@ -116,8 +116,7 @@ static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section
         if(
             (strcmp(label, i->label) == 0) &&
             (strcmp( ((pass1_section_t*)section)->section_name, ((pass1_section_t *)(i->section))->section_name) == 0) &&
-            ((i->stype & STYPE_EXPORT) != STYPE_EXPORT) &&
-            ((i->stype & STYPE_IMPORT) != STYPE_IMPORT)
+            ((i->stype & STYPE_EXPORT) != STYPE_EXPORT)
         ){
             last_found_symbol = i;
             return &(i->address);
@@ -148,7 +147,7 @@ void print_pass2_buffer(void){
             else{
                 for(pass1_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: %d \t Spec: %d \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->special, t->relocation, t->payload.i->line);
+                        printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: %d \t Spec: %d \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->relocation, t->special, t->payload.i->line);
                     }
                     else if(t->type == TYPE_BLOB){
                         printf("      - from %s @ %d \t Addr: 0x%X \t BLOB \t Len: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
