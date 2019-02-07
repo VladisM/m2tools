@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdint.h>
 
 long int convert_to_int(char *l){
     size_t len = strlen(l);
@@ -73,3 +74,36 @@ int is_number(char *s){
 
     return 1;
 }
+
+int format_integer(val_types_t size, val_t *out_val, long int val){
+    switch(size){
+        case BYTE:
+            if(val >= -128 && val <= 127) out_val->byte = (uint8_t) val;
+            else return 0;
+            break;
+        case HWORD:
+            if(val >= -32768 && val <= 32767) out_val->hword = (uint16_t) val;
+            else return 0;
+            break;
+        case WORD:
+            if(val >= -2147483648 && val <= 2147483647) out_val->word = (uint32_t) val;
+            else return 0;
+            break;
+        default:
+            fprintf(stderr, "Internal code error!\n");
+            exit(EXIT_FAILURE);
+            break;
+    }
+
+    return 1;
+}
+
+#ifdef DEBUG
+void print_start(int x){
+    printf("\n\n\n--------------------* PASS %d START! *--------------------\n", x);
+}
+
+void print_end(int x){
+    printf("\n--------------------*  PASS %d END!  *--------------------\n\n\n", x);
+}
+#endif
