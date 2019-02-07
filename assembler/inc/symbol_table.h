@@ -2,26 +2,7 @@
 #define PASS1_SYMBOL_TABLE_H_included
 
 #include <stdint.h>
-
-#include <tokenizer.h>
-
-#define STYPE_ABSOLUTE    0x01U
-#define STYPE_RELOCATION  0x02U
-#define STYPE_EXPORT      0x04U
-#define STYPE_IMPORT      0x08U
-
-typedef struct symbol_s{
-    struct symbol_s *next;
-    struct symbol_s *prev;
-    char *label;
-    uint32_t address;
-    uint8_t stype;
-    tok_t *parent;
-    void *section;
-}symbol_t;
-
-extern symbol_t *symbol_first;
-extern symbol_t *symbol_last;
+#include <common_defs.h>
 
 void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t *parent, void *section);
 void symbol_table_cleanup(void);

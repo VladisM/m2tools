@@ -1,40 +1,19 @@
 #include <pass1.h>
 
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <symbol_table.h>
-#include <tokenizer.h>
+#include <common_defs.h>
 #include <util.h>
 
-pass1_section_t *pass1_list_first = NULL;
-pass1_section_t *pass1_list_last = NULL;
-
-pass1_section_t *actual_section = NULL;
-
-typedef union{
-    uint8_t byte;
-    uint16_t hword;
-    uint32_t word;
-}val_t;
-
-typedef enum{
-    BYTE,
-    HWORD,
-    WORD
-}val_types_t;
+static pass_section_t *actual_section = NULL;
 
 static void _pass1(void);
-static int format_integer(val_types_t size, val_t *out_val, long int val);
-static void append_to_pass1_list(pass1_item_t *x);
-
+static void append_to_pass1_list(pass_item_t *x);
 static void handle_section(char *section_name);
-static inline pass1_section_t *make_new_section(char *section_name);
-static inline pass1_section_t *get_current_section(void);
-static inline pass1_section_t *is_section_exist(char *section_name);
-static inline void append_to_section_list(pass1_section_t *section);
 
 void pass1(void){
     _pass1();
@@ -73,7 +52,7 @@ static void _pass1(void){
             }
 
             //create structure for pass1_item
-            pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+            pass_item_t *x = (pass_item_t *)malloc(sizeof(pass_item_t));
 
             if(x == NULL){
                 fprintf(stderr, "Malloc failed!\n");
@@ -112,7 +91,7 @@ static void _pass1(void){
             }
 
             //make new symbol in table
-            new_symbol(label_name, location_counter, STYPE_RELOCATION, t, (void *)get_current_section());
+            new_symbol(label_name, location_counter, STYPE_RELOCATION, t, (void *)actual_section);
 
             //cleanup
             free(label_name);
@@ -155,7 +134,7 @@ static void _pass1(void){
                 //get position of section name
                 char *arg = cmd + strlen(".SECTION") + 1;
 
-                pass1_section_t *s = get_current_section();
+                pass_section_t *s = actual_section;
 
                 if(s == NULL){
                     handle_section(arg);
@@ -163,7 +142,7 @@ static void _pass1(void){
                 else{
                     s->last_location_counter = location_counter;
                     handle_section(arg);
-                    s = get_current_section();
+                    s = actual_section;
                     location_counter = s->last_location_counter;
                 }
             }
@@ -188,7 +167,7 @@ static void _pass1(void){
                 }
 
                 //add this symbol into symbol table
-                new_symbol(cons_name, val.word, STYPE_ABSOLUTE, t, (void *)get_current_section());
+                new_symbol(cons_name, val.word, STYPE_ABSOLUTE, t, (void *)actual_section);
             }
             else if(strcmp(cmd, ".DAT_W") == 0){
                 //get position of first argument
@@ -203,7 +182,7 @@ static void _pass1(void){
                 }
 
                 //malloc needed space
-                pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+                pass_item_t *x = (pass_item_t *)malloc(sizeof(pass_item_t));
                 blob_t *b = (blob_t *)malloc(sizeof(blob_t));
                 uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count * 4);
 
@@ -263,7 +242,7 @@ static void _pass1(void){
                 }
 
                 //malloc needed space
-                pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+                pass_item_t *x = (pass_item_t *)malloc(sizeof(pass_item_t));
                 blob_t *b = (blob_t *)malloc(sizeof(blob_t));
                 uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count * 2);
 
@@ -321,7 +300,7 @@ static void _pass1(void){
                 }
 
                 //malloc needed space
-                pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+                pass_item_t *x = (pass_item_t *)malloc(sizeof(pass_item_t));
                 blob_t *b = (blob_t *)malloc(sizeof(blob_t));
                 uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * arg_count);
 
@@ -381,7 +360,7 @@ static void _pass1(void){
                 len = val.word;
 
                 //create structure for pass1_item and blob
-                pass1_item_t *x = (pass1_item_t *)malloc(sizeof(pass1_item_t));
+                pass_item_t *x = (pass_item_t *)malloc(sizeof(pass_item_t));
                 blob_t *b = (blob_t *)malloc(sizeof(blob_t));
                 uint8_t *b_data = (uint8_t *)malloc(sizeof(uint8_t) * len);
 
@@ -420,7 +399,7 @@ static void _pass1(void){
                 export_name = &(cmd[++x]);
 
                 //add export into symbol table
-                new_symbol(export_name, 0, STYPE_EXPORT, t, (void *)get_current_section());
+                new_symbol(export_name, 0, STYPE_EXPORT, t, (void *)actual_section);
             }
             else if(strcmp(cmd, ".IMPORT") == 0){
                 char * import_name = NULL;
@@ -431,7 +410,7 @@ static void _pass1(void){
                 import_name = &(cmd[++x]);
 
                 //add export into symbol table
-                new_symbol(import_name, 0, STYPE_IMPORT, t, (void *)get_current_section());
+                new_symbol(import_name, 0, STYPE_IMPORT, t, (void *)actual_section);
             }
             else{
                 fprintf(stderr, "Syntax error, pass1 doesn't know that label! Label '%s' from: %s at line %d.\n", cmd, t->fileInfo->name, t->lineNumber);
@@ -450,15 +429,15 @@ static void _pass1(void){
 }
 
 void pass1_cleanup(void){
-    pass1_section_t *tmp_sec = NULL;
-    pass1_section_t *head_sec = pass1_list_first;
+    pass_section_t *tmp_sec = NULL;
+    pass_section_t *head_sec = pass_list_first;
 
     while(head_sec != NULL){
         tmp_sec = head_sec;
         head_sec = head_sec->next;
 
-        pass1_item_t *tmp_item = NULL;
-        pass1_item_t *head_item = tmp_sec->first_element;
+        pass_item_t *tmp_item = NULL;
+        pass_item_t *head_item = tmp_sec->first_element;
 
         while(head_item != NULL){
             tmp_item = head_item;
@@ -480,31 +459,8 @@ void pass1_cleanup(void){
     return;
 }
 
-static int format_integer(val_types_t size, val_t *out_val, long int val){
-    switch(size){
-        case BYTE:
-            if(val >= -128 && val <= 127) out_val->byte = (uint8_t) val;
-            else return 0;
-            break;
-        case HWORD:
-            if(val >= -32768 && val <= 32767) out_val->hword = (uint16_t) val;
-            else return 0;
-            break;
-        case WORD:
-            if(val >= -2147483648 && val <= 2147483647) out_val->word = (uint32_t) val;
-            else return 0;
-            break;
-        default:
-            fprintf(stderr, "Internal code error!\n");
-            exit(EXIT_FAILURE);
-            break;
-    }
-
-    return 1;
-}
-
-static void append_to_pass1_list(pass1_item_t *x){
-    pass1_section_t * s = get_current_section();
+static void append_to_pass1_list(pass_item_t *x){
+    pass_section_t * s = actual_section;
 
     if(s == NULL){
         fprintf(stderr, "Error! Any section dosn't exist! You have to create at least one!\n");
@@ -522,74 +478,59 @@ static void append_to_pass1_list(pass1_item_t *x){
     }
 }
 
-
-/* ---------------------------------------------------------------------
- * Functions to handle sections
- */
-
 static void handle_section(char *section_name){
 
-    pass1_section_t *s = is_section_exist(section_name);
+    pass_section_t *section = NULL;
 
-    if(s != NULL){ //section exist
-        actual_section = s;
-    }
-    else{
-        s = make_new_section(section_name);
-        append_to_section_list(s);
-        actual_section = s;
-    }
-
-}
-
-static inline pass1_section_t *make_new_section(char *section_name){
-
-    pass1_section_t *new_section = (pass1_section_t *)malloc(sizeof(pass1_section_t));
-    char *x = (char *) malloc(sizeof(char) * (strlen(section_name) + 1));
-
-    //check malloc result
-    if(new_section == NULL || x == NULL){
-        fprintf(stderr, "Malloc failed!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    //copy path
-    strcpy(x, section_name);
-
-    //insert content of the new item
-    new_section->section_name = x;
-    new_section->last_location_counter = 0;
-    new_section->prev = NULL;
-    new_section->next = NULL;
-    new_section->last_element = NULL;
-    new_section->first_element = NULL;
-
-    return new_section;
-}
-
-static inline pass1_section_t *get_current_section(void){
-    return actual_section;
-}
-
-static inline pass1_section_t *is_section_exist(char *section_name){
-    for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
+    //try to find if section exist is_section_exist(section_name);
+    for(pass_section_t *s = pass_list_first; s != NULL; s = s->next){
         if(strcmp(section_name, s->section_name) == 0){
-            return s;
+            section = s;
+            break;
         }
     }
-    return NULL;
-}
 
-static inline void append_to_section_list(pass1_section_t *section){
-    if(pass1_list_first == NULL){
-        pass1_list_first = section;
-        pass1_list_last = section;
+    //check if something was found
+    if(section != NULL){
+        actual_section = section;
     }
     else{
-        pass1_list_last->next = section;
-        section->prev = pass1_list_last;
-        pass1_list_last = section;
+        //create new section
+        pass_section_t *new_section = (pass_section_t *)malloc(sizeof(pass_section_t));
+        char *x = (char *) malloc(sizeof(char) * (strlen(section_name) + 1));
+
+        //check malloc result
+        if(new_section == NULL || x == NULL){
+            fprintf(stderr, "Malloc failed!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        //copy path
+        strcpy(x, section_name);
+
+        //insert content of the new item
+        new_section->section_name = x;
+        new_section->last_location_counter = 0;
+        new_section->prev = NULL;
+        new_section->next = NULL;
+        new_section->last_element = NULL;
+        new_section->first_element = NULL;
+
+        //append new section into list
+        if(pass_list_first == NULL){
+            pass_list_first = new_section;
+            pass_list_last = new_section;
+        }
+        else{
+            pass_list_last->next = new_section;
+            new_section->prev = pass_list_last;
+            pass_list_last = new_section;
+        }
+
+        //set pointer to new section
+        actual_section = new_section;
     }
+
 }
 
 /* ---------------------------------------------------------------------
@@ -598,20 +539,20 @@ static inline void append_to_section_list(pass1_section_t *section){
 
 #ifdef DEBUG
 void print_pass1_buffer(void){
-    printf("\npass1 buffer: \n");
+    printf("\npass buffer: \n");
 
-    if(pass1_list_first == NULL){
+    if(pass_list_first == NULL){
         printf("  - Section list is empty\n");
     }
     else{
-        for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
+        for(pass_section_t *s = pass_list_first; s != NULL; s = s->next){
 
             printf("  - Section '%s':\n", s->section_name);
             if(s->first_element == NULL){
                 printf("      - List is empty\n");
             }
             else{
-                for(pass1_item_t *t = s->first_element; t != NULL; t = t->next){
+                for(pass_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
                         printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: - \t Spec: - \t '%s'\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
                     }

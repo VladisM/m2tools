@@ -7,6 +7,7 @@
 #include <ctype.h>
 
 #include <util.h>
+#include <common_defs.h>
 
 #define TOKEN_EVAL_BUFF_MAX 160
 
@@ -80,23 +81,20 @@ static int is_in_list(char *absName);
  * Variables
  */
 
-def_t *def_list = NULL;         //list for definitions
-cons_t *cons_list = NULL;       // list for constants
+static def_t *def_list = NULL;         //list for definitions
+static cons_t *cons_list = NULL;       // list for constants
 
-fileInfoOut_t *filelist_first = NULL;
-fileInfoOut_t *filelist_last = NULL;
+static fileInfoOut_t *filelist_first = NULL;
+static fileInfoOut_t *filelist_last = NULL;
 
-tok_t *toklist_first = NULL;
-tok_t *toklist_last = NULL;
+static eval_tok_type actual_eval = EVAL_NONE;
 
-eval_tok_type actual_eval = EVAL_NONE;
+static unsigned int iteration = 0;
+static const char * format_string;   //string returned by various functions like is_pseudo()
+static char token_eval_buff[TOKEN_EVAL_BUFF_MAX];
+static unsigned int token_eval_buff_top = 0;
 
-unsigned int iteration = 0;
-const char * format_string;   //string returned by various functions like is_pseudo()
-char token_eval_buff[TOKEN_EVAL_BUFF_MAX];
-unsigned int token_eval_buff_top = 0;
-
-unsigned int false_if_count = 0;
+static unsigned int false_if_count = 0;
 
 
 /* -----------------------------------------------------------------------------

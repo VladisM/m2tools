@@ -2,7 +2,6 @@
 #define PASS_2_H_included
 
 void pass2(void);
-
 void pass2_cleanup(void);
 
 #ifdef DEBUG

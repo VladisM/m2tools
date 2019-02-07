@@ -5,16 +5,20 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <symbol_table.h>
-#include <pass1.h>
+#include <common_defs.h>
 #include <util.h>
 
+static void _pass2(void);
 static symbol_t *find_exported_symbol_definition(symbol_t *e);
 static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section);
 
 static symbol_t * last_found_symbol = NULL;
 
 void pass2(void){
+    _pass2();
+}
+
+static void _pass2(void){
 
     if(register_callback_search_for_symbol(&find_symbol_for_instruction_assemble) != 1){
         fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
@@ -31,7 +35,7 @@ void pass2(void){
         exit(EXIT_FAILURE);
     }
 
-    for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
+    for(pass_section_t *s = pass_list_first; s != NULL; s = s->next){
         s->last_location_counter = 0;
     }
 
@@ -48,14 +52,14 @@ void pass2(void){
             t->address = e->address;
         }
         else if((t->stype & STYPE_IMPORT) == STYPE_IMPORT){
-            t->address = ((pass1_section_t *)(t->section))->last_location_counter++;
+            t->address = ((pass_section_t *)(t->section))->last_location_counter++;
         }
 
     }
 
     //go for all section and all instructions(blobs too) in it
-    for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
-        for(pass1_item_t *item = s->first_element; item != NULL; item = item->next){
+    for(pass_section_t *s = pass_list_first; s != NULL; s = s->next){
+        for(pass_item_t *item = s->first_element; item != NULL; item = item->next){
 
             item->relocation = 0;
             item->special = 0;
@@ -101,7 +105,7 @@ static symbol_t * find_exported_symbol_definition(symbol_t *exported_symbol){
     for(symbol_t *i = symbol_first; i != NULL; i = i->next){
         if(
             (strcmp(exported_symbol->label, i->label) == 0) &&
-            (strcmp(((pass1_section_t *)(exported_symbol->section))->section_name, ((pass1_section_t *)(i->section))->section_name) == 0) &&
+            (strcmp(((pass_section_t *)(exported_symbol->section))->section_name, ((pass_section_t *)(i->section))->section_name) == 0) &&
             ((i->stype & STYPE_EXPORT) != STYPE_EXPORT) &&
             ((i->stype & STYPE_IMPORT) != STYPE_IMPORT)
         ) return i;
@@ -115,7 +119,7 @@ static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section
     for(symbol_t *i = symbol_first; i != NULL; i = i->next){
         if(
             (strcmp(label, i->label) == 0) &&
-            (strcmp( ((pass1_section_t*)section)->section_name, ((pass1_section_t *)(i->section))->section_name) == 0) &&
+            (strcmp( ((pass_section_t*)section)->section_name, ((pass_section_t *)(i->section))->section_name) == 0) &&
             ((i->stype & STYPE_EXPORT) != STYPE_EXPORT)
         ){
             last_found_symbol = i;
@@ -132,20 +136,20 @@ static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section
 
 #ifdef DEBUG
 void print_pass2_buffer(void){
-    printf("\npass1 buffer: \n");
+    printf("\npass buffer: \n");
 
-    if(pass1_list_first == NULL){
+    if(pass_list_first == NULL){
         printf("  - Section list is empty\n");
     }
     else{
-        for(pass1_section_t *s = pass1_list_first; s != NULL; s = s->next){
+        for(pass_section_t *s = pass_list_first; s != NULL; s = s->next){
 
             printf("  - Section '%s':\n", s->section_name);
             if(s->first_element == NULL){
                 printf("      - List is empty\n");
             }
             else{
-                for(pass1_item_t *t = s->first_element; t != NULL; t = t->next){
+                for(pass_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
                         printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: %d \t Spec: %d \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->relocation, t->special, t->payload.i->line);
                     }

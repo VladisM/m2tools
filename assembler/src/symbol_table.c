@@ -5,8 +5,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <pass1.h>
-
 symbol_t *symbol_first = NULL;
 symbol_t *symbol_last = NULL;
 
@@ -67,14 +65,13 @@ void symbol_table_cleanup(void){
 static int is_equal(symbol_t *x1, symbol_t *x2){
     if(
         (strcmp(x1->label, x2->label) == 0) &&
-        (strcmp(((pass1_section_t *)(x1->section))->section_name, ((pass1_section_t *)(x2->section))->section_name) == 0) &&
+        (strcmp(((pass_section_t *)(x1->section))->section_name, ((pass_section_t *)(x2->section))->section_name) == 0) &&
         (x1->stype == x2->stype)
     ) return 1;
     else return 0;
 }
 
 #ifdef DEBUG
-#include <pass1.h>
 
 void print_symboltable(void){
     printf("\nSymbol table: \n");
@@ -83,7 +80,7 @@ void print_symboltable(void){
     }
     else{
         for(symbol_t *t = symbol_first; t != NULL; t = t->next){
-            printf("  - %-30s \t Value: 0x%08X \t Stype: %d \t Section: '%s'\n", t->label, t->address, t->stype, ((pass1_section_t *)(t->section))->section_name);
+            printf("  - %-30s \t Value: 0x%08X \t Stype: %d \t Section: '%s'\n", t->label, t->address, t->stype, ((pass_section_t *)(t->section))->section_name);
         }
     }
 }
