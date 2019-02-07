@@ -144,15 +144,6 @@ my_comp_t my_comp[] = {
 static uint32_t * seach_for_symbol(char *l, void *s);
 
 /**
- * @brief Read string and return instruction opcode.
- *
- * @param s Pointer to string with instruction opcode
- *
- * @return type of instruction decoded from string
- */
-static i_opcode get_opcode_from_name(char *s);
-
-/**
  * @brief Decode name of register into code for instruction opcode
  *
  * @param name String with register name.
@@ -212,16 +203,6 @@ static long int convert_to_int(char *l){
 
     return (*convert_to_int_handler)(l);
 
-}
-
-//TODO: je to k něčemu?
-static i_opcode get_opcode_from_name(char *s){
-
-    for(unsigned int i = 0; i < MY_INSTRS_LEN; i++){
-        if(strcmp(s, my_instrs[i].line) == 0) return my_instrs[i].opcode;
-    }
-
-    return ISA_UNDEF;
 }
 
 static uint32_t decode_register_name_for_opcode(char *name){
