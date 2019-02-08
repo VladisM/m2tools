@@ -7,6 +7,7 @@
 #include "pass2.h"
 #include "common_defs.h"
 #include "util.h"
+#include "file_gen.h"
 
 tok_t *toklist_first = NULL;
 tok_t *toklist_last = NULL;
@@ -23,8 +24,9 @@ int main(int argc, char* argv[]){
     atexit(pass1_cleanup);
     atexit(symbol_table_cleanup);
     atexit(pass2_cleanup);
+    atexit(filegen_cleanup);
 
-    if(argc == 2){
+    if(argc == 3){
         print_start(0);
 
         tokenizer(argv[1]);
@@ -48,6 +50,11 @@ int main(int argc, char* argv[]){
         print_pass2_buffer();
 
         print_end(2);
+        print_start(3);
+
+        filegen_create_object_file(argv[2]);
+
+        print_end(3);
 
         exit(EXIT_SUCCESS);
     }
