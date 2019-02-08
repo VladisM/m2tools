@@ -1,4 +1,4 @@
-#include <tokenizer.h>
+#include "tokenizer.h"
 
 #include <libgen.h>
 #include <stdio.h>
@@ -6,8 +6,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <util.h>
-#include <common_defs.h>
+#include "util.h"
+#include "common_defs.h"
 
 #define TOKEN_EVAL_BUFF_MAX 160
 
