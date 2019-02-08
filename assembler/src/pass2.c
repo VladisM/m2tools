@@ -1,12 +1,14 @@
-#include <pass2.h>
+#include "pass2.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#include <common_defs.h>
-#include <util.h>
+#include "common_defs.h"
+#include "util.h"
+
+#include <isa.h>
 
 static void _pass2(void);
 static symbol_t *find_exported_symbol_definition(symbol_t *e);

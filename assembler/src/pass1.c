@@ -1,13 +1,15 @@
-#include <pass1.h>
+#include "pass1.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#include <symbol_table.h>
-#include <common_defs.h>
-#include <util.h>
+#include "symbol_table.h"
+#include "common_defs.h"
+#include "util.h"
+
+#include <isa.h>
 
 static pass_section_t *actual_section = NULL;
 

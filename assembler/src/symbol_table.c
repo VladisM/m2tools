@@ -1,4 +1,4 @@
-#include <symbol_table.h>
+#include "symbol_table.h"
 
 #include <stdint.h>
 #include <stdlib.h>

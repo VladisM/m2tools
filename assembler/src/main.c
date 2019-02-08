@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <tokenizer.h>
-#include <pass1.h>
-#include <symbol_table.h>
-#include <pass2.h>
-#include <common_defs.h>
-#include <util.h>
+#include "tokenizer.h"
+#include "pass1.h"
+#include "symbol_table.h"
+#include "pass2.h"
+#include "common_defs.h"
+#include "util.h"
 
 tok_t *toklist_first = NULL;
 tok_t *toklist_last = NULL;
