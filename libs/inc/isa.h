@@ -37,7 +37,8 @@ typedef enum {
     ISAERR_FORMAT_ERR,                       /**< @brief Failed to decode string for object file library. */
     ISAERR_MISSING_CALLBACK,                 /**< @brief Callback function isn't registered but it was needed. */
     ISAERR_ARG_OVERFLOW,                     /**< @brief Overflow of an argument in assembling instruction. */
-    ISAERR_ARG_UNKOWN_SYMBOL                 /**< @brief Cant find symbol when assembling instruction. */
+    ISAERR_ARG_UNKOWN_SYMBOL,                /**< @brief Cant find symbol when assembling instruction. */
+    ISAERR_INSTRU_SYNTAX_ERR                 /**< @brief Error in instruction syntax. */
 } tIsaError;
 
 /**
