@@ -27,6 +27,7 @@ override WARNINGS += \
 override CFLAGS += \
 	-g \
 	-DDEBUG \
+	-DVERSION="\"1.0 Alpha\"" \
 	--std=gnu99 \
 	-ffunction-sections \
 	-fdata-sections \
