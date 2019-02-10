@@ -13,7 +13,7 @@
 #include "file_gen.h"
 
 #ifndef VERSION
-#define VERSION "1.0 alpha"
+#define VERSION "0.1 dev"
 #endif
 
 typedef struct{
