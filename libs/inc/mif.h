@@ -5,10 +5,10 @@
  * @file mif.h
  *
  * @brief Library for dealing with MIF files
- *
- * @todo Add support for all mif features.
- * @todo Add list of supported features.
  */
+
+//TODO Add support for all mif features.
+//TODO Add list of supported features.
 
 /**
  * @defgroup mif MIF library
