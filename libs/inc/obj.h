@@ -104,6 +104,7 @@ int new_obj(char * object_file_name, obj_file_t **o);
 int new_section(char *secion_name, section_t **s);
 int new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s);
 int new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d);
+int new_blob(unsigned int lenght, datablob_t **b);
 
 //přidává do objektového souboru či do sekce
 int append_section_to_obj(obj_file_t *o, section_t *s);

@@ -618,6 +618,28 @@ int new_section(char *section_name, section_t **s){
     return 0;
 }
 
+int new_blob(unsigned int lenght, datablob_t **b){
+    if(b == NULL){
+        SET_ERROR(OBJRET_NULL_PTR);
+        return -1;
+    }
+
+    *b = (datablob_t *)malloc(sizeof(datablob_t));
+    uint8_t *payload = (uint8_t *) malloc(sizeof(uint8_t) * lenght);
+
+    if(*b == NULL || payload == NULL){
+        SET_ERROR(OBJRET_MALLOC_FAIL);
+        return -1;
+    }
+
+    (*b)->payload = payload;
+
+    for(unsigned int i = 0; i < lenght; i++) (*b)->payload[i] = 0;
+
+
+    return 0;
+}
+
 int append_section_to_obj(obj_file_t *o, section_t *s){
 
     if(o == NULL || s == NULL){
