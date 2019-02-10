@@ -716,7 +716,6 @@ tInstruction *new_instru(void){
 }
 
 int assemble_instruction(tInstruction * inst, void * section_ptr){
-    //TODO: implement this!
 
     if(inst == NULL || section_ptr == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
@@ -853,13 +852,46 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
             }
             break;
         case ISA_CMPI:
-            {
-                //TODO: přidat překlad této instrukce
-            }
-            break;
         case ISA_CMPF:
             {
-                //TODO: přidat překlad této instrukce
+                char * cmp_flag = (opcode_copy + strlen(opcode_copy) + 1);
+                char * reg1_ptr = (opcode_copy + strlen(cmp_flag) + strlen(opcode_copy) + 2);
+                char * reg2_ptr = (opcode_copy + strlen(cmp_flag) + strlen(opcode_copy) + strlen(reg1_ptr) + 3);
+                char * reg3_ptr = (opcode_copy + strlen(cmp_flag) + strlen(opcode_copy) + strlen(reg1_ptr) + strlen(reg2_ptr) + 4);
+
+                uint32_t reg1 = decode_register_name_for_opcode(reg1_ptr);
+                uint32_t reg2 = decode_register_name_for_opcode(reg2_ptr);
+                uint32_t reg3 = decode_register_name_for_opcode(reg3_ptr);
+
+                inst->word = word;
+
+                inst->word |= (MOVE_TO_REGA(reg1) | MOVE_TO_REGB(reg2) | MOVE_TO_REGC(reg3));
+
+
+                my_comp_t * flag = NULL;
+
+                //find flag in table
+                for(unsigned int i = 0; i < MY_COMP_LEN; i++){
+                    if(strcmp(my_comp[i].line, cmp_flag) == 0){
+                        flag = &(my_comp[i]);
+                        break;
+                    }
+                }
+
+                //put cond reg into word
+                if(op == ISA_CMPF){
+                    if(flag->can_be_CMPF == 0){
+                        SET_ERROR(ISAERR_INSTRU_SYNTAX_ERR);
+                        return 0;
+                    }
+                    else{
+                        inst->word |= MOVE_TO_COND(flag->code_CMPF);
+                    }
+                }
+                else{
+                    inst->word |= MOVE_TO_COND(flag->code_CMPI);
+                }
+
             }
             break;
         case ISA_MVIL:

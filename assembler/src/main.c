@@ -1,5 +1,8 @@
+#define _GNU_SOURCE
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "tokenizer.h"
 #include "pass1.h"
@@ -9,58 +12,158 @@
 #include "util.h"
 #include "file_gen.h"
 
+#ifndef VERSION
+#define VERSION "1.0 alpha"
+#endif
+
+typedef struct{
+    char *i_file;
+    char *i_file_abs;
+    char *given_o_file;
+    char *o_file;
+}settings_t;
+
+const char * help_string = "\
+Example usage: assembler main.asm\n\
+\n\
+        This is two pass assembler for MARK II CPU. For informations about\n\
+    MARK II please see: https://github.com/VladisM/MARK_II/\n\
+\n\
+Arguments:\n\
+    -h --help           Print this help.\n\
+    -o --output         Output object file name.\n\
+       --version        Print version number and exit.\n\
+";
+
+static void arg_parse(int argc, char* argv[]);
+static void print_version(void);
+static void print_help(void);
+static void cast_paths(void);
+
 tok_t *toklist_first = NULL;
 tok_t *toklist_last = NULL;
 pass_section_t *pass_list_first = NULL;
 pass_section_t *pass_list_last = NULL;
+static settings_t settings;
 
-//TODO: přidat parsování argumentů
-//TODO: přidat generování obj souboru
-
-#ifdef DEBUG
 int main(int argc, char* argv[]){
 
+    //bind clean up functions
     atexit(tokenizer_cleanup);
     atexit(pass1_cleanup);
     atexit(symbol_table_cleanup);
     atexit(pass2_cleanup);
     atexit(filegen_cleanup);
 
-    if(argc == 3){
-        print_start(0);
+    //get args
+    settings.i_file = NULL;
+    settings.o_file = NULL;
 
-        tokenizer(argv[1]);
-        print_toklist();
-        print_filelist();
-        print_cons();
-        print_defs();
+    arg_parse(argc, argv);
 
-        print_end(0);
-        print_start(1);
+    //get absolute paths for files
+    cast_paths();
 
-        pass1();
-        print_symboltable();
-        print_pass1_buffer();
+    //process file
+    tokenizer(settings.i_file_abs);
+    pass1();
+    pass2();
+    filegen_create_object_file(settings.o_file);
 
-        print_end(1);
-        print_start(2);
+    //free file paths
+    free(settings.i_file_abs);
+    free(settings.o_file);
 
-        pass2();
-        print_symboltable();
-        print_pass2_buffer();
+    return EXIT_SUCCESS;
 
-        print_end(2);
-        print_start(3);
+}
 
-        filegen_create_object_file(argv[2]);
+static void arg_parse(int argc, char* argv[]){
+    int file_given = 0;
+    int toomuchfiles_given = 0;
 
-        print_end(3);
-
-        exit(EXIT_SUCCESS);
+    for(int i = 1; i<argc; i++){
+        if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ){
+            print_help();
+            exit(EXIT_SUCCESS);
+        }
+        else if(strcmp(argv[i], "--version") == 0 ){
+            print_version();
+            exit(EXIT_SUCCESS);
+        }
+        else if(strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0 ){
+            if(settings.given_o_file != NULL){
+                fprintf(stderr, "Too much output files given!\n");
+                exit(EXIT_FAILURE);
+            }
+            else{
+                settings.given_o_file = argv[++i];
+            }
+        }
+        else{
+            if(argv[i][0] != '-'){
+                if(file_given == 0){
+                    settings.i_file = argv[i];
+                    file_given = 1;
+                }
+                else{
+                    toomuchfiles_given = 1;
+                }
+            }
+            else{
+                fprintf(stderr, "Wrong arg format!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
     }
-    else{
-        fprintf(stderr, "Wrong arguments!\n");
+
+    if(file_given == 0){
+        fprintf(stderr, "Missing input file!\n");
         exit(EXIT_FAILURE);
     }
+    if(toomuchfiles_given == 1){
+        fprintf(stderr, "Too much input files given!\n");
+        exit(EXIT_FAILURE);
+    }
+
 }
-#endif
+
+static void print_version(void){
+    printf("assembler for MARK-II CPU %s\n", VERSION);
+}
+
+static void print_help(void){
+    printf("%s", help_string);
+}
+
+static void cast_paths(void){
+
+    settings.i_file_abs = canonicalize_file_name(settings.i_file);
+
+    if(settings.i_file_abs == NULL){
+        fprintf(stderr, "Failed to find real path to file '%s'.\n", settings.i_file);
+        exit(EXIT_FAILURE);
+    }
+
+    if(settings.given_o_file == NULL){
+        char *i_file_dup = (char *)malloc(sizeof(char) * (strlen(settings.i_file_abs) + 3));
+
+        if(i_file_dup == NULL){
+            fprintf(stderr, "Error! Malloc failed!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        strcpy(i_file_dup, settings.i_file_abs);
+        strcat(i_file_dup, ".o");
+
+        char *filename = basename(i_file_dup);
+
+        settings.o_file = strdup(filename);
+
+        free(i_file_dup);
+    }
+    else{
+        settings.o_file = strdup(settings.given_o_file);
+    }
+
+}
