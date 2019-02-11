@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <ctype.h>
 
 #include "isa.h"
 
@@ -164,6 +165,19 @@ static uint32_t decode_register_name_for_opcode(char *name);
  */
 static long int convert_to_int(char *l);
 
+/**
+ * @brief Try to gues if given string can be label or not.
+ *
+ * @param s String to consider
+ *
+ * @return 1 if can be; 0 if cannot
+ *
+ * This function have to check if given string contain only
+ * characters that can be used for labels. If so it will return 1. It will newer
+ * look into symbol table as it is used in first pass.
+ */
+static int can_be_label_or_cons(char *s);
+
 /*
  *
  * End of statit functions declarations
@@ -177,6 +191,7 @@ static uint32_t *(*search_for_symbol_handler)(char *, void *) = NULL;
 static long int (*convert_to_int_handler)(char *) = NULL;
 static int (*is_number_handler)(char *) = NULL;
 inline static int put_adr_arg_into_inst(tInstruction * inst, char * adr_ptr, void * section_ptr);
+
 /*
  *
  * End of static variables
@@ -253,6 +268,15 @@ inline static int put_adr_arg_into_inst(tInstruction * inst, char * adr_ptr, voi
         return 0;
     }
 
+    return 1;
+}
+
+static int can_be_label_or_cons(char *s){
+    for(int i = 0; s[i] != '\0'; i++){
+        if( isalnum(s[i]) == 0 && s[i] != '_' && s[i] != '-' ){
+            return 0;
+        }
+    }
     return 1;
 }
 
@@ -650,6 +674,159 @@ int get_instruction_size(tInstruction *inst, unsigned int *size){
 
 int check_instruction_args(char *i){
     //TODO: add valid check
+
+    char *line_dup = strdup(i);
+
+    if(line_dup == NULL){
+        SET_ERROR(ISAERR_INTER_ERR);
+        return 0;
+    }
+
+    for(int index = 0; line_dup[index] != '\0'; index++){
+        if(line_dup[index] == ';'){
+            line_dup[index] = '\0';
+        }
+    }
+
+    my_instruction_t *found_instr = NULL;
+
+    for(unsigned int index = 0; index < MY_INSTRS_LEN; index++){
+        if(strcmp(line_dup, my_instrs[index].line) == 0){
+            found_instr = &(my_instrs[index]);
+            break;
+        }
+    }
+
+    if(found_instr == NULL){
+        SET_ERROR(ISAERR_INSTRUCTION_NOT_RECOGNIZED);
+        return 0;
+    }
+
+    switch(found_instr->opcode){
+        case ISA_RET:
+        case ISA_RETI:
+        case ISA_SWI:
+            return 1;
+        case ISA_CALLI:
+        case ISA_PUSH:
+        case ISA_POP:
+            {
+                char * reg_ptr = (line_dup + strlen(line_dup) + 1);
+
+                if(is_reg(reg_ptr) == 0){
+                    return 0;
+                }
+            }
+            break;
+        case ISA_LDI:
+        case ISA_STI:
+        case ISA_BZI:
+        case ISA_BNZI:
+        case ISA_INC:
+        case ISA_DEC:
+        case ISA_NOT:
+            {
+                char * reg1_ptr = (line_dup + strlen(line_dup) + 1);
+                char * reg2_ptr = (line_dup + strlen(line_dup) + strlen(reg1_ptr) + 2);
+
+                if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0){
+                    return 0;
+                }
+            }
+            break;
+        case ISA_MULU:
+        case ISA_MUL:
+        case ISA_ADD:
+        case ISA_SUB:
+        case ISA_AND:
+        case ISA_OR:
+        case ISA_XOR:
+        case ISA_DIVU:
+        case ISA_DIV:
+        case ISA_REMU:
+        case ISA_REM:
+        case ISA_LSL:
+        case ISA_LSR:
+        case ISA_ROL:
+        case ISA_ROR:
+        case ISA_ASL:
+        case ISA_ASR:
+        case ISA_FSUB:
+        case ISA_FADD:
+        case ISA_FMUL:
+        case ISA_FDIV:
+            {
+                char * reg1_ptr = (line_dup + strlen(line_dup) + 1);
+                char * reg2_ptr = (line_dup + strlen(line_dup) + strlen(reg1_ptr) + 2);
+                char * reg3_ptr = (line_dup + strlen(line_dup) + strlen(reg1_ptr) + strlen(reg2_ptr) + 3);
+
+                if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0 || is_reg(reg3_ptr) == 0){
+                    return 0;
+                }
+            }
+            break;
+        case ISA_CMPI:
+        case ISA_CMPF:
+            {
+                char * cmp_flag = (line_dup + strlen(line_dup) + 1);
+                char * reg1_ptr = (line_dup + strlen(cmp_flag) + strlen(line_dup) + 2);
+                char * reg2_ptr = (line_dup + strlen(cmp_flag) + strlen(line_dup) + strlen(reg1_ptr) + 3);
+                char * reg3_ptr = (line_dup + strlen(cmp_flag) + strlen(line_dup) + strlen(reg1_ptr) + strlen(reg2_ptr) + 4);
+
+                if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0 || is_reg(reg3_ptr) == 0|| is_comparison(cmp_flag) == 0){
+                    return 0;
+                }
+            }
+            break;
+        case ISA_MVIL:
+        case ISA_MVIH:
+            {
+                char * reg_ptr = (line_dup + strlen(line_dup) + 1);
+                char * cons_ptr = (line_dup + strlen(line_dup) + strlen(reg_ptr) + 2);
+
+                if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(cons_ptr) == 0){
+                    return 0;
+                }
+            }
+            break;
+        case ISA_CALL:
+            {
+                char * cons_ptr = (line_dup + strlen(line_dup) + 1);
+
+                if(can_be_label_or_cons(cons_ptr) == 0){
+                    return 0;
+                }
+            }
+            break;
+        case ISA_LD:
+            {
+                char * adr_ptr = (line_dup + strlen(line_dup) + 1);
+                char * reg_ptr = (line_dup + strlen(line_dup) + strlen(adr_ptr) + 2);
+
+                if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(adr_ptr) == 0){
+                    return 0;
+                }
+            }
+            break;
+        case ISA_ST:
+        case ISA_BZ:
+        case ISA_BNZ:
+        case ISA_MVIA:
+            {
+                char * reg_ptr = (line_dup + strlen(line_dup) + 1);
+                char * adr_ptr = (line_dup + strlen(line_dup) + strlen(reg_ptr) + 2);
+
+                if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(adr_ptr) == 0){
+                    return 0;
+                }
+            }
+            break;
+        case ISA_UNDEF:
+        default:
+            SET_ERROR(ISAERR_INTER_ERR);
+            return 0;
+    }
+
     return 1;
 }
 
