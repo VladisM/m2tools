@@ -21,6 +21,9 @@ typedef struct{
     char *i_file_abs;
     char *given_o_file;
     char *o_file;
+#ifdef DEBUG
+    int verbose;
+#endif
 }settings_t;
 
 const char * help_string = "\
@@ -58,6 +61,9 @@ int main(int argc, char* argv[]){
     //get args
     settings.i_file = NULL;
     settings.o_file = NULL;
+#ifdef DEBUG
+    settings.verbose = 0;
+#endif
 
     arg_parse(argc, argv);
 
@@ -65,11 +71,46 @@ int main(int argc, char* argv[]){
     cast_paths();
 
     //process file
+#ifdef DEBUG
+    if(settings.verbose == 1){
+        print_start(0);
+
+        tokenizer(settings.i_file_abs);
+        print_filelist();
+        print_toklist();
+        print_defs();
+        print_cons();
+
+        print_end(0);
+        print_start(1);
+
+        pass1();
+        print_pass1_buffer();
+        print_symboltable();
+
+        print_end(1);
+        print_start(2);
+
+        pass2();
+        print_pass2_buffer();
+        print_symboltable();
+
+        print_end(2);
+        print_start(3);
+
+        filegen_create_object_file(settings.o_file);
+
+        print_end(3);
+    }
+    else{
+#endif
     tokenizer(settings.i_file_abs);
     pass1();
     pass2();
     filegen_create_object_file(settings.o_file);
-
+#ifdef DEBUG
+    }
+#endif
     //free file paths
     free(settings.i_file_abs);
     free(settings.o_file);
@@ -91,6 +132,11 @@ static void arg_parse(int argc, char* argv[]){
             print_version();
             exit(EXIT_SUCCESS);
         }
+#ifdef DEBUG
+        else if(strcmp(argv[i], "--verbose") == 0){
+            settings.verbose  = 1;
+        }
+#endif
         else if(strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0 ){
             if(settings.given_o_file != NULL){
                 fprintf(stderr, "Too much output files given!\n");
