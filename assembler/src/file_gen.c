@@ -53,7 +53,10 @@ void filegen_create_object_file(char * abs_filename){
                 if(new_data_symbol(item->location, DATA_IS_INST, (void *)(item->payload.i), &my_data) != OBJRET_OK){
                     obj_lib_error_exit();
                 }
-
+                
+                my_data->relocation = item->relocation;
+                my_data->special = item->special;
+                
                 if(append_data_symbol_to_section(my_section, my_data) != OBJRET_OK){
                     obj_lib_error_exit();
                 }

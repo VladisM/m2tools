@@ -915,12 +915,7 @@ int export_into_object_file_line(tInstruction *inst, char *line){
         return 0;
     }
 
-    if(inst->relocation > 1 || inst->special > 1){
-        SET_ERROR(ISAERR_INTER_ERR);
-        return 0;
-    }
-
-    int ret = snprintf(line, 32, "0x%"PRIx32":%"PRId8":%"PRId8, inst->word, inst->relocation, inst->special);
+    int ret = snprintf(line, 32, "0x%"PRIx32, inst->word);
 
     if(ret < 0){
         SET_ERROR(ISAERR_INTER_ERR);
@@ -938,15 +933,8 @@ int import_from_object_file_line(tInstruction *inst, char *line){
         return 0;
     }
 
-    for(int i = 0; line[i] != '\0'; i++) if(line[i] == ':') line[i] = ' ';
-
-    if(sscanf(line, "%"SCNx32" %"SCNd8" %"SCNd8, &(inst->word), &(inst->relocation), &(inst->special)) != 3){
+    if(sscanf(line, "%"SCNx32, &(inst->word)) != 1){
         SET_ERROR(ISAERR_FORMAT_ERR);
-        return 0;
-    }
-
-    if(inst->relocation > 1 || inst->special > 1){
-        SET_ERROR(ISAERR_INTER_ERR);
         return 0;
     }
 
@@ -964,8 +952,6 @@ tInstruction *new_instru(void){
 
     tmp->line = NULL;
     tmp->word = 0;
-    tmp->relocation = 0;
-    tmp->special = 0;
 
     return tmp;
 
