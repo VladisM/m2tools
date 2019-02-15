@@ -8,6 +8,57 @@
 
 #include "isa.h"
 
+/**
+ * @brief Instruction list.
+ */
+typedef enum {
+    ISA_UNDEF = 0, /**< @brief Undefined or unknown instruction. */
+    ISA_RET,       /**< @brief Return from subroutine. */
+    ISA_RETI,      /**< @brief Return from interrupt. */
+    ISA_CALLI,     /**< @brief Call subroutine, address is in register. */
+    ISA_PUSH,      /**< @brief Push register onto stack. */
+    ISA_POP,       /**< @brief Pop from stack into register. */
+    ISA_LDI,       /**< @brief Load data from mem (point with reg) into register. */
+    ISA_STI,       /**< @brief Store data from register into mem (point with reg). */
+    ISA_BZI,       /**< @brief Branch if reg is zero, adress is in register. */
+    ISA_BNZI,      /**< @brief Branch if reg is not zero, address in in register. */
+    ISA_CMPI,      /**< @brief Compare two integers, store result in reg. */
+    ISA_CMPF,      /**< @brief Compare two floats, store result in reg. */
+    ISA_MULU,      /**< @brief Do unsigned multiply (integer). */
+    ISA_MUL,       /**< @brief Do signed multiply (integer). */
+    ISA_ADD,       /**< @brief Add two integers. */
+    ISA_SUB,       /**< @brief Sub two intefers. */
+    ISA_INC,       /**< @brief Increment register. */
+    ISA_DEC,       /**< @brief Decrement register. */
+    ISA_AND,       /**< @brief Do logical AND between two registers. */
+    ISA_OR,        /**< @brief Do logical OR between two registers. */
+    ISA_XOR,       /**< @brief Do logical XOR between two registers. */
+    ISA_NOT,       /**< @brief Negate register. */
+    ISA_DIVU,      /**< @brief Do integer unsigned division. */
+    ISA_DIV,       /**< @brief Do integer signed division. */
+    ISA_REMU,      /**< @brief Return remainer from unsigned. */
+    ISA_REM,       /**< @brief Return remainer from signed. */
+    ISA_LSL,       /**< @brief Logical shift left. */
+    ISA_LSR,       /**< @brief Logical shift right. */
+    ISA_ROL,       /**< @brief Rotate left. */
+    ISA_ROR,       /**< @brief Rotate right. */
+    ISA_ASL,       /**< @brief Arithmetical shift left. */
+    ISA_ASR,       /**< @brief Arithmetical shift right. */
+    ISA_FSUB,      /**< @brief Floating point substract. */
+    ISA_FADD,      /**< @brief Floating point addition. */
+    ISA_FMUL,      /**< @brief Floating point multiply. */
+    ISA_FDIV,      /**< @brief Floating point division. */
+    ISA_MVIL,      /**< @brief Load 16cons into lower half of reg. */
+    ISA_MVIH,      /**< @brief Load 16cons into higher half of reg. */
+    ISA_CALL,      /**< @brief Call subroutine (address is in opcode). */
+    ISA_LD,        /**< @brief Load from mem into reg (address in opcode). */
+    ISA_ST,        /**< @brief Store from reg into mem (address in opcode). */
+    ISA_BZ,        /**< @brief Branch if register is zero (address in opcode). */
+    ISA_BNZ,       /**< @brief Branch if register is not zero (address in opcode). */
+    ISA_MVIA,      /**< @brief Move address into register (24 bit constant). */
+    ISA_SWI        /**< @brief Software interrupt. */
+} i_opcode;
+
 typedef struct{
     const char * line;
     uint32_t code;
@@ -178,6 +229,34 @@ static long int convert_to_int(char *l);
  */
 static int can_be_label_or_cons(char *s);
 
+
+/**
+ * @brief Get instruction opcode.
+ *
+ * Try to disasm instruction and return its opcode.
+ *
+ * @return -1 on failrule, 0 otherwise
+ */
+static int get_instruction_opcode(tInstruction *i, i_opcode *opcode);
+
+/**
+ * @brief Get 24CONST operand from instruction.
+ *
+ * If instruction have 24 bit wide operand, it will return it.
+ *
+ * @return -1 on failrule, 0 otherwise
+ */
+static int get_instruction_24CONST_operand(tInstruction *i, uint32_t *operand);
+
+/**
+ * @brief Set 24CONST operand to instruction.
+ *
+ * Put 24bit const operand back into instruction word. It will rewrite it.
+ *
+ * @return -1 on failrule, 0 otherwise
+ */
+static int set_instruction_24CONST_operand(tInstruction *i, uint32_t operand);
+
 /*
  *
  * End of statit functions declarations
@@ -280,15 +359,7 @@ static int can_be_label_or_cons(char *s){
     return 1;
 }
 
-/*
- *
- * End of static functions
- * ---------------------------------------------------------------------
- * Exported functions definitions
- *
- */
-
-int get_instruction_opcode(tInstruction *i, i_opcode *opcode){
+static int get_instruction_opcode(tInstruction *i, i_opcode *opcode){
 
     switch((i->word & 0xF0000000) >> 28){
         case 0:
@@ -471,7 +542,7 @@ int get_instruction_opcode(tInstruction *i, i_opcode *opcode){
     };
 }
 
-int get_instruction_24CONST_operand(tInstruction *i, uint32_t *operand){
+static int get_instruction_24CONST_operand(tInstruction *i, uint32_t *operand){
     int ret;
     i_opcode opcode;
 
@@ -514,7 +585,7 @@ int get_instruction_24CONST_operand(tInstruction *i, uint32_t *operand){
     return 0;
 }
 
-int set_instruction_24CONST_operand(tInstruction *i, uint32_t operand){
+static int set_instruction_24CONST_operand(tInstruction *i, uint32_t operand){
     int ret;
     i_opcode opcode;
 
@@ -562,6 +633,14 @@ int set_instruction_24CONST_operand(tInstruction *i, uint32_t operand){
 
     return 0;
 }
+
+/*
+ *
+ * End of static functions
+ * ---------------------------------------------------------------------
+ * Exported functions definitions
+ *
+ */
 
 int retarget_instruction(tInstruction *i, uint32_t base_address){
 
