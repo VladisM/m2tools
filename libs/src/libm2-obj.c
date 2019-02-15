@@ -125,106 +125,106 @@ int obj_load(char *filename, obj_file_t **o){
 
         switch(load_decoder_state){
             case OBJECT:
-
-                if(strcmp(line, ".object") == 0){
-                    load_decoder_state = OBJECT_NAME;
-                }
-                else{
-                    SET_ERROR(OBJRET_BROKEN_FILE);
-                    return -1;
-                }
-
-                break;
-            case OBJECT_NAME:
-
-                if(new_obj(line, &my_new_obj)){
-                    return -1;
-                }
-
-                load_decoder_state = SECTION;
-
-                break;
-            case SECTION:
-
-                if(strcmp(line, ".section") == 0){
-                    load_decoder_state = SECTION_NAME;
-                }
-                else{
-                    SET_ERROR(OBJRET_BROKEN_FILE);
-                    return -1;
-                }
-section_care:
-                if(my_new_section != NULL){
-                    if(append_section_to_obj(my_new_obj, my_new_section)){
-                        return -1;
-                    }
-                    my_new_section = NULL;
-                }
-
-                break;
-            case SECTION_NAME:
-
-                if(new_section(line, &my_new_section)){
-                    return -1;
-                }
-
-                load_decoder_state = SPEC;
-
-                break;
-            case SPEC:
-
-                if(strcmp(line, ".spec") == 0){
-                    load_decoder_state = SPEC_SYMBOL;
-                }
-                else{
-                    SET_ERROR(OBJRET_BROKEN_FILE);
-                    return -1;
-                }
-
-                break;
-            case SPEC_SYMBOL:
-
-                if(strcmp(line, ".data") == 0){
-                    load_decoder_state = DATA_SYMBOL;
-                }
-                else{
-                    spec_symbol_t *new_symbol = NULL;
-
-                    uint32_t value;
-                    char *type_s = (char *)malloc(sizeof(char) * 128);
-                    char *name = (char *)malloc(sizeof(char) * 128);
-
-                    for(int i = 0; line[i] != '\0'; i++) if(line[i] == ':') line[i] = ' ';
-
-                    if(sscanf(line, "%s 0x%X %s", name, &value, type_s) != 3){
-                        SET_ERROR(OBJRET_BROKEN_FILE);
-                        return -1;
-                    }
-
-                    symbol_type_t type;
-                    if(strcmp(type_s, "export") == 0){
-                        type = SYMBOL_EXPORT;
-                    }
-                    else if(strcmp(type_s, "import") == 0){
-                        type = SYMBOL_IMPORT;
+                {
+                    if(strcmp(line, ".object") == 0){
+                        load_decoder_state = OBJECT_NAME;
                     }
                     else{
                         SET_ERROR(OBJRET_BROKEN_FILE);
                         return -1;
                     }
-
-                    if(new_spec_symbol(name, value, type, &new_symbol)){
-                        return -1;
-                    }
-
-                    if(append_spec_symbol_to_section(my_new_section, new_symbol)){
-                        return -1;
-                    }
-
-                    free(type_s);
-                    free(name);
                 }
+                break;
+            case OBJECT_NAME:
+                {
+                    if(new_obj(line, &my_new_obj)){
+                        return -1;
+                    }
 
+                    load_decoder_state = SECTION;
+                }
+                break;
+            case SECTION:
+                {
+                    if(strcmp(line, ".section") == 0){
+                        load_decoder_state = SECTION_NAME;
+                    }
+                    else{
+                        SET_ERROR(OBJRET_BROKEN_FILE);
+                        return -1;
+                    }
+section_care:
+                    if(my_new_section != NULL){
+                        if(append_section_to_obj(my_new_obj, my_new_section)){
+                            return -1;
+                        }
+                        my_new_section = NULL;
+                    }
+                }
+                break;
+            case SECTION_NAME:
+                {
+                    if(new_section(line, &my_new_section)){
+                        return -1;
+                    }
+
+                    load_decoder_state = SPEC;
+                }
+                break;
+            case SPEC:
+                {
+                    if(strcmp(line, ".spec") == 0){
+                        load_decoder_state = SPEC_SYMBOL;
+                    }
+                    else{
+                        SET_ERROR(OBJRET_BROKEN_FILE);
+                        return -1;
+                    }
+                }
+                break;
+            case SPEC_SYMBOL:
+                {
+                    if(strcmp(line, ".data") == 0){
+                        load_decoder_state = DATA_SYMBOL;
+                    }
+                    else{
+                        spec_symbol_t *new_symbol = NULL;
+
+                        uint32_t value;
+                        char *type_s = (char *)malloc(sizeof(char) * 128);
+                        char *name = (char *)malloc(sizeof(char) * 128);
+
+                        for(int i = 0; line[i] != '\0'; i++) if(line[i] == ':') line[i] = ' ';
+
+                        if(sscanf(line, "%s 0x%X %s", name, &value, type_s) != 3){
+                            SET_ERROR(OBJRET_BROKEN_FILE);
+                            return -1;
+                        }
+
+                        symbol_type_t type;
+                        if(strcmp(type_s, "export") == 0){
+                            type = SYMBOL_EXPORT;
+                        }
+                        else if(strcmp(type_s, "import") == 0){
+                            type = SYMBOL_IMPORT;
+                        }
+                        else{
+                            SET_ERROR(OBJRET_BROKEN_FILE);
+                            return -1;
+                        }
+
+                        if(new_spec_symbol(name, value, type, &new_symbol)){
+                            return -1;
+                        }
+
+                        if(append_spec_symbol_to_section(my_new_section, new_symbol)){
+                            return -1;
+                        }
+
+                        free(type_s);
+                        free(name);
+                    }
+                }
                 break;
             case DATA_SYMBOL:
                 {
@@ -320,45 +320,47 @@ section_care:
 
                         }
                         else if(line[0] == 'I'){
-                            uint32_t address;
-                            char buff[80];
-                            data_symbol_t *new_data = NULL;
+                            uint32_t address = 0;
+                            uint8_t relocation = 0;
+                            uint8_t special = 0;
 
+                            char *line_for_isalib = NULL;
+                            char *ptr_for_isalib = NULL;
+                            char *linedup = NULL;
+                            char *ptr_for_objlib = NULL;
+                            data_symbol_t *new_data = NULL;
                             tInstruction *inst = new_instru();
 
-                            if(inst == NULL){
+                            line_for_isalib = strdup(line);
+                            linedup = strdup(line);
+
+                            if(inst == NULL || line_for_isalib == NULL || linedup == NULL){
                                 SET_ERROR(OBJRET_MALLOC_FAIL);
                                 return -1;
                             }
 
-                            for(int i = 2; line[i] != ':'; i++){
-                                if(i == 80){
-                                    SET_ERROR(OBJRET_INTERNAL_ERR);
+                            for(int i = (int)strlen(line_for_isalib); i >= 0; i--){
+                                if(i == 0){
+                                    SET_ERROR(OBJRET_BROKEN_FILE);
                                     return -1;
                                 }
-
-                                buff[i - 2] = line[i];
-                                buff[i - 1] = '\0';
+                                if(line_for_isalib[i] == ':'){
+                                    line_for_isalib[i] = '\0';
+                                    linedup[i] = '\0';
+                                    break;
+                                }
                             }
 
-                            if(sscanf(buff, "0x%"SCNx32 , &address) != 1){
+                            ptr_for_isalib = line_for_isalib + strlen(line_for_isalib) + 1;
+                            ptr_for_objlib = linedup + 2;
+
+
+                            if(sscanf(ptr_for_objlib, "0x%"SCNx32":%"SCNx8":%"SCNx8, &address, &relocation, &special) != 3){
                                 SET_ERROR(OBJRET_BROKEN_FILE);
                                 return -1;
                             }
 
-                            int base = (int)(strlen(buff)) + 2;
-
-                            for(int i = base; line[i] != '\0'; i++){
-                                if(i == 80){
-                                    SET_ERROR(OBJRET_INTERNAL_ERR);
-                                    return -1;
-                                }
-
-                                buff[i - base] = line[i];
-                                buff[i - base + 1] = '\0';
-                            }
-
-                            if(import_from_object_file_line(inst, buff) != 1){
+                            if(import_from_object_file_line(inst, ptr_for_isalib) != 1){
                                 SET_ERROR(OBJRET_INTERNAL_ERR);
                                 return -1;
                             }
@@ -367,9 +369,15 @@ section_care:
                                 return -1;
                             }
 
+                            new_data->relocation = relocation;
+                            new_data->special = special;
+
                             if(append_data_symbol_to_section(my_new_section, new_data)){
                                 return -1;
                             }
+
+                            free(line_for_isalib);
+                            free(linedup);
 
                         }
                         else{
@@ -482,7 +490,7 @@ int obj_write(char *filename, obj_file_t *o){
                     return -1;
                 }
 
-                fprintf(fp, "0x%"PRIx32":%s\n", head_data->address, line);
+                fprintf(fp, "0x%"PRIx32":%"PRIx8":%"PRIx8":%s\n", head_data->address, head_data->relocation, head_data->special, line);
 
                 free(line);
             }
@@ -549,6 +557,8 @@ int new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr
     (*d)->next = NULL;
     (*d)->address = address;
     (*d)->type = type;
+    (*d)->relocation = 0;
+    (*d)->special = 0;
 
     if(type == DATA_IS_BLOB){
         (*d)->payload.blob = (datablob_t *)payload_ptr;

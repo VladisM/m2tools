@@ -45,6 +45,8 @@ typedef struct data_symbol_s{
         datablob_t *blob;
         tInstruction *inst;
     }payload;
+    uint8_t relocation;
+    uint8_t special;
 }data_symbol_t;
 
 typedef struct spec_symbol_s{

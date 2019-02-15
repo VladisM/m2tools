@@ -47,8 +47,6 @@ typedef enum {
 typedef struct sInstruction{
     uint32_t word; /**< @brief Instruction word. */
     char* line; /**< @brief Instruction as output from tokenizer, semicollon separed tokens. */
-    uint8_t special; /**< @brief Used in linker and assembler, specify if instruction operand pointing into special symbol table. */
-    uint8_t relocation; /**< @brief Used in liner and assembler, specify if instruction operand have to be relocated during linking. */
 } tInstruction;
 
 /**
