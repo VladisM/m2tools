@@ -35,8 +35,12 @@ Example usage: assembler main.asm\n\
 Arguments:\n\
     -h --help           Print this help.\n\
     -o --output         Output object file name.\n\
-       --version        Print version number and exit.\n\
-";
+       --version        Print version number and exit.\n"
+#ifdef DEBUG
+"       --verbose        Be a lot verbose. :) This can be used for\n\
+                        toolchain debug.\n"
+#endif
+;
 
 static void arg_parse(int argc, char* argv[]);
 static void print_version(void);
