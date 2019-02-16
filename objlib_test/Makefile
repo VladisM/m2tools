@@ -1,5 +1,5 @@
 USED_LIBS = obj isa
-override CFLAGS += -I inc/ -I ../../libs/inc/
+override CFLAGS += -I inc/ -I ../libs/inc/
 SRC_DIR = src/
 
 #-------------------------------------------------------------------------------
@@ -9,5 +9,5 @@ CURRENT_DIR := $(notdir $(patsubst %/,%,$(dir $(MKFILE_PATH))))
 
 PRG = $(addprefix m2-, $(CURRENT_DIR))
 
-include ../../flags.mk
-include ../../rules.mk
+include ../flags.mk
+include ../rules.mk
