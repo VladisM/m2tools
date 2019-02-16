@@ -94,6 +94,11 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         }
 
+        if(i % 2 == 0){
+            data_symbol->relocation = 1;
+            data_symbol_2->special = 1;
+        }
+
     }
 
     for(int i = 0; i < 6; i++){
