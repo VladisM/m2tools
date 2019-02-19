@@ -9,6 +9,7 @@
 
 typedef struct{
     char *i_file;
+    char *i_file_abs;
 }settings_t;
 
 #define HELP_STRING "\
@@ -24,16 +25,45 @@ Arguments:\n\
 static void arg_parse(int argc, char* argv[]);
 static void print_version(void);
 static void print_help(char *cmd_name);
+static void clean_mem(void);
 
 static settings_t settings;
+obj_file_t *obj_file = NULL;
 
 int main(int argc, char* argv[]){
 
+    atexit(clean_mem);
+
     //get args
     settings.i_file = NULL;
+    settings.i_file_abs = NULL;
+
     arg_parse(argc, argv);
 
-    printf("%s\n", settings.i_file);
+    settings.i_file_abs = canonicalize_file_name(settings.i_file);
+
+    if(settings.i_file_abs == NULL){
+        fprintf(stderr, "Failed to get abs filepath for input file!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(obj_load(settings.i_file_abs, &obj_file) != 0){
+        fprintf(stderr, "Failed to load object file! obj_lib errno: %d\n", get_objlib_errno());
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Object file from: '%s'\n", settings.i_file_abs);
+
+    printf(" |- File name: '%s'\n", obj_file->object_file_name);
+
+    for(section_t* section = obj_file->first_section; section != NULL; section = section->next){
+        if(section->next != NULL){
+            printf(" |- Section: '%s'\n", section->section_name);
+        }
+        else{
+            printf(" '- Section: '%s'\n", section->section_name);
+        }
+    }
 
     return EXIT_SUCCESS;
 }
@@ -87,3 +117,11 @@ static void print_help(char *cmd_name){
     printf(HELP_STRING, cmd_name);
 }
 
+static void clean_mem(void){
+    if(obj_file != NULL){
+        free_object_file(obj_file);
+    }
+    if(settings.i_file_abs != NULL){
+        free(settings.i_file_abs);
+    }
+}
