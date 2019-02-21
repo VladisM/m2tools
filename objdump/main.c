@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <obj.h>
 #include <isa.h>
@@ -10,6 +11,8 @@
 typedef struct{
     char *i_file;
     char *i_file_abs;
+    uint8_t print_symbols;
+    uint8_t print_symbol_vals;
 }settings_t;
 
 #define HELP_STRING "\
@@ -20,15 +23,23 @@ Example usage: %s main.o\n\
 \n\
 Arguments:\n\
     -h --help           Print this help.\n\
-       --version        Print version number and exit.\n"
+       --version        Print version number and exit.\n\
+    -s --symbol-table   Print symbol table.\n\
+       --symbol-values  Print values of symbol in the symbol table. This\n\
+                        enable printing of the symbol table too.\n\
+    -a --all            Print everything.\n"
 
 static void arg_parse(int argc, char* argv[]);
 static void print_version(void);
 static void print_help(char *cmd_name);
 static void clean_mem(void);
+static void print_section(section_t s);
 
 static settings_t settings;
 obj_file_t *obj_file = NULL;
+
+static const char * EXPORT_TEXT = "export";
+static const char * IMPORT_TEXT = "import";
 
 int main(int argc, char* argv[]){
 
@@ -37,6 +48,8 @@ int main(int argc, char* argv[]){
     //get args
     settings.i_file = NULL;
     settings.i_file_abs = NULL;
+    settings.print_symbols = 0;
+    settings.print_symbol_vals = 0;
 
     arg_parse(argc, argv);
 
@@ -57,11 +70,30 @@ int main(int argc, char* argv[]){
     printf(" |- File name: '%s'\n", obj_file->object_file_name);
 
     for(section_t* section = obj_file->first_section; section != NULL; section = section->next){
-        if(section->next != NULL){
-            printf(" |- Section: '%s'\n", section->section_name);
-        }
-        else{
-            printf(" '- Section: '%s'\n", section->section_name);
+        if(section->next != NULL) printf(" |- Section: '%s'\n", section->section_name);
+        else printf(" '- Section: '%s'\n", section->section_name);
+
+        if(settings.print_symbols == 1){
+            if(section->next != NULL) printf(" |  '- Symbol table:\n");
+            else printf("    '- Symbol table:\n");
+
+            for(spec_symbol_t *symbol = section->spec_symbol_first; symbol != NULL; symbol = symbol->next){
+                char c = '|';
+                const char *s = EXPORT_TEXT;
+
+                if(symbol->next == NULL) c = '\'';
+                if(symbol->type == SYMBOL_IMPORT) s = IMPORT_TEXT;
+
+                if(settings.print_symbol_vals == 0){
+                    if(section->next != NULL) printf(" |     %c- '%s' %s\n", c, symbol->name, s);
+                    else printf("       %c- '%s' %s\n", c, symbol->name, s);
+                }
+                else{
+                    if(section->next != NULL) printf(" |     %c- '%s' 0x%"PRIX32" %s\n", c, symbol->name, symbol->value, s);
+                    else printf("       %c- '%s' 0x%"PRIX32" %s\n", c, symbol->name, symbol->value, s);
+                }
+            }
+
         }
     }
 
@@ -80,6 +112,17 @@ static void arg_parse(int argc, char* argv[]){
         else if(strcmp(argv[i], "--version") == 0 ){
             print_version();
             exit(EXIT_SUCCESS);
+        }
+        else if(strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--symbol-table") == 0 ){
+            settings.print_symbols = 1;
+        }
+        else if(strcmp(argv[i], "--symbol-values") == 0 ){
+            settings.print_symbol_vals = 1;
+            settings.print_symbols = 1;
+        }
+        else if(strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--all") == 0 ){
+            settings.print_symbol_vals = 1;
+            settings.print_symbols = 1;
         }
         else{
             if(argv[i][0] != '-'){
@@ -125,3 +168,4 @@ static void clean_mem(void){
         free(settings.i_file_abs);
     }
 }
+
