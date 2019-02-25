@@ -53,10 +53,10 @@ void filegen_create_object_file(char * abs_filename){
                 if(new_data_symbol(item->location, DATA_IS_INST, (void *)(item->payload.i), &my_data) != OBJRET_OK){
                     obj_lib_error_exit();
                 }
-                
+
                 my_data->relocation = item->relocation;
                 my_data->special = item->special;
-                
+
                 if(append_data_symbol_to_section(my_section, my_data) != OBJRET_OK){
                     obj_lib_error_exit();
                 }
@@ -73,7 +73,7 @@ void filegen_create_object_file(char * abs_filename){
                     my_blob->payload[i] = item->payload.b->blob_data[i];
                 }
 
-                if(new_data_symbol(item->location, DATA_IS_INST, (void *)(my_blob), &my_data) != OBJRET_OK){
+                if(new_data_symbol(item->location, DATA_IS_BLOB, (void *)(my_blob), &my_data) != OBJRET_OK){
                     obj_lib_error_exit();
                 }
 

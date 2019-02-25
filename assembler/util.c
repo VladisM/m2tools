@@ -79,14 +79,17 @@ int format_integer(val_types_t size, val_t *out_val, long int val){
     switch(size){
         case BYTE:
             if(val >= -128 && val <= 127) out_val->byte = (uint8_t) val;
+            else if(val >= 0 && val <= 255) out_val->byte = (uint8_t) val;
             else return 0;
             break;
         case HWORD:
             if(val >= -32768 && val <= 32767) out_val->hword = (uint16_t) val;
+            else if(val >= 0 && val <= 65535) out_val->hword = (uint16_t) val;
             else return 0;
             break;
         case WORD:
             if(val >= -2147483648 && val <= 2147483647) out_val->word = (uint32_t) val;
+            else if(val >= 0 && val <= 4294967295) out_val->word = (uint32_t) val;
             else return 0;
             break;
         default:
