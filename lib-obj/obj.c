@@ -643,6 +643,7 @@ int new_blob(unsigned int lenght, datablob_t **b){
     }
 
     (*b)->payload = payload;
+    (*b)->lenght = lenght;
 
     for(unsigned int i = 0; i < lenght; i++) (*b)->payload[i] = 0;
 
