@@ -78,10 +78,12 @@ int main(int argc, char* argv[]){
 
         if(settings.print_symbols == 1){
             char c_for_symbol_table = '\'';
-            if(settings.print_data == 1) c_for_symbol_table = '|';
+            char c_for_section = '|';
 
-            if(section->next != NULL) printf(" |  %c- Symbol table:\n", c_for_symbol_table);
-            else printf("    %c- Symbol table:\n", c_for_symbol_table);
+            if(settings.print_data == 1) c_for_symbol_table = '|';
+            if(section->next == NULL) c_for_section = ' ';
+
+            printf(" %c  %c- Symbol table:\n", c_for_section, c_for_symbol_table);
 
             for(spec_symbol_t *symbol = section->spec_symbol_first; symbol != NULL; symbol = symbol->next){
                 char c = '|';
@@ -93,12 +95,11 @@ int main(int argc, char* argv[]){
                 if(symbol->type == SYMBOL_IMPORT) s = IMPORT_TEXT;
 
                 if(settings.print_symbol_vals == 0){
-                    if(section->next != NULL) printf(" |  %c  %c- '%s' %s\n", cc, c, symbol->name, s);
-                    else printf("    %c  %c- '%s' %s\n", cc, c, symbol->name, s);
+                    printf(" %c  %c  %c- '%s' %s\n", c_for_section, cc, c, symbol->name, s);
                 }
                 else{
-                    if(section->next != NULL) printf(" |  %c  %c- '%s' 0x%"PRIX32" %s\n", cc, c, symbol->name, symbol->value, s);
-                    else printf("    %c  %c- '%s' 0x%"PRIX32" %s\n", cc, c, symbol->name, symbol->value, s);
+                    printf(" %c  %c  %c- '%s' 0x%"PRIX32" %s\n", c_for_section, cc, c, symbol->name, symbol->value, s);
+
                 }
             }
 
