@@ -274,6 +274,9 @@ section_care:
                                 base += (int)strlen(buff) + 1;
 
                                 for(int i = base; line[i] != ':'; i++){
+
+                                    if(line[i] == '\0') break;
+
                                     if(i == 80){
                                         SET_ERROR(OBJRET_INTERNAL_ERR);
                                         return -1;
