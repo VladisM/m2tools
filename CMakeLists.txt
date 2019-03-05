@@ -9,10 +9,11 @@ add_executable(m2-assembler assembler/file_gen.c assembler/main.c assembler/pass
 add_executable(m2-objread   objread/main.c)
 
 #define libraries targets
-add_library(m2-isa STATIC lib-isa/isa.c)
-add_library(m2-obj STATIC lib-obj/obj.c)
-add_library(m2-ldm STATIC lib-ldm/ldm.c)
-add_library(m2-mif STATIC lib-mif/mif.c)
+add_library(m2-isa   STATIC lib-isa/isa.c)
+add_library(m2-obj   STATIC lib-obj/obj.c)
+add_library(m2-ldm   STATIC lib-ldm/ldm.c)
+add_library(m2-mif   STATIC lib-mif/mif.c)
+add_library(microtar STATIC lib-microtar/src/microtar.c)
 
 #define libraries dep for executables
 target_link_libraries(m2-ldm2mif   m2-mif m2-ldm        m2-isa)
@@ -21,6 +22,6 @@ target_link_libraries(m2-assembler               m2-obj m2-isa)
 target_link_libraries(m2-objread                 m2-obj m2-isa)
 
 #define where to find library headers
-include_directories(lib-isa/ lib-obj/ lib-ldm/ lib-mif/)
+include_directories(lib-isa/ lib-obj/ lib-ldm/ lib-mif/ lib-microtar/src/)
 
 add_definitions(-DVERSION="v1.0 Alpha")
