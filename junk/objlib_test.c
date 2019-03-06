@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <obj.h>
 #include <isa.h>
@@ -14,7 +15,7 @@ int main(int argc, char **argv){
     spec_symbol_t * my_symbol_e = NULL;
     spec_symbol_t * my_symbol_i = NULL;
 
-    if(new_obj("test.o", &my_obj)){
+    if(new_obj("test_1.o", &my_obj)){
         fprintf(stderr, "Failed to create obj! error_no: %d\n", get_objlib_errno());
         exit(EXIT_FAILURE);
     }
@@ -122,15 +123,17 @@ int main(int argc, char **argv){
 
     }
 
-    if(obj_write("test.o", my_obj)){
+    if(obj_write("test_1.o", my_obj)){
         fprintf(stderr, "Failed to write object file! error_no %d\n", get_objlib_errno());
         exit(EXIT_FAILURE);
     }
 
-    if(obj_load("test.o", &my_obj_2)){
+    if(obj_load("test_1.o", &my_obj_2)){
         fprintf(stderr, "Failed to load test.o! error_no %d\n", get_objlib_errno());
         exit(EXIT_FAILURE);
     }
+
+    strcpy(my_obj_2->object_file_name, "test_2.o");
 
     if(obj_write("test_2.o", my_obj_2)){
         fprintf(stderr, "Failed to write second object file! error_no %d\n", get_objlib_errno());

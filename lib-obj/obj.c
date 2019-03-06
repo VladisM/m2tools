@@ -51,9 +51,16 @@ void free_object_file(obj_file_t *o){
             tmp_data = head_data;
             head_data = head_data->next;
 
-            if(tmp_data->type == DATA_IS_BLOB) free(tmp_data->payload.blob->payload);
-            else if(tmp_data->type == DATA_IS_INST) free_istruction_struct(tmp_data->payload.inst);
-            else exit(EXIT_FAILURE);
+            if(tmp_data->type == DATA_IS_BLOB){
+                free(tmp_data->payload.blob->payload);
+                free(tmp_data->payload.blob);
+            }
+            else if(tmp_data->type == DATA_IS_INST){
+                free_istruction_struct(tmp_data->payload.inst);
+            }
+            else{
+                exit(EXIT_FAILURE);
+            }
 
             free(tmp_data);
         }
@@ -598,6 +605,8 @@ int new_obj(char * object_file_name, obj_file_t **o){
     (*o)->first_section = NULL;
     (*o)->last_section = NULL;
     (*o)->object_file_name = line;
+    (*o)->next = NULL;
+    (*o)->prev = NULL;
 
     return 0;
 
