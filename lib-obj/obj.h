@@ -71,6 +71,8 @@ typedef struct obj_file_s{
     char *object_file_name;
     section_t *first_section;
     section_t *last_section;
+    struct obj_file_s *next;
+    struct obj_file_s *prev;
 }obj_file_t;
 
 //výčtový typ pro chyby vzniknouvší v modulu
