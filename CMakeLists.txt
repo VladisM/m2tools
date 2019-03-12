@@ -8,10 +8,11 @@ add_executable(m2-ldm2mif ldm2mif/main.c)
 add_executable(m2-loader loader/main.c loader/sender.c)
 add_executable(m2-assembler assembler/file_gen.c assembler/main.c assembler/pass1.c assembler/pass2.c assembler/symbol_table.c assembler/tokenizer.c assembler/util.c)
 add_executable(m2-objread objread/main.c)
+add_executable(m2-archiver archiver/main.c)
 
 #test targets
-add_executable(objlib_test junk/objlib_test.c)
-add_executable(sllib_test junk/sllib_test.c)
+add_executable(objlib_test test_progs/objlib_test.c)
+add_executable(sllib_test test_progs/sllib_test.c)
 
 #define libraries targets
 add_library(m2-isa lib-isa/isa.c)
@@ -28,6 +29,7 @@ target_link_libraries(m2-assembler m2-obj m2-isa)
 target_link_libraries(m2-objread m2-obj m2-isa)
 target_link_libraries(m2-sl microtar)
 target_link_libraries(m2-obj m2-isa)
+target_link_libraries(m2-archiver m2-obj m2-sl)
 
 #test targets libs
 target_link_libraries(objlib_test m2-obj m2-isa)
