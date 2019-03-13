@@ -80,6 +80,7 @@ void free_object_file(obj_file_t *o){
     }
 
     free(o->object_file_name);
+    free(o->target_arch_name);
     free(o);
 }
 
@@ -593,18 +594,21 @@ int new_obj(char * object_file_name, obj_file_t **o){
     }
 
     *o = (obj_file_t *)malloc(sizeof(obj_file_t));
-    char * line = malloc(sizeof(char) * (strlen(object_file_name) + 1));
+    char * line_1 = malloc(sizeof(char) * (strlen(object_file_name) + 1));
+    char * line_2 = malloc(sizeof(char) * (strlen(TARGET_ARCH_NAME) + 1));
 
-    if(*o == NULL || line == NULL){
+    if(*o == NULL || line_1 == NULL || line_2 == NULL){
         SET_ERROR(OBJRET_MALLOC_FAIL);
         return -1;
     }
 
-    strcpy(line, object_file_name);
+    strcpy(line_1, object_file_name);
+    strcpy(line_2, TARGET_ARCH_NAME);
 
     (*o)->first_section = NULL;
     (*o)->last_section = NULL;
-    (*o)->object_file_name = line;
+    (*o)->object_file_name = line_1;
+    (*o)->target_arch_name = line_2;
     (*o)->next = NULL;
     (*o)->prev = NULL;
 
