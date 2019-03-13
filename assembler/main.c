@@ -25,8 +25,7 @@ typedef struct{
 #define HELP_STRING "\
 Example usage: %s main.asm\n\
 \n\
-        This is two pass assembler for MARK II CPU. For informations about\n\
-    MARK II please see: https://github.com/VladisM/MARK_II/\n\
+        This is two pass assembler for "TARGET_ARCH_NAME" CPU.\n\
 \n\
 Arguments:\n\
     -h --help           Print this help.\n\
@@ -178,7 +177,7 @@ static void arg_parse(int argc, char* argv[]){
 }
 
 static void print_version(void){
-    printf("assembler for MARK-II CPU %s\n", VERSION);
+    printf("assembler for %s CPU %s\n", TARGET_ARCH_NAME, VERSION);
 }
 
 static void print_help(char *cmd_name){

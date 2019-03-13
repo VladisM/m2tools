@@ -69,6 +69,7 @@ typedef struct section_s{
 
 typedef struct obj_file_s{
     char *object_file_name;
+    char *target_arch_name;
     section_t *first_section;
     section_t *last_section;
     struct obj_file_s *next;

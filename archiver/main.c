@@ -13,7 +13,7 @@ int main(int argc, char **argv){
 }
 
 static void print_version(void){
-    printf("archiver for MARK-II CPU %s\n", VERSION);
+    printf("archiver for %s CPU %s\n", TARGET_ARCH_NAME, VERSION);
 }
 
 static void print_help(char *cmd_name){
