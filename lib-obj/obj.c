@@ -10,6 +10,8 @@
 typedef enum{
     OBJECT = 0,
     OBJECT_NAME,
+    ARCH,
+    ARCH_NAME,
     SECTION,
     SECTION_NAME,
     SPEC,
@@ -149,7 +151,29 @@ int obj_load(char *filename, obj_file_t **o){
                         return -1;
                     }
 
-                    load_decoder_state = SECTION;
+                    load_decoder_state = ARCH;
+                }
+                break;
+            case ARCH:
+                {
+                    if(strcmp(line, ".arch") == 0){
+                        load_decoder_state = ARCH_NAME;
+                    }
+                    else{
+                        SET_ERROR(OBJRET_BROKEN_FILE);
+                        return -1;
+                    }
+                }
+                break;
+            case ARCH_NAME:
+                {
+                    if(strcmp(line, TARGET_ARCH_NAME) == 0){
+                        load_decoder_state = SECTION;
+                    }
+                    else{
+                        SET_ERROR(OBJRET_WRONG_ARCH);
+                        return -1;
+                    }
                 }
                 break;
             case SECTION:
@@ -429,6 +453,7 @@ int obj_write(char *filename, obj_file_t *o){
     }
 
     fprintf(fp, ".object\n%s\n", o->object_file_name);
+    fprintf(fp, ".arch\n%s\n", o->target_arch_name);
 
     //go for all sections
 
