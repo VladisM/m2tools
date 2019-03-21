@@ -87,7 +87,8 @@ typedef enum{
     OBJRET_FOPEN_ERROR,
     OBJRET_INTERNAL_ERR,
     OBJRET_BROKEN_FILE,
-    OBJRET_SECTION_EXIST_ALREADY
+    OBJRET_SECTION_EXIST_ALREADY,
+    OBJRET_WRONG_ARCH
 }obj_file_err_t;
 
 //funkce pro práci s chybama v modulu
