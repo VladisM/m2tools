@@ -1,10 +1,4 @@
-objektové soubory by měli vědět pro jakou jsou určeny architekturu, musí to v nich být uloženo
-
 knihovna pro práci s objektovým souborem by měla umožnit zapsání souboru do string bufferu místo do souboru, hodí se pro knihovnu sl
-
-vyměnit všude MARK-II za makro názvu architektury
-
-Odstranit z toolchainu loader -> měla by být samostatně stojící aplikace
 
 nevytvářet na konci toolchainu ldm soubory ale HEX či BIN či ELF a mělo by to vypadnout rovnou z linkeru
 
