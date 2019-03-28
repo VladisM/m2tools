@@ -277,12 +277,7 @@ section_care:
                             data_symbol_t *new_data = NULL;
                             int base = 2;
 
-                            datablob_t *blob = (datablob_t *)malloc(sizeof(datablob_t));
-
-                            if(blob == NULL){
-                                SET_ERROR(OBJRET_MALLOC_FAIL);
-                                return -1;
-                            }
+                            datablob_t *blob = NULL;
 
                             for(int i = 2; line[i] != ':'; i++){
                                 if(i == 80){
@@ -333,11 +328,8 @@ section_care:
 
                             }
 
-                            blob->lenght = num_buff_index;
-                            blob->payload = (uint8_t *)malloc(sizeof(uint8_t) * num_buff_index);
-
-                            if(blob->payload == NULL){
-                                SET_ERROR(OBJRET_MALLOC_FAIL);
+                            if(new_blob(num_buff_index, &blob) != 0){
+                                SET_ERROR(OBJRET_INTERNAL_ERR);
                                 return -1;
                             }
 
@@ -800,7 +792,6 @@ int append_data_symbol_to_section(section_t *section, data_symbol_t *data){
         section->data_last->next = data;
         data->prev = section->data_last;
         section->data_last = data;
-
     }
 
     return 0;
