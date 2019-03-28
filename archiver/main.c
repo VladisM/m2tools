@@ -8,7 +8,10 @@
 #include <sl.h>
 
 #define HELP_STRING "\
-Example usage: %s -o test_lib.sl test_obj_1.o test_obj_2.o\n\
+Example usage: \n\
+ %1$s -c -o test_lib.sl test_obj_1.o test_obj_2.o\n\
+ %1$s --list test.sl \n\
+ %1$s --extract test.sl \n\
 \n\
         This is archiver utility for "TARGET_ARCH_NAME" CPU that can be used\n\
     in order to generate static library files for linker.\n\
@@ -16,13 +19,25 @@ Example usage: %s -o test_lib.sl test_obj_1.o test_obj_2.o\n\
 Arguments:\n\
     -h --help           Print this help.\n\
        --version        Print version number and exit.\n\
-    -o --output         Output filename for library.\n"
+    -o --output         Output filename for library.\n\
+    -c --create         Create an archive from given object files.\n\
+       --list           Print object files in archive.\n\
+       --extract        Extract all object files from archive into current dir.\n"
 
 static void print_version(void);
 static void print_help(char *cmd_name);
 static void arg_parse(int argc, char* argv[]);
 static void clean_mem(void);
 static void create_library(char *out_file, char **input_files, unsigned file_count);
+static void list_library(char *input_archive);
+static void extract_library(char *input_archive);
+
+typedef enum{
+    CREATE_ARCHIVE = 0,
+    LIST_ARCHIVE,
+    EXTRACT_ARCHIVE,
+    ACTION_NOT_SPECIFIED
+}action_t;
 
 typedef struct{
     char *out_file_name;
@@ -30,10 +45,10 @@ typedef struct{
     char **input_files_abs;
     unsigned input_files_count;
     unsigned input_files_len;
+    action_t action;
 }settings_t;
 
 settings_t settings;
-
 
 int main(int argc, char **argv){
     atexit(clean_mem);
@@ -49,11 +64,17 @@ int main(int argc, char **argv){
     settings.input_files_count = 0;
     settings.input_files_len = 1;
     settings.out_file_name = NULL;
+    settings.action = ACTION_NOT_SPECIFIED;
 
     arg_parse(argc, argv);
 
     //canonicalize input files
     settings.input_files_abs = (char **)malloc(sizeof(char **) * settings.input_files_count);
+
+    if(settings.input_files_abs == NULL){
+        fprintf(stderr, "Malloc failed!\n");
+        exit(EXIT_FAILURE);
+    }
 
     for(unsigned i = 0; i < settings.input_files_count; i++){
         settings.input_files_abs[i] = canonicalize_file_name(settings.input_files[i]);
@@ -64,7 +85,54 @@ int main(int argc, char **argv){
         }
     }
 
-    create_library(settings.out_file_name, settings.input_files_abs, settings.input_files_count);
+    if(settings.action == CREATE_ARCHIVE){
+
+        if(settings.out_file_name == NULL){
+            fprintf(stderr, "Missing output file name!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if(settings.input_files_count < 1){
+            fprintf(stderr, "You have to set at least one input object file!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        create_library(settings.out_file_name, settings.input_files_abs, settings.input_files_count);
+    }
+    else if(settings.action == LIST_ARCHIVE){
+
+        if(settings.input_files_count > 1){
+            fprintf(stderr, "Too much input files!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if(settings.input_files_count < 1){
+            fprintf(stderr, "You didn't specified input file!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        list_library(settings.input_files_abs[0]);
+
+    }
+    else if(settings.action == EXTRACT_ARCHIVE){
+
+        if(settings.input_files_count > 1){
+            fprintf(stderr, "Too much input files!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if(settings.input_files_count < 1){
+            fprintf(stderr, "You didn't specified input file!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        extract_library(settings.input_files_abs[0]);
+
+    }
+    else{
+        fprintf(stderr, "Action didn't specified!\n");
+        exit(EXIT_FAILURE);
+    }
 
     return 0;
 }
@@ -89,13 +157,43 @@ static void arg_parse(int argc, char* argv[]){
             exit(EXIT_SUCCESS);
         }
         else if(strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0){
-            if(settings.out_file_name != NULL){
-                fprintf(stderr, "Too much output files given!\n");
+            if(settings.action == ACTION_NOT_SPECIFIED){
+                fprintf(stderr, "You have to specify action before anything else!\n");
                 exit(EXIT_FAILURE);
             }
-            else{
-                settings.out_file_name = argv[++i];
+            if(settings.action == CREATE_ARCHIVE){
+                if(settings.out_file_name != NULL){
+                    fprintf(stderr, "Too much output files given!\n");
+                    exit(EXIT_FAILURE);
+                }
+                else{
+                    settings.out_file_name = argv[++i];
+                }
             }
+            else{
+                fprintf(stderr, "You cannot set this with this action!");
+            }
+        }
+        else if(strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--create") == 0){
+            if(settings.action != ACTION_NOT_SPECIFIED){
+                fprintf(stderr, "Action already specified!\n");
+                exit(EXIT_FAILURE);
+            }
+            settings.action = CREATE_ARCHIVE;
+        }
+        else if(strcmp(argv[i], "--list") == 0){
+            if(settings.action != ACTION_NOT_SPECIFIED){
+                fprintf(stderr, "Action already specified!\n");
+                exit(EXIT_FAILURE);
+            }
+            settings.action = LIST_ARCHIVE;
+        }
+        else if(strcmp(argv[i], "--extract") == 0){
+            if(settings.action != ACTION_NOT_SPECIFIED){
+                fprintf(stderr, "Action already specified!\n");
+                exit(EXIT_FAILURE);
+            }
+            settings.action = EXTRACT_ARCHIVE;
         }
         else{
             if(argv[i][0] == '-'){
@@ -103,6 +201,11 @@ static void arg_parse(int argc, char* argv[]){
                 exit(EXIT_FAILURE);
             }
             else{
+                if(settings.action == ACTION_NOT_SPECIFIED){
+                    fprintf(stderr, "You have to specify action before anything else!\n");
+                    exit(EXIT_FAILURE);
+                }
+
                 //put file in array
                 settings.input_files[settings.input_files_count++] = argv[i];
 
@@ -119,7 +222,6 @@ static void arg_parse(int argc, char* argv[]){
                     settings.input_files_len *= 2;
                     settings.input_files = new_file_array;
                 }
-
             }
         }
     }
@@ -174,4 +276,39 @@ static void create_library(char *out_file, char **input_files, unsigned file_cou
     }
 
     free_sl(new_lib);
+}
+
+static void extract_library(char *input_archive){
+    fprintf(stderr, "Action not implemented yet!\n");
+    exit(EXIT_FAILURE);
+}
+
+static void list_library(char *input_archive){
+
+    static_library_t *loaded_lib = NULL;
+
+    if(sl_load(input_archive, &loaded_lib) != 0){
+        fprintf(stderr, "Failed to load library '%s'!\n", input_archive);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Static library from: '%s'\n", input_archive);
+    printf("  |- Library name: '%s'\n", loaded_lib->library_name);
+    printf("  |- Architecture: '%s'\n", loaded_lib->target_arch_name);
+    printf("  '- Objects:\n");
+
+    obj_file_t *head_obj_file = loaded_lib->first_obj;
+
+    while(head_obj_file != NULL){
+        if(head_obj_file->next == NULL){
+            printf("     '- %s\n", head_obj_file->object_file_name);
+        }
+        else{
+            printf("     |- %s\n", head_obj_file->object_file_name);
+        }
+        head_obj_file = head_obj_file->next;
+    }
+
+    free_sl(loaded_lib);
+
 }

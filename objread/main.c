@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
 
     printf("Object file from: '%s'\n", settings.i_file_abs);
 
-    printf(" |- File name: '%s'\n", obj_file->object_file_name);
+    printf(" |- Object name: '%s'\n", obj_file->object_file_name);
 
     for(section_t* section = obj_file->first_section; section != NULL; section = section->next){
         if(section->next != NULL) printf(" |- Section: '%s'\n", section->section_name);
