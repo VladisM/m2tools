@@ -49,8 +49,17 @@ void filegen_create_object_file(char * abs_filename){
         for(pass_item_t *item = s->first_element; item != NULL; item = item->next){
             if(item->type == TYPE_INSTRUCTION){
                 data_symbol_t *my_data = NULL;
+                tInstruction *new_i = new_instru();
 
-                if(new_data_symbol(item->location, DATA_IS_INST, (void *)(item->payload.i), &my_data) != OBJRET_OK){
+                new_i->line = strdup(item->payload.i->line);
+                new_i->word = item->payload.i->word;
+
+                if(new_i->line == NULL){
+                    fprintf(stderr, "Internal error! strdup failed!\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                if(new_data_symbol(item->location, DATA_IS_INST, (void *)(new_i), &my_data) != OBJRET_OK){
                     obj_lib_error_exit();
                 }
 
@@ -125,6 +134,8 @@ void filegen_create_object_file(char * abs_filename){
     if(obj_write(abs_filename, my_obj_file) != OBJRET_OK){
         obj_lib_error_exit();
     }
+
+    free(abs_filename_dup);
 }
 
 void filegen_cleanup(void){

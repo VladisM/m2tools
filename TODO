@@ -4,4 +4,8 @@ nevytvářet na konci toolchainu ldm soubory ale HEX či BIN či ELF a mělo by 
 
 napsat linker
 
-napsat archiver
+Testovat portabilitu napříč platformama (zkusit použití ve win64, VS studio??)
+
+Vylepšit systém pro hlášení chyb z knihoven, musí umožnit vrátit string s krátkým popisem chyby.
+
+vylepšit Cmake tak aby knihovny měli každá vlastní cmake a jen se includovali a tak :) aby to prostě bylo cmake správně
