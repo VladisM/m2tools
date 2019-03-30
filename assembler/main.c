@@ -1,8 +1,8 @@
-#define _GNU_SOURCE
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <libgen.h>
+#include <limits.h>
 
 #include "tokenizer.h"
 #include "pass1.h"
@@ -23,7 +23,8 @@ typedef struct{
 }settings_t;
 
 #define HELP_STRING "\
-Example usage: %s main.asm\n\
+Example usage: \n\
+ "PROG_NAME" main.asm\n\
 \n\
         This is two pass assembler for "TARGET_ARCH_NAME" CPU.\n\
 \n\
@@ -42,8 +43,9 @@ Arguments:\n\
 
 static void arg_parse(int argc, char* argv[]);
 static void print_version(void);
-static void print_help(char *cmd_name);
+static void print_help(void);
 static void cast_paths(void);
+static void clean_up_mem(void);
 
 tok_t *toklist_first = NULL;
 tok_t *toklist_last = NULL;
@@ -59,6 +61,7 @@ int main(int argc, char* argv[]){
     atexit(symbol_table_cleanup);
     atexit(pass2_cleanup);
     atexit(filegen_cleanup);
+    atexit(clean_up_mem);
 
     //get args
     settings.i_file = NULL;
@@ -113,12 +116,19 @@ int main(int argc, char* argv[]){
 #ifndef NDEBUG
     }
 #endif
-    //free file paths
-    free(settings.i_file_abs);
-    free(settings.o_file);
 
     return EXIT_SUCCESS;
 
+}
+
+static void clean_up_mem(void){
+    //free file paths
+    if(settings.i_file_abs != NULL){
+        free(settings.i_file_abs);
+    }
+    if(settings.o_file){
+        free(settings.o_file);
+    }
 }
 
 static void arg_parse(int argc, char* argv[]){
@@ -127,7 +137,7 @@ static void arg_parse(int argc, char* argv[]){
 
     for(int i = 1; i<argc; i++){
         if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ){
-            print_help(basename(argv[0]));
+            print_help();
             exit(EXIT_SUCCESS);
         }
         else if(strcmp(argv[i], "--version") == 0 ){
@@ -180,17 +190,25 @@ static void print_version(void){
     printf("assembler for %s CPU %s\n", TARGET_ARCH_NAME, VERSION);
 }
 
-static void print_help(char *cmd_name){
-    printf(HELP_STRING DEBUG_HELP_STRING, cmd_name);
+static void print_help(void){
+    printf(HELP_STRING DEBUG_HELP_STRING);
 }
 
 static void cast_paths(void){
 
-    settings.i_file_abs = canonicalize_file_name(settings.i_file);
+    char buff[PATH_MAX + 1];
+    char *res = realpath(settings.i_file, buff);
 
-    if(settings.i_file_abs == NULL){
+    if(res == NULL){
         fprintf(stderr, "Failed to find real path to file '%s'.\n", settings.i_file);
         exit(EXIT_FAILURE);
+    }
+    else{
+        settings.i_file_abs = strdup(buff);
+        if(settings.i_file_abs == NULL){
+            fprintf(stderr, "Internal error, strdup failed!\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     if(settings.given_o_file == NULL){

@@ -18,6 +18,7 @@ typedef enum{
 long int convert_to_int(char *l);
 int is_number(char *s);
 int format_integer(val_types_t size, val_t *out_val, long int val);
+char *basename(char *path);
 
 #ifndef NDEBUG
 void print_start(int x);

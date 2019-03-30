@@ -10,7 +10,6 @@
 
 //TODO: přidat dokumentaci
 //TODO: přidat example použití
-//TODO: zkoušet úniky dyn. paměti
 //TODO: přidat ošetření na uvolnění dyn. paměti při chybě
 
 static sl_err_t sllib_errno = SLRET_OK;

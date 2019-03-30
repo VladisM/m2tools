@@ -758,6 +758,7 @@ int check_instruction_args(char *i){
 
     if(line_dup == NULL){
         SET_ERROR(ISAERR_INTER_ERR);
+        free(line_dup);
         return 0;
     }
 
@@ -778,6 +779,7 @@ int check_instruction_args(char *i){
 
     if(found_instr == NULL){
         SET_ERROR(ISAERR_INSTRUCTION_NOT_RECOGNIZED);
+        free(line_dup);
         return 0;
     }
 
@@ -785,6 +787,7 @@ int check_instruction_args(char *i){
         case ISA_RET:
         case ISA_RETI:
         case ISA_SWI:
+            free(line_dup);
             return 1;
         case ISA_CALLI:
         case ISA_PUSH:
@@ -793,6 +796,7 @@ int check_instruction_args(char *i){
                 char * reg_ptr = (line_dup + strlen(line_dup) + 1);
 
                 if(is_reg(reg_ptr) == 0){
+                    free(line_dup);
                     return 0;
                 }
             }
@@ -809,6 +813,7 @@ int check_instruction_args(char *i){
                 char * reg2_ptr = (line_dup + strlen(line_dup) + strlen(reg1_ptr) + 2);
 
                 if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0){
+                    free(line_dup);
                     return 0;
                 }
             }
@@ -840,6 +845,7 @@ int check_instruction_args(char *i){
                 char * reg3_ptr = (line_dup + strlen(line_dup) + strlen(reg1_ptr) + strlen(reg2_ptr) + 3);
 
                 if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0 || is_reg(reg3_ptr) == 0){
+                    free(line_dup);
                     return 0;
                 }
             }
@@ -853,6 +859,7 @@ int check_instruction_args(char *i){
                 char * reg3_ptr = (line_dup + strlen(cmp_flag) + strlen(line_dup) + strlen(reg1_ptr) + strlen(reg2_ptr) + 4);
 
                 if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0 || is_reg(reg3_ptr) == 0|| is_comparison(cmp_flag) == 0){
+                    free(line_dup);
                     return 0;
                 }
             }
@@ -864,6 +871,7 @@ int check_instruction_args(char *i){
                 char * cons_ptr = (line_dup + strlen(line_dup) + strlen(reg_ptr) + 2);
 
                 if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(cons_ptr) == 0){
+                    free(line_dup);
                     return 0;
                 }
             }
@@ -873,6 +881,7 @@ int check_instruction_args(char *i){
                 char * cons_ptr = (line_dup + strlen(line_dup) + 1);
 
                 if(can_be_label_or_cons(cons_ptr) == 0){
+                    free(line_dup);
                     return 0;
                 }
             }
@@ -883,6 +892,7 @@ int check_instruction_args(char *i){
                 char * reg_ptr = (line_dup + strlen(line_dup) + strlen(adr_ptr) + 2);
 
                 if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(adr_ptr) == 0){
+                    free(line_dup);
                     return 0;
                 }
             }
@@ -896,6 +906,7 @@ int check_instruction_args(char *i){
                 char * adr_ptr = (line_dup + strlen(line_dup) + strlen(reg_ptr) + 2);
 
                 if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(adr_ptr) == 0){
+                    free(line_dup);
                     return 0;
                 }
             }
@@ -903,9 +914,11 @@ int check_instruction_args(char *i){
         case ISA_UNDEF:
         default:
             SET_ERROR(ISAERR_INTER_ERR);
+            free(line_dup);
             return 0;
     }
 
+    free(line_dup);
     return 1;
 }
 

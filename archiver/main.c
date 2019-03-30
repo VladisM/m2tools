@@ -1,17 +1,19 @@
-#define _GNU_SOURCE
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <libgen.h>
 
 #include <obj.h>
 #include <sl.h>
 
+//TODO: refactoring případně
+//TODO: doplnit komentáře
+
 #define HELP_STRING "\
 Example usage: \n\
- %1$s -c -o test_lib.sl test_obj_1.o test_obj_2.o\n\
- %1$s --list test.sl \n\
- %1$s --extract test.sl \n\
+ "PROG_NAME" -c -o test_lib.sl test_obj_1.o test_obj_2.o\n\
+ "PROG_NAME" --list test.sl \n\
+ "PROG_NAME" --extract test.sl \n\
 \n\
         This is archiver utility for "TARGET_ARCH_NAME" CPU that can be used\n\
     in order to generate static library files for linker.\n\
@@ -26,7 +28,7 @@ Arguments:\n\
        --verbose        Be verbose when extracting. Only with --extract\n"
 
 static void print_version(void);
-static void print_help(char *cmd_name);
+static void print_help(void);
 static void arg_parse(int argc, char* argv[]);
 static void clean_mem(void);
 static void create_library(char *out_file, char **input_files, unsigned file_count);
@@ -43,7 +45,6 @@ typedef enum{
 typedef struct{
     char *out_file_name;
     char **input_files;
-    char **input_files_abs;
     unsigned input_files_count;
     unsigned input_files_len;
     action_t action;
@@ -71,23 +72,6 @@ int main(int argc, char **argv){
 
     arg_parse(argc, argv);
 
-    //canonicalize input files
-    settings.input_files_abs = (char **)malloc(sizeof(char **) * settings.input_files_count);
-
-    if(settings.input_files_abs == NULL){
-        fprintf(stderr, "Malloc failed!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for(unsigned i = 0; i < settings.input_files_count; i++){
-        settings.input_files_abs[i] = canonicalize_file_name(settings.input_files[i]);
-
-        if(settings.input_files_abs[i] == NULL){
-            fprintf(stderr, "Can't get full path of the file '%s'!\n", settings.input_files[i]);
-            exit(EXIT_FAILURE);
-        }
-    }
-
     if(settings.action == CREATE_ARCHIVE){
 
         if(settings.out_file_name == NULL){
@@ -100,7 +84,7 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         }
 
-        create_library(settings.out_file_name, settings.input_files_abs, settings.input_files_count);
+        create_library(settings.out_file_name, settings.input_files, settings.input_files_count);
     }
     else if(settings.action == LIST_ARCHIVE){
 
@@ -114,7 +98,7 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         }
 
-        list_library(settings.input_files_abs[0]);
+        list_library(settings.input_files[0]);
 
     }
     else if(settings.action == EXTRACT_ARCHIVE){
@@ -129,7 +113,7 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         }
 
-        extract_library(settings.input_files_abs[0]);
+        extract_library(settings.input_files[0]);
 
     }
     else{
@@ -144,15 +128,15 @@ static void print_version(void){
     printf("archiver for %s CPU %s\n", TARGET_ARCH_NAME, VERSION);
 }
 
-static void print_help(char *cmd_name){
-    printf(HELP_STRING, cmd_name);
+static void print_help(void){
+    printf(HELP_STRING);
 }
 
 static void arg_parse(int argc, char* argv[]){
 
     for(int i = 1; i<argc; i++){
         if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ){
-            print_help(basename(argv[0]));
+            print_help();
             exit(EXIT_SUCCESS);
         }
         else if(strcmp(argv[i], "--version") == 0 ){
@@ -248,13 +232,6 @@ static void arg_parse(int argc, char* argv[]){
 static void clean_mem(void){
     if(settings.input_files != NULL){
         free(settings.input_files);
-    }
-
-    if(settings.input_files_abs != NULL){
-        for(unsigned i = 0; i < settings.input_files_count; i++){
-            free(settings.input_files_abs[i]);
-        }
-        free(settings.input_files_abs);
     }
 }
 
