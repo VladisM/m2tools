@@ -4,6 +4,12 @@ set(CMAKE_BUILD_TYPE Debug)
 set(BUILD_STATIC_LIBS ON)
 set(target_prefix "m2")
 
+#define libraries targets
+add_subdirectory(./lib-isa/)
+add_subdirectory(./lib-obj/)
+add_subdirectory(./lib-microtar/)
+add_subdirectory(./lib-sl/)
+
 #define executable targets
 add_executable(${target_prefix}-assembler
     assembler/file_gen.c
@@ -23,49 +29,21 @@ add_executable(${target_prefix}-archiver
     archiver/main.c
 )
 
-#define libraries targets
-add_library(m2-isa
-    lib-isa/isa.c
-)
-
-add_library(m2-obj
-    lib-obj/obj.c
-)
-
-add_library(microtar
-    lib-microtar/src/microtar.c
-)
-
-add_library(m2-sl
-    lib-sl/sl.c
-)
-
 #define libraries dep for executables
 target_link_libraries(m2-assembler
-    m2-obj
-    m2-isa
+    objlib
+    isalib
 )
 
 target_link_libraries(m2-objread
-    m2-obj
-    m2-isa
-)
-
-target_link_libraries(m2-sl
-    microtar
-)
-
-target_link_libraries(m2-obj
-    m2-isa
+    objlib
+    isalib
 )
 
 target_link_libraries(m2-archiver
-    m2-obj
-    m2-sl
+    objlib
+    sllib
 )
-
-#define where to find library headers
-include_directories(lib-isa/ lib-obj/ lib-microtar/src/ lib-sl/)
 
 add_definitions(-DVERSION="v1.0 Alpha")
 add_definitions(-DTARGET_ARCH_NAME="MARK-II")

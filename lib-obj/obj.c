@@ -5,6 +5,8 @@
 
 #include "obj.h"
 
+#include <isa.h>
+
 #define SET_ERROR(n) if(objlib_errno == 0) objlib_errno = n
 
 typedef enum{
