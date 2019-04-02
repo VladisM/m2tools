@@ -751,7 +751,6 @@ int get_instruction_size(tInstruction *inst, unsigned int *size){
 
 }
 
-//TODO: add valid check
 int check_instruction_args(char *i){
 
     char *line_dup = strdup(i);
