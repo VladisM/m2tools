@@ -86,13 +86,14 @@ tIsaError get_isalib_errno(void);
 void clear_isalib_errno(void);
 
 /**
- * @brief Test string if it is valid register name.
+ * @brief Check if given token is correct acording to format string given by is_instruction.
  *
- * @param s String to test.
+ * @param t token to check
+ * @param c One character from format string.
  *
- * @return non-zero value if string is valid register name.
+ * @return 1 if valid; 0 if not valid; -1 error
  */
-int is_reg(char *s);
+int is_correct_token(char *t, char c);
 
 /**
  * @brief Test string it it is valid instruction mnemo.
@@ -112,27 +113,16 @@ int is_reg(char *s);
  * - '6' 16bit const
  * - '4' 24bit const
  *
+ * @note Please note this, if you are porting isa library, it is up to you how to
+ * chose format characters, but at least I character have to be used as opcode, and
+ * instruction with any arguments have to be definend as "I" (with '\0' at the end).
+ * This is fundamental assumption made by tokenizer when parsing input files.
+ *
  * @param s String to test.
  *
  * @return Pointer to format string.
  */
 const char* is_instruction(char *s);
-
-/**
- * @brief Test string if it si valid mnemo for comparison.
- *
- * Special instruction CMPI or CMPF are used for comparisons and then
- * for  branching. But CPM* instruction need to know condition to
- * compare. And that condition is given as comparison string.
- *
- * This function will check given string and return 1 if string is
- * valid, or 0 if invalid.
- *
- * @param s String to test.
- *
- * @return non-zero value if string is valid comparison mnemo.
- */
-int is_comparison(char *s);
 
 /**
  * @brief Clean up tInstruction structure.
