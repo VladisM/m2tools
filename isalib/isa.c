@@ -257,6 +257,31 @@ static int get_instruction_24CONST_operand(tInstruction *i, uint32_t *operand);
  */
 static int set_instruction_24CONST_operand(tInstruction *i, uint32_t operand);
 
+/**
+ * @brief Test string if it is valid register name.
+ *
+ * @param s String to test.
+ *
+ * @return non-zero value if string is valid register name.
+ */
+static int is_reg(char *s);
+
+/**
+ * @brief Test string if it si valid mnemo for comparison.
+ *
+ * Special instruction CMPI or CMPF are used for comparisons and then
+ * for  branching. But CPM* instruction need to know condition to
+ * compare. And that condition is given as comparison string.
+ *
+ * This function will check given string and return 1 if string is
+ * valid, or 0 if invalid.
+ *
+ * @param s String to test.
+ *
+ * @return non-zero value if string is valid comparison mnemo.
+ */
+static int is_comparison(char *s);
+
 /*
  *
  * End of statit functions declarations
@@ -634,6 +659,26 @@ static int set_instruction_24CONST_operand(tInstruction *i, uint32_t operand){
     return 0;
 }
 
+static int is_comparison(char *s){
+
+    for(unsigned int i = 0; i < MY_COMP_LEN; i++){
+        if(strcmp(my_comp[i].line, s) == 0) return 1;
+    }
+
+    return 0;
+
+}
+
+static int is_reg(char *s){
+
+    for(unsigned int i = 0; i < MY_REGS_LEN; i++){
+        if(strcmp(my_regs[i].line, s) == 0) return 1;
+    }
+
+    return 0;
+
+}
+
 /*
  *
  * End of static functions
@@ -675,26 +720,6 @@ void clear_isalib_errno(void){
     isalib_errno = 0;
 }
 
-int is_comparison(char *s){
-
-    for(unsigned int i = 0; i < MY_COMP_LEN; i++){
-        if(strcmp(my_comp[i].line, s) == 0) return 1;
-    }
-
-    return 0;
-
-}
-
-int is_reg(char *s){
-
-    for(unsigned int i = 0; i < MY_REGS_LEN; i++){
-        if(strcmp(my_regs[i].line, s) == 0) return 1;
-    }
-
-    return 0;
-
-}
-
 const char* is_instruction(char *s){
 
     for(unsigned int i = 0; i < MY_INSTRS_LEN; i++){
@@ -702,6 +727,29 @@ const char* is_instruction(char *s){
     }
 
     return "N";
+
+}
+
+int is_correct_token(char *t, char c){
+
+    if(c == 'R'){
+        if(is_reg(t) == 1) return 1;
+        else return 0;
+    }
+    else if(c == 'c'){
+        if(is_comparison(t) == 1) return 1;
+        else return 0;
+    }
+    else if(c == '6' || c == '4'){
+        //this will force tokenizer to put anything into stream, and decision is then
+        //made by resolving symbols, it will be number or symbol, if not syntax error
+        //will be raised later
+        return 1;
+    }
+    else{
+        //this mean we got wrong format char
+        return -1;
+    }
 
 }
 

@@ -7,6 +7,3 @@ napsat linker
 Testovat portabilitu napříč platformama (zkusit použití ve win64, VS studio??)
 
 Vylepšit systém pro hlášení chyb z knihoven, musí umožnit vrátit string s krátkým popisem chyby.
-
-Předelat tokenizer aby použival jen check_instr_arg funkci a ne is_reg is_comparison a tak ... nechť je kód přenositelnější
-    místo toho mít něco jako int is_right_token(char *token, char *c) kde c bude písmenko z řetezce které vrací char *is_instruction(char *)

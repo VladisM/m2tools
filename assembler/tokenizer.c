@@ -580,29 +580,18 @@ void eval_tok(char * token, char separator, fileInfo_t * fileInfo, unsigned int 
             }
         }
         else if(actual_eval == EVAL_INSTR){
-            if(format_string[iteration] == 'R'){
-                if(is_reg(token) == 1){
-                    append_token(token);
-                }
-                else{
-                    fprintf(stderr, "Syntax error in input file! in: %s@%d\n", fileInfo->name, line);
-                    exit(EXIT_FAILURE);
-                }
-            }
-            else if(format_string[iteration] == 'c'){
-                if(is_comparison(token) == 1){
-                    append_token(token);
-                }
-                else{
-                    fprintf(stderr, "Syntax error in input file! in: %s@%d\n", fileInfo->name, line);
-                    exit(EXIT_FAILURE);
-                }
-            }
-            else if(format_string[iteration] == '6' || format_string[iteration] == '4'){
+
+            int ret = is_correct_token(token, format_string[iteration]);
+
+            if(ret == 1){
                 append_token(token);
             }
+            else if(ret == -1){
+                fprintf(stderr, "Internal error in tokenizer!\n");
+                exit(EXIT_FAILURE);
+            }
             else{
-                fprintf(stderr, "Unknown char in format string from isa lib!\n");
+                fprintf(stderr, "Syntax error in input file! in: %s@%d\n", fileInfo->name, line);
                 exit(EXIT_FAILURE);
             }
 
@@ -614,6 +603,7 @@ void eval_tok(char * token, char separator, fileInfo_t * fileInfo, unsigned int 
             else{
                 iteration++;
             }
+
         }
         else{
             fprintf(stderr, "Internal error in tokenizer!\n");
