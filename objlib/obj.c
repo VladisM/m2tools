@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <stdarg.h>
 
 #include "obj.h"
 
@@ -20,6 +21,28 @@ typedef enum{
     SPEC_SYMBOL,
     DATA_SYMBOL
 }load_decoder_state_t;
+
+typedef struct strbuf_s{
+    char *str_ptr;
+    unsigned int actual_lenght;
+    unsigned int total_lenght;
+}strbuf_t;
+
+/**
+ * @brief Print to string buffer
+ *
+ * Automatically reallocate buffer if needed.
+ *
+ * @return -1 if fail; 0 if OK
+ */
+static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...);
+
+/**
+ * @brief Create string buffer structure and initialize it
+ *
+ * @return -1 if fail; 0 if OK
+ */
+static int new_strbuf(strbuf_t **sbuffer);
 
 load_decoder_state_t load_decoder_state;
 
@@ -798,4 +821,62 @@ int append_data_symbol_to_section(section_t *section, data_symbol_t *data){
 
     return 0;
 
+}
+
+static int new_strbuf(strbuf_t **sbuffer){
+    *sbuffer = (strbuf_t *)malloc(sizeof(strbuf_t));
+
+    if(*sbuffer == NULL){
+        SET_ERROR(OBJRET_MALLOC_FAIL);
+        return -1;
+    }
+
+    (*sbuffer)->actual_lenght = 0;
+    (*sbuffer)->total_lenght = 64;
+    (*sbuffer)->str_ptr = (char *)malloc(sizeof(char) * (*sbuffer)->total_lenght);
+
+    if((*sbuffer)->str_ptr == NULL){
+        SET_ERROR(OBJRET_MALLOC_FAIL);
+        return -1;
+    }
+
+    (*sbuffer)->str_ptr[0] = '\0';
+}
+
+static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
+
+    va_list argptr;
+    char *tmp_str = NULL;
+
+    if(sbuffer == NULL){
+        SET_ERROR(OBJRET_NULL_PTR);
+        return -1;
+    }
+
+    va_start(argptr, fmt);
+    int char_count_to_print = vsnprintf(NULL, 0, fmt, argptr);
+
+    if(sbuffer->actual_lenght + char_count_to_print + 1 > sbuffer->total_lenght){
+        void *ptr = realloc(sbuffer->str_ptr, sbuffer->total_lenght * 2);
+
+        if(ptr == NULL){
+            SET_ERROR(OBJRET_MALLOC_FAIL);
+            return -1;
+        }
+
+        sbuffer->str_ptr = (char *)ptr;
+    }
+
+    tmp_str = (char *)malloc(sizeof(char) * (char_count_to_print + 1));
+
+    if(tmp_str == NULL){
+        SET_ERROR(OBJRET_MALLOC_FAIL);
+        return -1;
+    }
+
+    vsprintf(tmp_str, fmt, argptr);
+    va_end(argptr);
+
+    strcat(sbuffer->str_ptr, tmp_str);
+    free(tmp_str);
 }
