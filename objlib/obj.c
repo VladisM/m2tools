@@ -462,37 +462,36 @@ int obj_write(char *filename, obj_file_t *o){
         return -1;
     }
 
-    FILE * fp = fopen(filename, "w");
-
-    if(fp == NULL){
-        SET_ERROR(OBJRET_FOPEN_ERROR);
+    strbuf_t* strbuf = NULL;
+    
+    if(new_strbuf(&strbuf) == -1){
         return -1;
     }
 
-    fprintf(fp, ".object\n%s\n", o->object_file_name);
-    fprintf(fp, ".arch\n%s\n", o->target_arch_name);
+    my_sprintf(strbuf, ".object\n%s\n", o->object_file_name);
+    my_sprintf(strbuf, ".arch\n%s\n", o->target_arch_name);
 
     //go for all sections
 
     section_t *head_section = o->first_section;
 
     while(head_section != NULL){
-        fprintf(fp, ".section\n%s\n", head_section->section_name);
+        my_sprintf(strbuf, ".section\n%s\n", head_section->section_name);
 
         //print symbol table of that section
-        fprintf(fp, ".spec\n");
+        my_sprintf(strbuf, ".spec\n");
 
         spec_symbol_t * head_spec_symbol = head_section->spec_symbol_first;
 
         while(head_spec_symbol != NULL){
 
-            fprintf(fp, "%s:0x%" PRIx32 ":", head_spec_symbol->name, head_spec_symbol->value);
+            my_sprintf(strbuf, "%s:0x%" PRIx32 ":", head_spec_symbol->name, head_spec_symbol->value);
 
             if(head_spec_symbol->type == SYMBOL_EXPORT){
-                fprintf(fp, "export\n");
+                my_sprintf(strbuf, "export\n");
             }
             else if(head_spec_symbol->type == SYMBOL_IMPORT){
-                fprintf(fp, "import\n");
+                my_sprintf(strbuf, "import\n");
             }
             else{
                 SET_ERROR(OBJRET_INTERNAL_ERR);
@@ -503,22 +502,22 @@ int obj_write(char *filename, obj_file_t *o){
 
         }
 
-        fprintf(fp, ".data\n");
+        my_sprintf(strbuf, ".data\n");
 
         data_symbol_t *head_data = head_section->data_first;
 
         while(head_data != NULL){
             if(head_data->type == DATA_IS_BLOB){
 
-                fprintf(fp, "B:");
+                my_sprintf(strbuf, "B:");
 
                 if(head_data->payload.blob->lenght > 0){
 
-                    fprintf(fp, "0x%" PRIx32 ":0x%" PRIx8, head_data->address, head_data->payload.blob->payload[0]);
+                    my_sprintf(strbuf, "0x%" PRIx32 ":0x%" PRIx8, head_data->address, head_data->payload.blob->payload[0]);
                     for(unsigned int i = 1; i < head_data->payload.blob->lenght; i++){
-                        fprintf(fp, ":0x%" PRIx8, head_data->payload.blob->payload[i]);
+                        my_sprintf(strbuf, ":0x%" PRIx8, head_data->payload.blob->payload[i]);
                     }
-                    fprintf(fp, "\n");
+                    my_sprintf(strbuf, "\n");
 
                 }
                 else{
@@ -529,7 +528,7 @@ int obj_write(char *filename, obj_file_t *o){
             }
             else if(head_data->type == DATA_IS_INST){
 
-                fprintf(fp, "I:");
+                my_sprintf(strbuf, "I:");
 
                 char *line = (char *)malloc(sizeof(char) * 64);
 
@@ -543,7 +542,7 @@ int obj_write(char *filename, obj_file_t *o){
                     return -1;
                 }
 
-                fprintf(fp, "0x%"PRIx32":%"PRIx8":%"PRIx8":%s\n", head_data->address, head_data->relocation, head_data->special, line);
+                my_sprintf(strbuf, "0x%"PRIx32":%"PRIx8":%"PRIx8":%s\n", head_data->address, head_data->relocation, head_data->special, line);
 
                 free(line);
             }
@@ -558,8 +557,19 @@ int obj_write(char *filename, obj_file_t *o){
         head_section = head_section->next;
     }
 
-    fprintf(fp, ".end\n");
+    my_sprintf(strbuf, ".end\n");
+    
+    //write out data into file
+    FILE * fp = fopen(filename, "w");
 
+    if(fp == NULL){
+        SET_ERROR(OBJRET_FOPEN_ERROR);
+        return -1;
+    }
+    
+    fputs(strbuf->str_ptr, fp);
+    fflush(fp);
+    
     fclose(fp);
 
     return 0;
