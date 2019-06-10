@@ -214,7 +214,7 @@ head_write_succes:
             return -1;
         }
 
-        if(obj_write(tmp_filename, head) != OBJRET_OK){
+        if(obj_write_to_file(tmp_filename, head) != OBJRET_OK){
             SET_ERROR(SLRET_TMP_WRITE_ERR);
             return -1;
         }

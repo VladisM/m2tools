@@ -88,7 +88,8 @@ typedef enum{
     OBJRET_INTERNAL_ERR,
     OBJRET_BROKEN_FILE,
     OBJRET_SECTION_EXIST_ALREADY,
-    OBJRET_WRONG_ARCH
+    OBJRET_WRONG_ARCH,
+    OBJRET_WRONG_ARG
 }obj_file_err_t;
 
 //funkce pro práci s chybama v modulu
@@ -100,7 +101,8 @@ void free_object_file(obj_file_t *o);
 
 //funkce pro práci se souborem
 int obj_load(char *filename, obj_file_t **o);
-int obj_write(char *filename, obj_file_t *o);
+int obj_write_to_string(char **s, obj_file_t *o);
+int obj_write_to_file(char *filename, obj_file_t *o);
 
 //vytvoří nové objekty
 int new_obj(char * object_file_name, obj_file_t **o);

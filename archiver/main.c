@@ -291,7 +291,7 @@ static void extract_library(char *input_archive){
             printf(" %s\n", head_obj_file->object_file_name);
         }
 
-        if(obj_write(head_obj_file->object_file_name, head_obj_file) != 0){
+        if(obj_write_to_file(head_obj_file->object_file_name, head_obj_file) != 0){
             fprintf(stderr, "Failed to create object file '%s'! objlib errno: %d", head_obj_file->object_file_name, get_objlib_errno());
             free_sl(loaded_lib);
             exit(EXIT_FAILURE);
