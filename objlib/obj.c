@@ -40,9 +40,28 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...);
 /**
  * @brief Create string buffer structure and initialize it
  *
+ * @param sbuffer Pointer that will point to new structure, have to be NULL.
+ * 
  * @return -1 if fail; 0 if OK
  */
 static int new_strbuf(strbuf_t **sbuffer);
+
+/**
+ * @brief Free and dealoc structure given with new_strbuf
+ * 
+ * @param sbuffer pointer to struct to clear
+ */
+static void free_strbuf(strbuf_t *sbuffer);
+
+/**
+ * @brief Internal function that write out content of object file into strbuf_t
+ * 
+ * @param o Pointer to struct with object file stored.
+ * 
+ * @return pointer to your strbuf_t struct, you have to free it before terminating
+ * program, use the free_strbuf function. 
+ */
+static strbuf_t *obj_write_to_strbuf(obj_file_t *o);
 
 load_decoder_state_t load_decoder_state;
 
@@ -455,109 +474,46 @@ section_care:
 
 }
 
-int obj_write(char *filename, obj_file_t *o){
+int obj_write_to_string(char **s, obj_file_t *o){
 
-    if(filename == NULL || o == NULL){
+    if(o == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
         return -1;
     }
-
-    strbuf_t* strbuf = NULL;
     
-    if(new_strbuf(&strbuf) == -1){
+    if(s != NULL){
+        SET_ERROR(OBJRET_WRONG_ARG);
         return -1;
     }
-
-    my_sprintf(strbuf, ".object\n%s\n", o->object_file_name);
-    my_sprintf(strbuf, ".arch\n%s\n", o->target_arch_name);
-
-    //go for all sections
-
-    section_t *head_section = o->first_section;
-
-    while(head_section != NULL){
-        my_sprintf(strbuf, ".section\n%s\n", head_section->section_name);
-
-        //print symbol table of that section
-        my_sprintf(strbuf, ".spec\n");
-
-        spec_symbol_t * head_spec_symbol = head_section->spec_symbol_first;
-
-        while(head_spec_symbol != NULL){
-
-            my_sprintf(strbuf, "%s:0x%" PRIx32 ":", head_spec_symbol->name, head_spec_symbol->value);
-
-            if(head_spec_symbol->type == SYMBOL_EXPORT){
-                my_sprintf(strbuf, "export\n");
-            }
-            else if(head_spec_symbol->type == SYMBOL_IMPORT){
-                my_sprintf(strbuf, "import\n");
-            }
-            else{
-                SET_ERROR(OBJRET_INTERNAL_ERR);
-                return -1;
-            }
-
-            head_spec_symbol = head_spec_symbol->next;
-
-        }
-
-        my_sprintf(strbuf, ".data\n");
-
-        data_symbol_t *head_data = head_section->data_first;
-
-        while(head_data != NULL){
-            if(head_data->type == DATA_IS_BLOB){
-
-                my_sprintf(strbuf, "B:");
-
-                if(head_data->payload.blob->lenght > 0){
-
-                    my_sprintf(strbuf, "0x%" PRIx32 ":0x%" PRIx8, head_data->address, head_data->payload.blob->payload[0]);
-                    for(unsigned int i = 1; i < head_data->payload.blob->lenght; i++){
-                        my_sprintf(strbuf, ":0x%" PRIx8, head_data->payload.blob->payload[i]);
-                    }
-                    my_sprintf(strbuf, "\n");
-
-                }
-                else{
-                    SET_ERROR(OBJRET_BROKEN_OBJ);
-                    return  -1;
-                }
-
-            }
-            else if(head_data->type == DATA_IS_INST){
-
-                my_sprintf(strbuf, "I:");
-
-                char *line = (char *)malloc(sizeof(char) * 64);
-
-                if(line == NULL){
-                    SET_ERROR(OBJRET_MALLOC_FAIL);
-                    return -1;
-                }
-
-                if(export_into_object_file_line(head_data->payload.inst, line) < 0){
-                    SET_ERROR(OBJRET_INTERNAL_ERR);
-                    return -1;
-                }
-
-                my_sprintf(strbuf, "0x%"PRIx32":%"PRIx8":%"PRIx8":%s\n", head_data->address, head_data->relocation, head_data->special, line);
-
-                free(line);
-            }
-            else{
-                SET_ERROR(OBJRET_INTERNAL_ERR);
-                return -1;
-            }
-
-            head_data = head_data->next;
-        }
-
-        head_section = head_section->next;
+    
+    //get strbuf for object file
+    strbuf_t *strbuf = obj_write_to_strbuf(o);
+    
+    //check for nested errors
+    if(strbuf == NULL) return -1;
+    
+    char *new_string = strdup(strbuf->str_ptr);
+    
+    if(new_string == NULL){
+        SET_ERROR(OBJRET_INTERNAL_ERR);
+        return -1;
     }
+    
+    *s = new_string;
+}
 
-    my_sprintf(strbuf, ".end\n");
+int obj_write_to_file(char *filename, obj_file_t *o){
+
+    if(o == NULL || filename == NULL){
+        SET_ERROR(OBJRET_NULL_PTR);
+        return -1;
+    }
+    
+    //get strbuf for object file
+    strbuf_t *strbuf = obj_write_to_strbuf(o);
+    
+    //check for nested errors
+    if(strbuf == NULL) return -1;
     
     //write out data into file
     FILE * fp = fopen(filename, "w");
@@ -570,10 +526,11 @@ int obj_write(char *filename, obj_file_t *o){
     fputs(strbuf->str_ptr, fp);
     fflush(fp);
     
+    //close file and clear strbuf
     fclose(fp);
-
+    free_strbuf(strbuf);
+    
     return 0;
-
 }
 
 int new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s){
@@ -834,6 +791,11 @@ int append_data_symbol_to_section(section_t *section, data_symbol_t *data){
 }
 
 static int new_strbuf(strbuf_t **sbuffer){
+    if(*sbuffer != NULL){
+        SET_ERROR(OBJRET_WRONG_ARG);
+        return -1;
+    }
+    
     *sbuffer = (strbuf_t *)malloc(sizeof(strbuf_t));
 
     if(*sbuffer == NULL){
@@ -889,4 +851,120 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
 
     strcat(sbuffer->str_ptr, tmp_str);
     free(tmp_str);
+}
+
+static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
+
+    strbuf_t* strbuf = NULL;
+    
+    if(new_strbuf(&strbuf) == -1){
+        return NULL;
+    }
+
+    my_sprintf(strbuf, ".object\n%s\n", o->object_file_name);
+    my_sprintf(strbuf, ".arch\n%s\n", o->target_arch_name);
+
+    //go for all sections
+
+    section_t *head_section = o->first_section;
+
+    while(head_section != NULL){
+        my_sprintf(strbuf, ".section\n%s\n", head_section->section_name);
+
+        //print symbol table of that section
+        my_sprintf(strbuf, ".spec\n");
+
+        spec_symbol_t * head_spec_symbol = head_section->spec_symbol_first;
+
+        while(head_spec_symbol != NULL){
+
+            my_sprintf(strbuf, "%s:0x%" PRIx32 ":", head_spec_symbol->name, head_spec_symbol->value);
+
+            if(head_spec_symbol->type == SYMBOL_EXPORT){
+                my_sprintf(strbuf, "export\n");
+            }
+            else if(head_spec_symbol->type == SYMBOL_IMPORT){
+                my_sprintf(strbuf, "import\n");
+            }
+            else{
+                SET_ERROR(OBJRET_INTERNAL_ERR);
+                free_strbuf(strbuf);
+                return NULL;
+            }
+
+            head_spec_symbol = head_spec_symbol->next;
+
+        }
+
+        my_sprintf(strbuf, ".data\n");
+
+        data_symbol_t *head_data = head_section->data_first;
+
+        while(head_data != NULL){
+            if(head_data->type == DATA_IS_BLOB){
+
+                my_sprintf(strbuf, "B:");
+
+                if(head_data->payload.blob->lenght > 0){
+
+                    my_sprintf(strbuf, "0x%" PRIx32 ":0x%" PRIx8, head_data->address, head_data->payload.blob->payload[0]);
+                    for(unsigned int i = 1; i < head_data->payload.blob->lenght; i++){
+                        my_sprintf(strbuf, ":0x%" PRIx8, head_data->payload.blob->payload[i]);
+                    }
+                    my_sprintf(strbuf, "\n");
+
+                }
+                else{
+                    SET_ERROR(OBJRET_BROKEN_OBJ);
+                    free_strbuf(strbuf);
+                    return NULL;
+                }
+
+            }
+            else if(head_data->type == DATA_IS_INST){
+
+                my_sprintf(strbuf, "I:");
+
+                char *line = (char *)malloc(sizeof(char) * 64);
+
+                if(line == NULL){
+                    SET_ERROR(OBJRET_MALLOC_FAIL);
+                    free_strbuf(strbuf);
+                    return NULL;
+                }
+
+                if(export_into_object_file_line(head_data->payload.inst, line) < 0){
+                    SET_ERROR(OBJRET_INTERNAL_ERR);
+                    free(line);
+                    free_strbuf(strbuf);
+                    return NULL;
+                }
+
+                my_sprintf(strbuf, "0x%"PRIx32":%"PRIx8":%"PRIx8":%s\n", head_data->address, head_data->relocation, head_data->special, line);
+
+                free(line);
+            }
+            else{
+                SET_ERROR(OBJRET_INTERNAL_ERR);
+                free_strbuf(strbuf);
+                return NULL;
+            }
+
+            head_data = head_data->next;
+        }
+
+        head_section = head_section->next;
+    }
+
+    my_sprintf(strbuf, ".end\n");
+    
+    return strbuf;
+       
+}
+
+static void free_strbuf(strbuf_t *sbuffer){
+    if(sbuffer == NULL) return;
+    
+    free(sbuffer->str_ptr);
+    free(sbuffer);    
 }

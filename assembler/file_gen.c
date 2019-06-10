@@ -131,7 +131,7 @@ void filegen_create_object_file(char * abs_filename){
 
     }
 
-    if(obj_write(abs_filename, my_obj_file) != OBJRET_OK){
+    if(obj_write_to_file(abs_filename, my_obj_file) != OBJRET_OK){
         obj_lib_error_exit();
     }
 
