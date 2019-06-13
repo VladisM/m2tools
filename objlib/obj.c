@@ -206,12 +206,12 @@ int obj_load_from_string(char *s, obj_file_t **o){
 
 int obj_write_to_string(char **s, obj_file_t *o){
 
-    if(o == NULL){
+    if(o == NULL || s == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
         return -1;
     }
 
-    if(s != NULL){
+    if(*s != NULL){
         SET_ERROR(OBJRET_WRONG_ARG);
         return -1;
     }
