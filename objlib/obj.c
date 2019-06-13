@@ -41,25 +41,25 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...);
  * @brief Create string buffer structure and initialize it
  *
  * @param sbuffer Pointer that will point to new structure, have to be NULL.
- * 
+ *
  * @return -1 if fail; 0 if OK
  */
 static int new_strbuf(strbuf_t **sbuffer);
 
 /**
  * @brief Free and dealoc structure given with new_strbuf
- * 
+ *
  * @param sbuffer pointer to struct to clear
  */
 static void free_strbuf(strbuf_t *sbuffer);
 
 /**
  * @brief Internal function that write out content of object file into strbuf_t
- * 
+ *
  * @param o Pointer to struct with object file stored.
- * 
+ *
  * @return pointer to your strbuf_t struct, you have to free it before terminating
- * program, use the free_strbuf function. 
+ * program, use the free_strbuf function.
  */
 static strbuf_t *obj_write_to_strbuf(obj_file_t *o);
 
@@ -516,25 +516,25 @@ int obj_write_to_string(char **s, obj_file_t *o){
         SET_ERROR(OBJRET_NULL_PTR);
         return -1;
     }
-    
+
     if(s != NULL){
         SET_ERROR(OBJRET_WRONG_ARG);
         return -1;
     }
-    
+
     //get strbuf for object file
     strbuf_t *strbuf = obj_write_to_strbuf(o);
-    
+
     //check for nested errors
     if(strbuf == NULL) return -1;
-    
+
     char *new_string = strdup(strbuf->str_ptr);
-    
+
     if(new_string == NULL){
         SET_ERROR(OBJRET_INTERNAL_ERR);
         return -1;
     }
-    
+
     *s = new_string;
 }
 
@@ -544,13 +544,13 @@ int obj_write_to_file(char *filename, obj_file_t *o){
         SET_ERROR(OBJRET_NULL_PTR);
         return -1;
     }
-    
+
     //get strbuf for object file
     strbuf_t *strbuf = obj_write_to_strbuf(o);
-    
+
     //check for nested errors
     if(strbuf == NULL) return -1;
-    
+
     //write out data into file
     FILE * fp = fopen(filename, "w");
 
@@ -558,14 +558,14 @@ int obj_write_to_file(char *filename, obj_file_t *o){
         SET_ERROR(OBJRET_FOPEN_ERROR);
         return -1;
     }
-    
+
     fputs(strbuf->str_ptr, fp);
     fflush(fp);
-    
+
     //close file and clear strbuf
     fclose(fp);
     free_strbuf(strbuf);
-    
+
     return 0;
 }
 
@@ -831,7 +831,7 @@ static int new_strbuf(strbuf_t **sbuffer){
         SET_ERROR(OBJRET_WRONG_ARG);
         return -1;
     }
-    
+
     *sbuffer = (strbuf_t *)malloc(sizeof(strbuf_t));
 
     if(*sbuffer == NULL){
@@ -892,7 +892,7 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
 static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
 
     strbuf_t* strbuf = NULL;
-    
+
     if(new_strbuf(&strbuf) == -1){
         return NULL;
     }
@@ -993,16 +993,16 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
     }
 
     my_sprintf(strbuf, ".end\n");
-    
+
     return strbuf;
-       
+
 }
 
 static void free_strbuf(strbuf_t *sbuffer){
     if(sbuffer == NULL) return;
-    
+
     free(sbuffer->str_ptr);
-    free(sbuffer);    
+    free(sbuffer);
 }
 
 static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
