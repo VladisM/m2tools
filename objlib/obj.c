@@ -1027,6 +1027,10 @@ static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
         while((strbuf->str_ptr[strbufpos] != '\0') && (i < (sizeof(line) - 1))){
             line[i] = strbuf->str_ptr[strbufpos];
 
+            if(strbuf->str_ptr[strbufpos] == '\0'){
+                end_of_file = 1;
+            }
+
             if(line[i] == '\n' || line[i] == '\r'){
                 line[i] = '\0';
                 break;
@@ -1037,6 +1041,8 @@ static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
             }
 
         }
+
+
 
         switch(load_decoder_state){
             case OBJECT:
