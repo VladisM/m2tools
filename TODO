@@ -5,3 +5,5 @@ napsat linker
 Testovat portabilitu napříč platformama (zkusit použití ve win64, VS studio??)
 
 Vylepšit systém pro hlášení chyb z knihoven, musí umožnit vrátit string s krátkým popisem chyby.
+
+funkce které vrací informaci povedlo se/nepovedlo se předělat na vracení typu bool? stdbool.h?

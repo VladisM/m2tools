@@ -21,50 +21,88 @@
 #include <stdint.h>
 #include <isa.h>
 
+/**
+ * @brief Symbol type.
+ */
 typedef enum{
-    SYMBOL_EXPORT = 0,
-    SYMBOL_IMPORT
+    SYMBOL_EXPORT = 0,  /**< @brief Symbol is exported from current section. */
+    SYMBOL_IMPORT       /**< @brief Symbol is imported into current section. */
 }symbol_type_t;
 
+/**
+ * @brief Enum type used to hold information about payload in data_symbol_t struct.
+ */
 typedef enum{
-    DATA_IS_BLOB = 0,
-    DATA_IS_INST
+    DATA_IS_BLOB = 0,   /**< @brief Stored payload in blob struct, datablob_t. */
+    DATA_IS_INST        /**< @brief Stored payload in instruction struct, tInstruction. */
 }data_symbol_type_t;
 
+/**
+ * @brief Structure to hold data blob.
+ */
 typedef struct{
-    unsigned int lenght;
-    uint8_t *payload;
+    unsigned int lenght; /**< @brief Hold information about how long payload is. */
+    uint8_t *payload;    /**< @brief Pointer to first byte of payload. */
 }datablob_t;
 
+/**
+ * @brief Structure to hold information about one elementary data symbol.
+ *
+ * Data symbol can be two types, blob or inst. Inst mean instruction, and is
+ * more specified by pointer to tInstruction struct in file isa.h. Blob is
+ * binary blob, it simple data payload without any big meaning.
+ *
+ * All data symbols in section together form a double linked list.
+ */
 typedef struct data_symbol_s{
-    struct data_symbol_s *next;
-    struct data_symbol_s *prev;
-    data_symbol_type_t type;
-    uint32_t address;
+    struct data_symbol_s *next;    /**< @brief Pointer to the next symbol in the list. */
+    struct data_symbol_s *prev;    /**< @brief Pointer to the previous symbol in the list. */
+    data_symbol_type_t type;       /**< @brief Type of this symbol. */
+    uint32_t address;              /**< @brief Address of symbol in memory. This isn't absolute addres, it is rather relative to the beggining of the section.*/
     union{
-        datablob_t *blob;
-        tInstruction *inst;
-    }payload;
-    uint8_t relocation;
-    uint8_t special;
+        datablob_t *blob;          /**< @brief Correct pointer when type == DATA_IS_BLOB. */
+        tInstruction *inst;        /**< @brief Correct pointer when type == DATA_IS_INST. */
+    }payload;                      /**< @brief Union that hold pointer to payload. */
+    uint8_t relocation;            /**< @brief Store information about relocation. 0 if should not be relocated, 1 otherwise. */
+    uint8_t special;               /**< @brief Store information about argument, if is special symbol. 1 it is, 0 it isn't. */
 }data_symbol_t;
 
+/**
+ * @brief Structure to hold information about one special symbol.
+ *
+ * Special symbols are used by linker, when creating executable binary.
+ * All symbols tohether form and double linked list. One list for every section
+ * of object file. This double linked list is called special symbol table.
+ */
 typedef struct spec_symbol_s{
-    char *name;
-    struct spec_symbol_s *next;
-    struct spec_symbol_s *prev;
-    uint32_t value;
-    symbol_type_t type;
+    char *name;                     /**< @brief Name of the symbol. */
+    struct spec_symbol_s *next;     /**< @brief Pointer to the next symbol in list.  */
+    struct spec_symbol_s *prev;     /**< @brief Pointer to the previous symbol in the list. */
+    uint32_t value;                 /**< @brief Value for this symbol.*/
+    symbol_type_t type;             /**< @brief Type of the symbol, can be exported or imported to the section.*/
 }spec_symbol_t;
 
+/**
+ * @brief Structure to hold one section of the object file.
+ *
+ * All section together in object file, form an double linked list. Each section have
+ * its own special symbol table, and its own data symbols (can be instructions or
+ * blobs).
+ *
+ * Section have names, they are used by linker for linking them.
+ *
+ * They can also be section that dosn't have any symbols exported or inported, and
+ * they are valid too. In this case both pointers spec_symbol_first and spec_symbol_last
+ * are pointing to NULL.
+ */
 typedef struct section_s{
-    char *section_name;
-    struct section_s *next;
-    struct section_s *prev;
-    spec_symbol_t *spec_symbol_first;
-    spec_symbol_t *spec_symbol_last;
-    data_symbol_t *data_first;
-    data_symbol_t *data_last;
+    char *section_name;                 /**< @brief Name of this section, name is given by command .SECTION <name> in asm file. */
+    struct section_s *next;             /**< @brief Pointer to the next section in object file. */
+    struct section_s *prev;             /**< @brief Pointer to the previous sections in boject file. */
+    spec_symbol_t *spec_symbol_first;   /**< @brief Pointer to the first element of special symbol table. */
+    spec_symbol_t *spec_symbol_last;    /**< @brief Pointer to the last element of the special symbol table. */
+    data_symbol_t *data_first;          /**< @brief Pointer to the first element of data stream. */
+    data_symbol_t *data_last;           /**< @brief Pointer to the last element of data stream. */
 }section_t;
 
 typedef struct obj_file_s{
