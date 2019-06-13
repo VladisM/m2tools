@@ -53,7 +53,7 @@ int main(int argc, char* argv[]){
 
     arg_parse(argc, argv);
 
-    if(obj_load(settings.i_file, &obj_file) != 0){
+    if(obj_load_from_file(settings.i_file, &obj_file) != 0){
         fprintf(stderr, "Failed to load object file! obj_lib errno: %d\n", get_objlib_errno());
         exit(EXIT_FAILURE);
     }

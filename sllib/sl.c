@@ -154,7 +154,7 @@ int sl_load(char *filename, static_library_t **lib){
 
             obj_file_t *tmp_obj = NULL;
 
-            if(obj_load(tmp_filename, &tmp_obj) != 0){
+            if(obj_load_from_file(tmp_filename, &tmp_obj) != 0){
                 SET_ERROR(SLRET_INTERN_ERR);
                 return -1;
             }

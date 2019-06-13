@@ -100,7 +100,6 @@ obj_file_err_t get_objlib_errno(void);
 void free_object_file(obj_file_t *o);
 
 //funkce pro práci se souborem
-int obj_load(char *filename, obj_file_t **o);
 int obj_load_from_string(char *s, obj_file_t **o);
 int obj_load_from_file(char *filename, obj_file_t **o);
 int obj_write_to_string(char **s, obj_file_t *o);
