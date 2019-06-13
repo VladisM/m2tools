@@ -545,11 +545,14 @@ static int new_strbuf(strbuf_t **sbuffer){
     }
 
     (*sbuffer)->str_ptr[0] = '\0';
+
+    return 0;
 }
 
 static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
 
     va_list argptr;
+    va_list argptr_2;
     char *tmp_str = NULL;
 
     if(sbuffer == NULL){
@@ -558,9 +561,11 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
     }
 
     va_start(argptr, fmt);
+    va_copy(argptr_2, argptr);
+
     int char_count_to_print = vsnprintf(NULL, 0, fmt, argptr);
 
-    if(sbuffer->actual_lenght + char_count_to_print + 1 > sbuffer->total_lenght){
+    if((sbuffer->actual_lenght + char_count_to_print + 1) >= sbuffer->total_lenght){
         void *ptr = realloc(sbuffer->str_ptr, sbuffer->total_lenght * 2);
 
         if(ptr == NULL){
@@ -569,6 +574,7 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
         }
 
         sbuffer->str_ptr = (char *)ptr;
+        sbuffer->total_lenght *= 2;
     }
 
     tmp_str = (char *)malloc(sizeof(char) * (char_count_to_print + 1));
@@ -578,10 +584,13 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
         return -1;
     }
 
-    vsprintf(tmp_str, fmt, argptr);
-    va_end(argptr);
+    memset((void *)tmp_str, 0, sizeof(char) * (char_count_to_print + 1));
+
+    vsprintf(tmp_str, fmt, argptr_2);
+    va_end(argptr_2);
 
     strcat(sbuffer->str_ptr, tmp_str);
+    sbuffer->actual_lenght += char_count_to_print;
     free(tmp_str);
 }
 
@@ -719,20 +728,19 @@ static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
 
     while(end_of_file == 0){
 
+        memset((void *)line, '\0', sizeof(line));
+
         int i = 0;
-        while((strbuf->str_ptr[strbufpos] != '\0') && (i < (sizeof(line) - 1))){
-            line[i] = strbuf->str_ptr[strbufpos];
-
-            if(line[i] == '\n' || line[i] == '\r'){
-                line[i] = '\0';
-                break;
-            }
-            else{
-                strbufpos++;
-                i++;
-            }
-
+        while(
+            (strbuf->str_ptr[strbufpos] != '\0') &&
+            (strbuf->str_ptr[strbufpos] != '\n') &&
+            (strbuf->str_ptr[strbufpos] != '\r') &&
+            (i < (sizeof(line) - 1))
+        ){
+            line[i++] = strbuf->str_ptr[strbufpos++];
         }
+
+        strbufpos++;
 
         switch(load_decoder_state){
             case OBJECT:
