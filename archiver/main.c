@@ -6,9 +6,6 @@
 #include <obj.h>
 #include <sl.h>
 
-//TODO: refactoring případně
-//TODO: doplnit komentáře
-
 #define HELP_STRING "\
 Example usage: \n\
  "PROG_NAME" -c -o test_lib.sl test_obj_1.o test_obj_2.o\n\
