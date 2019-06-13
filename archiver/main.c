@@ -247,7 +247,7 @@ static void create_library(char *out_file, char **input_files, unsigned file_cou
         obj_file_t *new_obj = NULL;
 
         //obj_load fail if we are on wrong arch
-        if(obj_load(input_files[i], &new_obj) != 0){
+        if(obj_load_from_file(input_files[i], &new_obj) != 0){
             fprintf(stderr, "Failed to load object file! objlib errno: %d\n", get_objlib_errno());
             free_sl(new_lib);
             exit(EXIT_FAILURE);
