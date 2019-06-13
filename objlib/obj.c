@@ -132,6 +132,40 @@ void free_object_file(obj_file_t *o){
     free(o);
 }
 
+int obj_load_from_file(char *filename, obj_file_t **o){
+
+}
+
+int obj_load_from_string(char *s, obj_file_t **o){
+    if(s == NULL || o == NULL){
+        SET_ERROR(OBJRET_NULL_PTR);
+        return -1;
+    }
+
+    if(*o != NULL){
+        SET_ERROR(OBJRET_WRONG_ARG);
+        return -1;
+    }
+
+    char *s_dup = strdup(s);
+
+    strbuf_t strptr;
+    strptr.str_ptr = s_dup;
+    strptr.actual_lenght = strlen(s_dup) + 1;
+    strptr.total_lenght = strptr.actual_lenght;
+
+    *o = obj_load_from_strbuf(&strptr);
+
+    free(s_dup);
+
+    if(*o == NULL){
+        return -1;
+    }
+    else{
+        return 0;
+    }
+}
+
 int obj_load(char *filename, obj_file_t **o){
 
     if(filename == NULL || o == NULL){
