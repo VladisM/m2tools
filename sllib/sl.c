@@ -138,28 +138,14 @@ int sl_load(char *filename, static_library_t **lib){
                 return -1;
             }
 
-            char *tmp_filename = tmpnam(NULL);
-
-            if(tmp_filename == NULL){
-                SET_ERROR(SLRET_INTERN_ERR);
-                return -1;
-            }
-
-            FILE * obj_fp = fopen(tmp_filename, "w");
-
-            for(unsigned i = 0; data[i] != '\0'; i++) fputc(data[i], obj_fp);
-
-            fclose(obj_fp);
-            free(data);
-
             obj_file_t *tmp_obj = NULL;
 
-            if(obj_load_from_file(tmp_filename, &tmp_obj) != 0){
+            if(obj_load_from_string(data, &tmp_obj) != 0){
                 SET_ERROR(SLRET_INTERN_ERR);
                 return -1;
             }
 
-            remove(tmp_filename);
+            free(data);
 
             if(append_objfile_to_sl(tmp_obj, *lib) != 0){
                 SET_ERROR(SLRET_INTERN_ERR);
@@ -183,7 +169,6 @@ int sl_write(char *filename, static_library_t *lib){
     }
 
     mtar_t my_tarfile;
-    char line_buff[128];
     obj_file_t *head = lib->first_obj;
 
     if(mtar_open(&my_tarfile, filename, "w") != MTAR_ESUCCESS){
@@ -207,46 +192,26 @@ head_write_succes:
 
     while(head != NULL){
 
-        char *tmp_filename = tmpnam(NULL);
+        char *obj_str = NULL;
 
-        if(tmp_filename == NULL){
-            SET_ERROR(SLRET_INTERN_ERR);
-            return -1;
-        }
-
-        if(obj_write_to_file(tmp_filename, head) != OBJRET_OK){
+        if(obj_write_to_string(&obj_str, head) != 0){
             SET_ERROR(SLRET_TMP_WRITE_ERR);
             return -1;
         }
 
-        FILE * obj_fp = fopen(tmp_filename, "r");
-
-        if(obj_fp == NULL){
-            SET_ERROR(SLRET_INTERN_ERR);
-            return -1;
-        }
-
-        unsigned size = 0;
-        while((fgetc(obj_fp)) != EOF){
-            size++;
-        }
+        unsigned size = strlen(obj_str) + 1;
 
         if(mtar_write_file_header(&my_tarfile, head->object_file_name, size) != MTAR_ESUCCESS){
             SET_ERROR(SLRET_CANT_CREATE_SL);
             return -1;
         }
 
-        rewind(obj_fp);
-
-        while(fgets(line_buff, 128, obj_fp) != NULL){
-            if(mtar_write_data(&my_tarfile, line_buff, strlen(line_buff)) != MTAR_ESUCCESS){
-                SET_ERROR(SLRET_CANT_CREATE_SL);
-                return -1;
-            }
+        if(mtar_write_data(&my_tarfile, obj_str, size) != MTAR_ESUCCESS){
+            SET_ERROR(SLRET_CANT_CREATE_SL);
+            return -1;
         }
 
-        fclose(obj_fp);
-        remove(tmp_filename);
+        free(obj_str);
 
         head = head->next;
     }

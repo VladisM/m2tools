@@ -230,6 +230,8 @@ int obj_write_to_string(char **s, obj_file_t *o){
     }
 
     *s = new_string;
+
+    return 0;
 }
 
 int obj_write_to_file(char *filename, obj_file_t *o){
