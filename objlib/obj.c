@@ -63,6 +63,14 @@ static void free_strbuf(strbuf_t *sbuffer);
  */
 static strbuf_t *obj_write_to_strbuf(obj_file_t *o);
 
+/**
+ * @brief Internal function that load content of strbuf_t into obj_file_t struct
+ *
+ * @param strbuf Pointer to strbuf structure with stored content of object file.
+ *
+ * @return Pointer to your new obj_file_t struct filed with information from strbuf struct.
+ * At the end of the program returning pointer should be cleared by free_object_file().
+ */
 static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf);
 
 load_decoder_state_t load_decoder_state;
