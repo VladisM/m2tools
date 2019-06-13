@@ -7,8 +7,8 @@
  * @brief Library for dealing with task related with object files.
  */
 
-//TODO Dopsat pořádné komentáře
-//TODO Napsat example použití do dokumentace
+//TODO: Dopsat pořádné komentáře
+//TODO: Napsat example použití do dokumentace
 
 /**
  * @defgroup obj Object files library
