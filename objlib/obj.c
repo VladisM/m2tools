@@ -153,6 +153,12 @@ int obj_load_from_file(char *filename, obj_file_t **o){
     }
 
     FILE *fp = fopen(filename, "r");
+
+    if(fp == NULL){
+        SET_ERROR(OBJRET_FOPEN_ERROR);
+        return -1;
+    }
+
     strbuf_t *strbuf = NULL;
 
     if(new_strbuf(&strbuf) != 0){
