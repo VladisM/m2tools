@@ -235,7 +235,7 @@ static void clean_mem(void){
 static void create_library(char *out_file, char **input_files, unsigned file_count){
     static_library_t *new_lib = NULL;
 
-    if(new_sl(basename(out_file), &new_lib) != 0){
+    if(~new_sl(basename(out_file), &new_lib)){
         fprintf(stderr, "Can't create library, errno: %d.\n", get_sllib_errno());
         exit(EXIT_FAILURE);
     }
@@ -250,7 +250,7 @@ static void create_library(char *out_file, char **input_files, unsigned file_cou
             exit(EXIT_FAILURE);
         }
 
-        if(append_objfile_to_sl(new_obj, new_lib) != 0){
+        if(~append_objfile_to_sl(new_obj, new_lib)){
             fprintf(stderr, "Failed to append object file into library! sllib errno: %d\n", get_sllib_errno());
             free_sl(new_lib);
             exit(EXIT_FAILURE);
@@ -258,7 +258,7 @@ static void create_library(char *out_file, char **input_files, unsigned file_cou
 
     }
 
-    if(sl_write(out_file, new_lib) != 0){
+    if(~sl_write(out_file, new_lib)){
         fprintf(stderr, "Failed to write library! sllib errno: %d\n", get_sllib_errno());
         free_sl(new_lib);
         exit(EXIT_FAILURE);
@@ -271,7 +271,7 @@ static void extract_library(char *input_archive){
     static_library_t *loaded_lib = NULL;
 
     //fail if wrong arch
-    if(sl_load(input_archive, &loaded_lib) != 0){
+    if(~sl_load(input_archive, &loaded_lib)){
         fprintf(stderr, "Failed to load library '%s'!\n", input_archive);
         exit(EXIT_FAILURE);
     }
@@ -305,7 +305,7 @@ static void list_library(char *input_archive){
     static_library_t *loaded_lib = NULL;
 
     //fail if wrong arch
-    if(sl_load(input_archive, &loaded_lib) != 0){
+    if(~sl_load(input_archive, &loaded_lib)){
         fprintf(stderr, "Failed to load library '%s'!\n", input_archive);
         exit(EXIT_FAILURE);
     }
