@@ -8,10 +8,6 @@
 
 #define SET_ERROR(n) if(sllib_errno == 0) sllib_errno = n
 
-//TODO: přidat dokumentaci
-//TODO: přidat example použití
-//TODO: přidat ošetření na uvolnění dyn. paměti při chybě
-
 static sl_err_t sllib_errno = SLRET_OK;
 
 void clear_sllib_errno(void){
@@ -62,6 +58,7 @@ int sl_load(char *filename, static_library_t **lib){
 
     if(mtar_find(&my_tarfile, "target_arch_name", &file_header) != MTAR_ESUCCESS){
         SET_ERROR(SLRET_BROKEN_SL);
+        mtar_close(&my_tarfile);
         return -1;
     }
 
@@ -69,21 +66,28 @@ int sl_load(char *filename, static_library_t **lib){
 
     if(target_arch_name == NULL){
         SET_ERROR(SLRET_MALLOC_FAIL);
+        mtar_close(&my_tarfile);
         return -1;
     }
 
     if(mtar_read_data(&my_tarfile, target_arch_name, file_header.size) != MTAR_ESUCCESS){
         SET_ERROR(SLRET_INTERN_ERR);
+        free(target_arch_name);
+        mtar_close(&my_tarfile);
         return -1;
     }
 
     if(strcmp(target_arch_name, TARGET_ARCH_NAME) != 0){
         SET_ERROR(SLRET_WRONG_ARCH);
+        free(target_arch_name);
+        mtar_close(&my_tarfile);
         return -1;
     }
 
     if(mtar_find(&my_tarfile, "library_name", &file_header) != MTAR_ESUCCESS){
         SET_ERROR(SLRET_BROKEN_SL);
+        free(target_arch_name);
+        mtar_close(&my_tarfile);
         return -1;
     }
 
@@ -91,16 +95,24 @@ int sl_load(char *filename, static_library_t **lib){
 
     if(library_name == NULL){
         SET_ERROR(SLRET_MALLOC_FAIL);
+        free(target_arch_name);
+        mtar_close(&my_tarfile);
         return -1;
     }
 
     if(mtar_read_data(&my_tarfile, library_name, file_header.size) != MTAR_ESUCCESS){
         SET_ERROR(SLRET_INTERN_ERR);
+        free(library_name);
+        free(target_arch_name);
+        mtar_close(&my_tarfile);
         return -1;
     }
 
     if(new_sl(library_name, lib) != 0){
         SET_ERROR(SLRET_INTERN_ERR);
+        free(library_name);
+        free(target_arch_name);
+        mtar_close(&my_tarfile);
         return -1;
     }
 
@@ -109,6 +121,8 @@ int sl_load(char *filename, static_library_t **lib){
 
     if(mtar_rewind(&my_tarfile) != MTAR_ESUCCESS){
         SET_ERROR(SLRET_INTERN_ERR);
+        mtar_close(&my_tarfile);
+        free_sl(*lib);
         return -1;
     }
 
@@ -130,11 +144,15 @@ int sl_load(char *filename, static_library_t **lib){
 
             if(data == NULL){
                 SET_ERROR(SLRET_MALLOC_FAIL);
+                free_sl(*lib);
                 return -1;
             }
 
             if(mtar_read_data(&my_tarfile, data, file_header.size) != MTAR_ESUCCESS){
                 SET_ERROR(SLRET_INTERN_ERR);
+                free_sl(*lib);
+                free(data);
+                mtar_close(&my_tarfile);
                 return -1;
             }
 
@@ -142,6 +160,9 @@ int sl_load(char *filename, static_library_t **lib){
 
             if(obj_load_from_string(data, &tmp_obj) != 0){
                 SET_ERROR(SLRET_INTERN_ERR);
+                free_sl(*lib);
+                free(data);
+                mtar_close(&my_tarfile);
                 return -1;
             }
 
@@ -149,6 +170,9 @@ int sl_load(char *filename, static_library_t **lib){
 
             if(append_objfile_to_sl(tmp_obj, *lib) != 0){
                 SET_ERROR(SLRET_INTERN_ERR);
+                free_sl(*lib);
+                mtar_close(&my_tarfile);
+                free_object_file(tmp_obj);
                 return -1;
             }
 
@@ -176,10 +200,10 @@ int sl_write(char *filename, static_library_t *lib){
         return -1;
     }
 
-    if(mtar_write_file_header(&my_tarfile, "library_name", strlen(lib->library_name)) != MTAR_ESUCCESS) goto head_write_fail;
-    if(mtar_write_data(&my_tarfile, lib->library_name, strlen(lib->library_name)) != MTAR_ESUCCESS) goto head_write_fail;
+    if(mtar_write_file_header(&my_tarfile, "library_name", strlen(lib->library_name))         != MTAR_ESUCCESS) goto head_write_fail;
+    if(mtar_write_data(&my_tarfile, lib->library_name, strlen(lib->library_name))             != MTAR_ESUCCESS) goto head_write_fail;
     if(mtar_write_file_header(&my_tarfile, "target_arch_name", strlen(lib->target_arch_name)) != MTAR_ESUCCESS) goto head_write_fail;
-    if(mtar_write_data(&my_tarfile, lib->target_arch_name, strlen(lib->target_arch_name)) != MTAR_ESUCCESS) goto head_write_fail;
+    if(mtar_write_data(&my_tarfile, lib->target_arch_name, strlen(lib->target_arch_name))     != MTAR_ESUCCESS) goto head_write_fail;
 
     goto head_write_succes;
 
@@ -203,11 +227,13 @@ head_write_succes:
 
         if(mtar_write_file_header(&my_tarfile, head->object_file_name, size) != MTAR_ESUCCESS){
             SET_ERROR(SLRET_CANT_CREATE_SL);
+            free(obj_str);
             return -1;
         }
 
         if(mtar_write_data(&my_tarfile, obj_str, size) != MTAR_ESUCCESS){
             SET_ERROR(SLRET_CANT_CREATE_SL);
+            free(obj_str);
             return -1;
         }
 
@@ -239,6 +265,11 @@ int new_sl(char *lib_name, static_library_t **lib){
 
     if(*lib == NULL || line_1 == NULL || line_2 == NULL){
         SET_ERROR(SLRET_MALLOC_FAIL);
+
+        if(*lib   != NULL) free(lib);
+        if(line_1 != NULL) free(line_1);
+        if(line_2 != NULL) free(line_2);
+
         return -1;
     }
 
@@ -291,4 +322,3 @@ int append_objfile_to_sl(obj_file_t *o, static_library_t *lib){
     }
     return 0;
 }
-

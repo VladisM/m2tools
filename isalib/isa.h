@@ -1,11 +1,13 @@
-#ifndef ISA_H_included
-#define ISA_H_included
-
 /**
  * @file isa.h
  *
  * @brief Library for dealing with ISA related tasks.
+ *
+ * @todo Use stdbool.h instead of int for return
  */
+
+#ifndef ISA_H_included
+#define ISA_H_included
 
 /**
  * @defgroup isa ISA library

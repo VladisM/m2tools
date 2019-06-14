@@ -1,13 +1,14 @@
-#ifndef OBJ_H_included
-#define OBJ_H_included
-
 /**
  * @file obj.h
  *
  * @brief Library for dealing with task related with object files.
  *
  * @todo Add example of ussage and describe obj group more.
+ * @todo Use stdbool.h instead of int for return
  */
+
+#ifndef OBJ_H_included
+#define OBJ_H_included
 
 /**
  * @defgroup obj Object files library
