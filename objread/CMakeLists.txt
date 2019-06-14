@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2.0)
 project(objread C)
 
-set(sources main.c)
+set(sources objread.c)
 
 add_executable(${target_prefix}-objread ${sources})
 
