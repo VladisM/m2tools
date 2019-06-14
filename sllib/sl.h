@@ -1,3 +1,13 @@
+/**
+ * @file sl.h
+ *
+ * @brief Library for dealing with static library files.
+ *
+ * @todo Add doc for exportex types and functions
+ * @todo Add example and some description
+ * @todo Use stdbool.h instead of int for return
+ */
+
 #ifndef SL_H_included
 #define SL_H_included
 
