@@ -244,7 +244,7 @@ static void create_library(char *out_file, char **input_files, unsigned file_cou
         obj_file_t *new_obj = NULL;
 
         //obj_load fail if we are on wrong arch
-        if(obj_load_from_file(input_files[i], &new_obj) != 0){
+        if(~obj_load_from_file(input_files[i], &new_obj)){
             fprintf(stderr, "Failed to load object file! objlib errno: %d\n", get_objlib_errno());
             free_sl(new_lib);
             exit(EXIT_FAILURE);
@@ -288,7 +288,7 @@ static void extract_library(char *input_archive){
             printf(" %s\n", head_obj_file->object_file_name);
         }
 
-        if(obj_write_to_file(head_obj_file->object_file_name, head_obj_file) != 0){
+        if(~obj_write_to_file(head_obj_file->object_file_name, head_obj_file)){
             fprintf(stderr, "Failed to create object file '%s'! objlib errno: %d", head_obj_file->object_file_name, get_objlib_errno());
             free_sl(loaded_lib);
             exit(EXIT_FAILURE);

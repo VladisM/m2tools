@@ -35,7 +35,7 @@ typedef struct strbuf_s{
  *
  * @return -1 if fail; 0 if OK
  */
-static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...);
+static bool my_sprintf(strbuf_t *sbuffer, char *fmt, ...);
 
 /**
  * @brief Create string buffer structure and initialize it
@@ -44,7 +44,7 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...);
  *
  * @return -1 if fail; 0 if OK
  */
-static int new_strbuf(strbuf_t **sbuffer);
+static bool new_strbuf(strbuf_t **sbuffer);
 
 /**
  * @brief Free and dealoc structure given with new_strbuf
@@ -138,39 +138,41 @@ void free_object_file(obj_file_t *o){
     free(o->object_file_name);
     free(o->target_arch_name);
     free(o);
+
+    return;
 }
 
-int obj_load_from_file(char *filename, obj_file_t **o){
+bool obj_load_from_file(char *filename, obj_file_t **o){
 
     if(filename == NULL || o == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     if(*o != NULL){
         SET_ERROR(OBJRET_WRONG_ARG);
-        return -1;
+        return false;
     }
 
     FILE *fp = fopen(filename, "r");
 
     if(fp == NULL){
         SET_ERROR(OBJRET_FOPEN_ERROR);
-        return -1;
+        return false;
     }
 
     strbuf_t *strbuf = NULL;
 
     if(new_strbuf(&strbuf) != 0){
         SET_ERROR(OBJRET_INTERNAL_ERR);
-        return -1;
+        return false;
     }
 
     int c;
     while((c = fgetc(fp)) != EOF){
         if(my_sprintf(strbuf, "%c", (char)c) != 0){
             SET_ERROR(OBJRET_INTERNAL_ERR);
-            return -1;
+            return false;
         }
     }
 
@@ -180,22 +182,22 @@ int obj_load_from_file(char *filename, obj_file_t **o){
 
     if(*o == NULL){
         SET_ERROR(OBJRET_INTERNAL_ERR);
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 
 }
 
-int obj_load_from_string(char *s, obj_file_t **o){
+bool obj_load_from_string(char *s, obj_file_t **o){
     if(s == NULL || o == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     if(*o != NULL){
         SET_ERROR(OBJRET_WRONG_ARG);
-        return -1;
+        return false;
     }
 
     char *s_dup = strdup(s);
@@ -211,23 +213,23 @@ int obj_load_from_string(char *s, obj_file_t **o){
 
     if(*o == NULL){
         SET_ERROR(OBJRET_INTERNAL_ERR);
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 
 }
 
-int obj_write_to_string(char **s, obj_file_t *o){
+bool obj_write_to_string(char **s, obj_file_t *o){
 
     if(o == NULL || s == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     if(*s != NULL){
         SET_ERROR(OBJRET_WRONG_ARG);
-        return -1;
+        return false;
     }
 
     //get strbuf for object file
@@ -240,33 +242,33 @@ int obj_write_to_string(char **s, obj_file_t *o){
 
     if(new_string == NULL){
         SET_ERROR(OBJRET_INTERNAL_ERR);
-        return -1;
+        return false;
     }
 
     *s = new_string;
 
-    return 0;
+    return true;
 }
 
-int obj_write_to_file(char *filename, obj_file_t *o){
+bool obj_write_to_file(char *filename, obj_file_t *o){
 
     if(o == NULL || filename == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     //get strbuf for object file
     strbuf_t *strbuf = obj_write_to_strbuf(o);
 
     //check for nested errors
-    if(strbuf == NULL) return -1;
+    if(strbuf == NULL) return false;
 
     //write out data into file
     FILE * fp = fopen(filename, "w");
 
     if(fp == NULL){
         SET_ERROR(OBJRET_FOPEN_ERROR);
-        return -1;
+        return false;
     }
 
     fputs(strbuf->str_ptr, fp);
@@ -276,76 +278,92 @@ int obj_write_to_file(char *filename, obj_file_t *o){
     fclose(fp);
     free_strbuf(strbuf);
 
-    return 0;
+    return true;
 }
 
-int new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s){
+bool new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s){
 
     if(name == NULL || s == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
-    *s = (spec_symbol_t *)malloc(sizeof(spec_symbol_t));
+    if(*s != NULL){
+        SET_ERROR(OBJRET_WRONG_ARG);
+        return false;
+    }
+
+    spec_symbol_t *tmp_s = (spec_symbol_t *)malloc(sizeof(spec_symbol_t));
     char *line = malloc(sizeof(char) * (strlen(name) + 1));
 
-    if(*s == NULL || line == NULL){
+    if(tmp_s == NULL || line == NULL){
+        if(*s != NULL) free(*s);
+        if(line != NULL) free(line);
         SET_ERROR(OBJRET_MALLOC_FAIL);
-        return -1;
+        return false;
     }
 
     strcpy(line, name);
 
-    (*s)->name = line;
-    (*s)->value = value;
-    (*s)->prev = NULL;
-    (*s)->next = NULL;
-    (*s)->type = type;
+    tmp_s->name = line;
+    tmp_s->value = value;
+    tmp_s->prev = NULL;
+    tmp_s->next = NULL;
+    tmp_s->type = type;
 
-    return 0;
+    *s = tmp_s;
+
+    return true;
 }
 
-int new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d){
+bool new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d){
 
     if(d == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
+    }
+    if(*d != NULL){
+        SET_ERROR(OBJRET_WRONG_ARG);
+        return false;
     }
 
-    *d = (data_symbol_t *)malloc(sizeof(data_symbol_t));
+    data_symbol_t *tmp_d = (data_symbol_t *)malloc(sizeof(data_symbol_t));
 
-    if(*d == NULL){
+    if(tmp_d == NULL){
         SET_ERROR(OBJRET_MALLOC_FAIL);
-        return -1;
+        return false;
     }
 
-    (*d)->prev = NULL;
-    (*d)->next = NULL;
-    (*d)->address = address;
-    (*d)->type = type;
-    (*d)->relocation = 0;
-    (*d)->special = 0;
+    tmp_d->prev = NULL;
+    tmp_d->next = NULL;
+    tmp_d->address = address;
+    tmp_d->type = type;
+    tmp_d->relocation = 0;
+    tmp_d->special = 0;
 
     if(type == DATA_IS_BLOB){
-        (*d)->payload.blob = (datablob_t *)payload_ptr;
+        tmp_d->payload.blob = (datablob_t *)payload_ptr;
     }
     else if(type == DATA_IS_INST){
-        (*d)->payload.inst = (tInstruction *)payload_ptr;
+        tmp_d->payload.inst = (tInstruction *)payload_ptr;
     }
     else{
         SET_ERROR(OBJRET_INTERNAL_ERR);
-        return -1;
+        free(tmp_d);
+        return false;
     }
 
-    return 0;
+    *d = tmp_d;
+
+    return true;
 
 }
 
-int new_obj(char * object_file_name, obj_file_t **o){
+bool new_obj(char * object_file_name, obj_file_t **o){
 
     if(object_file_name == NULL || o == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     *o = (obj_file_t *)malloc(sizeof(obj_file_t));
@@ -354,7 +372,7 @@ int new_obj(char * object_file_name, obj_file_t **o){
 
     if(*o == NULL || line_1 == NULL || line_2 == NULL){
         SET_ERROR(OBJRET_MALLOC_FAIL);
-        return -1;
+        return false;
     }
 
     strcpy(line_1, object_file_name);
@@ -367,15 +385,15 @@ int new_obj(char * object_file_name, obj_file_t **o){
     (*o)->next = NULL;
     (*o)->prev = NULL;
 
-    return 0;
+    return true;
 
 }
 
-int new_section(char *section_name, section_t **s){
+bool new_section(char *section_name, section_t **s){
 
     if(section_name == NULL || s == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     *s = (section_t *)malloc(sizeof(section_t));
@@ -383,7 +401,7 @@ int new_section(char *section_name, section_t **s){
 
     if(*s == NULL || line == NULL){
         SET_ERROR(OBJRET_MALLOC_FAIL);
-        return -1;
+        return false;
     }
 
     strcpy(line, section_name);
@@ -396,13 +414,13 @@ int new_section(char *section_name, section_t **s){
     (*s)->next = NULL;
     (*s)->section_name = line;
 
-    return 0;
+    return true;
 }
 
-int new_blob(unsigned int lenght, datablob_t **b){
+bool new_blob(unsigned int lenght, datablob_t **b){
     if(b == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     *b = (datablob_t *)malloc(sizeof(datablob_t));
@@ -410,7 +428,7 @@ int new_blob(unsigned int lenght, datablob_t **b){
 
     if(*b == NULL || payload == NULL){
         SET_ERROR(OBJRET_MALLOC_FAIL);
-        return -1;
+        return false;
     }
 
     (*b)->payload = payload;
@@ -418,22 +436,21 @@ int new_blob(unsigned int lenght, datablob_t **b){
 
     for(unsigned int i = 0; i < lenght; i++) (*b)->payload[i] = 0;
 
-
-    return 0;
+    return true;
 }
 
-int append_section_to_obj(obj_file_t *o, section_t *s){
+bool append_section_to_obj(obj_file_t *o, section_t *s){
 
     if(o == NULL || s == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     if(o->first_section == NULL){
 
         if(o->last_section != NULL){
             SET_ERROR(OBJRET_BROKEN_OBJ);
-            return -1;
+            return false;
         }
 
         o->first_section = s;
@@ -444,7 +461,7 @@ int append_section_to_obj(obj_file_t *o, section_t *s){
 
         if(o->last_section == NULL){
             SET_ERROR(OBJRET_BROKEN_OBJ);
-            return -1;
+            return false;
         }
 
         section_t *head = o->first_section;
@@ -453,7 +470,7 @@ int append_section_to_obj(obj_file_t *o, section_t *s){
 
             if(strcmp(s->section_name, head->section_name) == 0){
                 SET_ERROR(OBJRET_SECTION_EXIST_ALREADY);
-                return -1;
+                return false;
             }
 
             head = head->next;
@@ -465,22 +482,22 @@ int append_section_to_obj(obj_file_t *o, section_t *s){
         o->last_section = s;
     }
 
-    return 0;
+    return true;
 
 }
 
-int append_spec_symbol_to_section(section_t *section, spec_symbol_t *symbol){
+bool append_spec_symbol_to_section(section_t *section, spec_symbol_t *symbol){
 
     if(section == NULL || symbol == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     if(section->spec_symbol_first == NULL){
 
         if(section->spec_symbol_last != NULL){
             SET_ERROR(OBJRET_BROKEN_SECTION);
-            return -1;
+            return false;
         }
 
         section->spec_symbol_first = symbol;
@@ -490,7 +507,7 @@ int append_spec_symbol_to_section(section_t *section, spec_symbol_t *symbol){
 
         if(section->spec_symbol_last == NULL){
             SET_ERROR(OBJRET_BROKEN_SECTION);
-            return -1;
+            return false;
         }
 
         section->spec_symbol_last->next = symbol;
@@ -499,22 +516,22 @@ int append_spec_symbol_to_section(section_t *section, spec_symbol_t *symbol){
 
     }
 
-    return 0;
+    return true;
 
 }
 
-int append_data_symbol_to_section(section_t *section, data_symbol_t *data){
+bool append_data_symbol_to_section(section_t *section, data_symbol_t *data){
 
     if(section == NULL || data == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     if(section->data_first == NULL){
 
         if(section->data_last != NULL){
             SET_ERROR(OBJRET_BROKEN_SECTION);
-            return -1;
+            return false;
         }
 
         section->data_first = data;
@@ -524,7 +541,7 @@ int append_data_symbol_to_section(section_t *section, data_symbol_t *data){
 
         if(section->data_last == NULL){
             SET_ERROR(OBJRET_BROKEN_SECTION);
-            return -1;
+            return false;
         }
 
         section->data_last->next = data;
@@ -532,21 +549,21 @@ int append_data_symbol_to_section(section_t *section, data_symbol_t *data){
         section->data_last = data;
     }
 
-    return 0;
+    return true;
 
 }
 
-static int new_strbuf(strbuf_t **sbuffer){
+static bool new_strbuf(strbuf_t **sbuffer){
     if(*sbuffer != NULL){
         SET_ERROR(OBJRET_WRONG_ARG);
-        return -1;
+        return false;
     }
 
     *sbuffer = (strbuf_t *)malloc(sizeof(strbuf_t));
 
     if(*sbuffer == NULL){
         SET_ERROR(OBJRET_MALLOC_FAIL);
-        return -1;
+        return false;
     }
 
     (*sbuffer)->actual_lenght = 0;
@@ -555,15 +572,15 @@ static int new_strbuf(strbuf_t **sbuffer){
 
     if((*sbuffer)->str_ptr == NULL){
         SET_ERROR(OBJRET_MALLOC_FAIL);
-        return -1;
+        return false;
     }
 
     (*sbuffer)->str_ptr[0] = '\0';
 
-    return 0;
+    return true;
 }
 
-static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
+static bool my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
 
     va_list argptr;
     va_list argptr_2;
@@ -571,7 +588,7 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
 
     if(sbuffer == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
-        return -1;
+        return false;
     }
 
     va_start(argptr, fmt);
@@ -584,7 +601,7 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
 
         if(ptr == NULL){
             SET_ERROR(OBJRET_MALLOC_FAIL);
-            return -1;
+            return false;
         }
 
         sbuffer->str_ptr = (char *)ptr;
@@ -595,7 +612,7 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
 
     if(tmp_str == NULL){
         SET_ERROR(OBJRET_MALLOC_FAIL);
-        return -1;
+        return false;
     }
 
     memset((void *)tmp_str, 0, sizeof(char) * (char_count_to_print + 1));
@@ -606,6 +623,8 @@ static int my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
     strcat(sbuffer->str_ptr, tmp_str);
     sbuffer->actual_lenght += char_count_to_print;
     free(tmp_str);
+
+    return true;
 }
 
 static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
@@ -770,7 +789,7 @@ static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
                 break;
             case OBJECT_NAME:
                 {
-                    if(new_obj(line, &my_new_obj)){
+                    if(~new_obj(line, &my_new_obj)){
                         return NULL;
                     }
 
@@ -810,7 +829,7 @@ static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
                     }
 section_care:
                     if(my_new_section != NULL){
-                        if(append_section_to_obj(my_new_obj, my_new_section)){
+                        if(~append_section_to_obj(my_new_obj, my_new_section)){
                             return NULL;
                         }
                         my_new_section = NULL;
@@ -819,7 +838,7 @@ section_care:
                 break;
             case SECTION_NAME:
                 {
-                    if(new_section(line, &my_new_section)){
+                    if(~new_section(line, &my_new_section)){
                         return NULL;
                     }
 
@@ -868,11 +887,11 @@ section_care:
                             return NULL;
                         }
 
-                        if(new_spec_symbol(name, value, type, &new_symbol)){
+                        if(~new_spec_symbol(name, value, type, &new_symbol)){
                             return NULL;
                         }
 
-                        if(append_spec_symbol_to_section(my_new_section, new_symbol)){
+                        if(~append_spec_symbol_to_section(my_new_section, new_symbol)){
                             return NULL;
                         }
 
@@ -951,7 +970,7 @@ section_care:
 
                             }
 
-                            if(new_blob(num_buff_index, &blob) != 0){
+                            if(~new_blob(num_buff_index, &blob)){
                                 SET_ERROR(OBJRET_INTERNAL_ERR);
                                 return NULL;
                             }
@@ -960,11 +979,11 @@ section_care:
                                 blob->payload[i] = num_buff[i];
                             }
 
-                            if(new_data_symbol(address, DATA_IS_BLOB, (void *)blob, &new_data)){
+                            if(~new_data_symbol(address, DATA_IS_BLOB, (void *)blob, &new_data)){
                                 return NULL;
                             }
 
-                            if(append_data_symbol_to_section(my_new_section, new_data)){
+                            if(~append_data_symbol_to_section(my_new_section, new_data)){
                                 return NULL;
                             }
 
@@ -1015,14 +1034,14 @@ section_care:
                                 return NULL;
                             }
 
-                            if(new_data_symbol(address, DATA_IS_INST, (void *)inst, &new_data)){
+                            if(~new_data_symbol(address, DATA_IS_INST, (void *)inst, &new_data)){
                                 return NULL;
                             }
 
                             new_data->relocation = relocation;
                             new_data->special = special;
 
-                            if(append_data_symbol_to_section(my_new_section, new_data)){
+                            if(~append_data_symbol_to_section(my_new_section, new_data)){
                                 return NULL;
                             }
 

@@ -159,7 +159,7 @@ bool sl_load(char *filename, static_library_t **lib){
 
             obj_file_t *tmp_obj = NULL;
 
-            if(obj_load_from_string(data, &tmp_obj) != 0){
+            if(~obj_load_from_string(data, &tmp_obj)){
                 SET_ERROR(SLRET_INTERN_ERR);
                 free_sl(*lib);
                 free(data);
@@ -219,7 +219,7 @@ head_write_succes:
 
         char *obj_str = NULL;
 
-        if(obj_write_to_string(&obj_str, head) != 0){
+        if(~obj_write_to_string(&obj_str, head)){
             SET_ERROR(SLRET_TMP_WRITE_ERR);
             return false;
         }

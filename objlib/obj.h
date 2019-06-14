@@ -4,13 +4,14 @@
  * @brief Library for dealing with task related with object files.
  *
  * @todo Add example of ussage and describe obj group more.
- * @todo Use stdbool.h instead of int for return
  */
 
 #ifndef OBJ_H_included
 #define OBJ_H_included
 
 #include <stdint.h>
+#include <stdbool.h>
+
 #include <isa.h>
 
 /**
@@ -171,7 +172,7 @@ void free_object_file(obj_file_t *o);
  * @param s String that hold content of object file.
  * @param o Pointer for struct where object file will be loaded into.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  *
  * @note param o have to point to NULL ( *o == NULL ), correct struct will be
  * created by calling this function.
@@ -179,7 +180,7 @@ void free_object_file(obj_file_t *o);
  * @note This function is intended mainly for using in linker or archiver. Object file is
  * generaly only text file in special format, and therefore can be stored in string.
  */
-int obj_load_from_string(char *s, obj_file_t **o);
+bool obj_load_from_string(char *s, obj_file_t **o);
 
 /**
  * @brief Load object file from regular file on the disk.
@@ -187,12 +188,12 @@ int obj_load_from_string(char *s, obj_file_t **o);
  * @param filename Path with file that will be loaded.
  * @param o Pointer for struct where object file will be loaded into.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  *
  * @note param o have to point to NULL ( *o == NULL ), correct struct will be
  * created by calling this function.
  */
-int obj_load_from_file(char *filename, obj_file_t **o);
+bool obj_load_from_file(char *filename, obj_file_t **o);
 
 /**
  * @brief Write object file into string.
@@ -200,7 +201,7 @@ int obj_load_from_file(char *filename, obj_file_t **o);
  * @param s Pointer to string where object will be printed out.
  * @param o Pointer to object that will be written out.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  *
  * @note param s have to point to NULL ( *s == NULL ), memory will be allocated by
  * this function. Don't forget to free it! ;)
@@ -208,7 +209,7 @@ int obj_load_from_file(char *filename, obj_file_t **o);
  * @note This function is intended mainly for using in linker or archiver. Object file is
  * generaly only text file in special format, and therefore can be stored in string.
  */
-int obj_write_to_string(char **s, obj_file_t *o);
+bool obj_write_to_string(char **s, obj_file_t *o);
 
 /**
  * @brief Write object file into regular file.
@@ -216,9 +217,9 @@ int obj_write_to_string(char **s, obj_file_t *o);
  * @param filename Path with file name where object file will be written to.
  * @param o Pointer to object that will be written out.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  */
-int obj_write_to_file(char *filename, obj_file_t *o);
+bool obj_write_to_file(char *filename, obj_file_t *o);
 
 /**
  * @brief Create new structure for object file.
@@ -229,9 +230,9 @@ int obj_write_to_file(char *filename, obj_file_t *o);
  * @note o have to be pointing to NULL. ( *o == NULL ). Don't forget ot
  * free this struct by calling free_object_file().
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  */
-int new_obj(char * object_file_name, obj_file_t **o);
+bool new_obj(char * object_file_name, obj_file_t **o);
 
 /**
  * @brief Create new section.
@@ -242,9 +243,9 @@ int new_obj(char * object_file_name, obj_file_t **o);
  * @note s have to be pointing to NULL. ( *s == NULL ). This structure is deallocated
  * with calling free_object_file on the object where this section is.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  */
-int new_section(char *secion_name, section_t **s);
+bool new_section(char *secion_name, section_t **s);
 
 /**
  * @brief Create new special symbol.
@@ -257,9 +258,9 @@ int new_section(char *secion_name, section_t **s);
  * @note s have to be pointing to NULL. ( *s == NULL ). This structure is deallocated
  * with calling free_object_file on the object where this section is.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  */
-int new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s);
+bool new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s);
 
 /**
  * @brief Create new data symbl.
@@ -272,9 +273,9 @@ int new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_
  * @note d have to be pointing to NULL. ( *d == NULL ). This structure is deallocated
  * with calling free_object_file on the object where this section is.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  */
-int new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d);
+bool new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d);
 
 /**
  * @brief Create new instance of datablob_struct.
@@ -282,7 +283,7 @@ int new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr
  * @param lenght Bytes needed for payload.
  * @param b Pointer to pointer to struct where blob will be created.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  *
  * @note b have to be pointing to NULL. ( *b == NULL ). This structure is deallocated
  * with calling free_object_file on the object where this section is.
@@ -290,7 +291,7 @@ int new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr
  * This function dosn't fill your blob with any data, you have to do it at yourself,
  * see datablob_t for details about structure members.
  */
-int new_blob(unsigned int lenght, datablob_t **b);
+bool new_blob(unsigned int lenght, datablob_t **b);
 
 /**
  * @brief Append section into object file.
@@ -300,9 +301,9 @@ int new_blob(unsigned int lenght, datablob_t **b);
  * @param o Object file structure.
  * @param s Section to connect.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  */
-int append_section_to_obj(obj_file_t *o, section_t *s);
+bool append_section_to_obj(obj_file_t *o, section_t *s);
 
 /**
  * @brief Append special symbol into section.
@@ -312,9 +313,9 @@ int append_section_to_obj(obj_file_t *o, section_t *s);
  * @param section Section to insert special symbol.
  * @param symbol Symbol to insert.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  */
-int append_spec_symbol_to_section(section_t *section, spec_symbol_t *symbol);
+bool append_spec_symbol_to_section(section_t *section, spec_symbol_t *symbol);
 
 /**
  * @brief Append data symbol to section.
@@ -324,9 +325,9 @@ int append_spec_symbol_to_section(section_t *section, spec_symbol_t *symbol);
  * @param section Section to insert data symbol.
  * @param data Data symbol that will be inserted.
  *
- * @return 0 if ok, -1 if fail
+ * @return true if ok, false if failed
  */
-int append_data_symbol_to_section(section_t *section, data_symbol_t *data);
+bool append_data_symbol_to_section(section_t *section, data_symbol_t *data);
 
 /**
  * @}
