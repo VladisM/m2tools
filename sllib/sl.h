@@ -5,13 +5,13 @@
  *
  * @todo Add doc for exportex types and functions
  * @todo Add example and some description
- * @todo Use stdbool.h instead of int for return
  */
 
 #ifndef SL_H_included
 #define SL_H_included
 
 #include <obj.h>
+#include <stdbool.h>
 
 typedef struct{
     char *library_name;
@@ -42,13 +42,13 @@ sl_err_t get_sllib_errno(void);
 void free_sl(static_library_t *lib);
 
 //load and write library files
-int sl_load(char *filename, static_library_t **lib);
-int sl_write(char *filename, static_library_t *lib);
+bool sl_load(char *filename, static_library_t **lib);
+bool sl_write(char *filename, static_library_t *lib);
 
 //create new instace of library
-int new_sl(char *lib_name, static_library_t **lib);
+bool new_sl(char *lib_name, static_library_t **lib);
 
 //add various object into library instance
-int append_objfile_to_sl(obj_file_t *o, static_library_t *lib);
+bool append_objfile_to_sl(obj_file_t *o, static_library_t *lib);
 
 #endif
