@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2.0)
 project(archiver C)
 
-set(sources main.c)
+set(sources archiver.c)
 
 add_executable(${target_prefix}-archiver ${sources})
 
