@@ -9,6 +9,8 @@
 #ifndef ISA_H_included
 #define ISA_H_included
 
+#include <stdint.h>
+
 /**
  * @defgroup isa ISA library
  *
@@ -20,8 +22,6 @@
  *
  * @{
  */
-
-#include <stdint.h>
 
 /**
  * @brief ISA lib errors.

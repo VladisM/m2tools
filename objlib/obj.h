@@ -10,6 +10,9 @@
 #ifndef OBJ_H_included
 #define OBJ_H_included
 
+#include <stdint.h>
+#include <isa.h>
+
 /**
  * @defgroup obj Object files library
  *
@@ -17,9 +20,6 @@
  *
  * @{
  */
-
-#include <stdint.h>
-#include <isa.h>
 
 /**
  * @brief Symbol type.
