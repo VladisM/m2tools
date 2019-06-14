@@ -73,7 +73,7 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o);
  */
 static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf);
 
-load_decoder_state_t load_decoder_state;
+static load_decoder_state_t load_decoder_state;
 
 static obj_file_err_t objlib_errno;
 
