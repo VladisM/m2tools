@@ -27,7 +27,7 @@ void filegen_create_object_file(char * abs_filename){
     char *filename = basename(abs_filename_dup);
 
     //create new object file
-    if(new_obj(filename, &my_obj_file) != OBJRET_OK){
+    if(~new_obj(filename, &my_obj_file)){
         obj_lib_error_exit();
     }
 
@@ -37,11 +37,11 @@ void filegen_create_object_file(char * abs_filename){
         section_t *my_section = NULL;
 
         //create new section and append it int list
-        if(new_section(s->section_name, &my_section) != OBJRET_OK){
+        if(~new_section(s->section_name, &my_section)){
             obj_lib_error_exit();
         }
 
-        if(append_section_to_obj(my_obj_file, my_section) != OBJRET_OK){
+        if(~append_section_to_obj(my_obj_file, my_section)){
             obj_lib_error_exit();
         }
 
@@ -59,14 +59,14 @@ void filegen_create_object_file(char * abs_filename){
                     exit(EXIT_FAILURE);
                 }
 
-                if(new_data_symbol(item->location, DATA_IS_INST, (void *)(new_i), &my_data) != OBJRET_OK){
+                if(~new_data_symbol(item->location, DATA_IS_INST, (void *)(new_i), &my_data)){
                     obj_lib_error_exit();
                 }
 
                 my_data->relocation = item->relocation;
                 my_data->special = item->special;
 
-                if(append_data_symbol_to_section(my_section, my_data) != OBJRET_OK){
+                if(~append_data_symbol_to_section(my_section, my_data)){
                     obj_lib_error_exit();
                 }
             }
@@ -74,7 +74,7 @@ void filegen_create_object_file(char * abs_filename){
                 data_symbol_t *my_data = NULL;
                 datablob_t *my_blob = NULL;
 
-                if(new_blob(item->payload.b->blob_len, &my_blob) != OBJRET_OK){
+                if(~new_blob(item->payload.b->blob_len, &my_blob)){
                     obj_lib_error_exit();
                 }
 
@@ -82,11 +82,11 @@ void filegen_create_object_file(char * abs_filename){
                     my_blob->payload[i] = item->payload.b->blob_data[i];
                 }
 
-                if(new_data_symbol(item->location, DATA_IS_BLOB, (void *)(my_blob), &my_data) != OBJRET_OK){
+                if(~new_data_symbol(item->location, DATA_IS_BLOB, (void *)(my_blob), &my_data)){
                     obj_lib_error_exit();
                 }
 
-                if(append_data_symbol_to_section(my_section, my_data) != OBJRET_OK){
+                if(~append_data_symbol_to_section(my_section, my_data)){
                     obj_lib_error_exit();
                 }
 
@@ -108,19 +108,19 @@ void filegen_create_object_file(char * abs_filename){
                 //check if symbol is special, if so, create it and add it into section
 
                 if((t->stype & STYPE_EXPORT) == STYPE_EXPORT){
-                    if(new_spec_symbol(t->label, t->address, SYMBOL_EXPORT, &my_spec_symbol) != OBJRET_OK){
+                    if(~new_spec_symbol(t->label, t->address, SYMBOL_EXPORT, &my_spec_symbol)){
                         obj_lib_error_exit();
                     }
                 }
 
                 if((t->stype & STYPE_IMPORT) == STYPE_IMPORT){
-                    if(new_spec_symbol(t->label, t->address, SYMBOL_IMPORT, &my_spec_symbol) != OBJRET_OK){
+                    if(~new_spec_symbol(t->label, t->address, SYMBOL_IMPORT, &my_spec_symbol)){
                         obj_lib_error_exit();
                     }
                 }
 
                 if(my_spec_symbol != NULL){
-                    if(append_spec_symbol_to_section(my_section, my_spec_symbol) != OBJRET_OK){
+                    if(~append_spec_symbol_to_section(my_section, my_spec_symbol)){
                         obj_lib_error_exit();
                     }
                 }
@@ -131,7 +131,7 @@ void filegen_create_object_file(char * abs_filename){
 
     }
 
-    if(obj_write_to_file(abs_filename, my_obj_file) != OBJRET_OK){
+    if(~obj_write_to_file(abs_filename, my_obj_file) != OBJRET_OK){
         obj_lib_error_exit();
     }
 
