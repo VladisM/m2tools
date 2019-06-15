@@ -48,7 +48,7 @@ static void _pass1(void){
             }
 
             //check if instruction have valid args
-            if(check_instruction_args(op_line) == 0){
+            if(~check_instruction_args(op_line)){
                 fprintf(stderr, "Syntax error in instruction '%s' from file '%s' at line %d!\n", op_code, t->fileInfo->name, t->lineNumber);
                 exit(EXIT_FAILURE);
             }
@@ -72,7 +72,7 @@ static void _pass1(void){
             //count location for next instruction
             unsigned int actual_size;
 
-            if(get_instruction_size(t->payload.i, &actual_size) == 0){
+            if(~get_instruction_size(t->payload.i, &actual_size)){
                 fprintf(stderr, "Error in ISA library! errno %d\n", get_isalib_errno());
                 exit(EXIT_FAILURE);
             }

@@ -707,7 +707,7 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
                     return NULL;
                 }
 
-                if(export_into_object_file_line(head_data->payload.inst, line) < 0){
+                if(~export_into_object_file_line(head_data->payload.inst, line)){
                     SET_ERROR(OBJRET_INTERNAL_ERR);
                     free(line);
                     free_strbuf(strbuf);
@@ -1029,7 +1029,7 @@ section_care:
                                 return NULL;
                             }
 
-                            if(import_from_object_file_line(inst, ptr_for_isalib) != 1){
+                            if(~import_from_object_file_line(inst, ptr_for_isalib)){
                                 SET_ERROR(OBJRET_INTERNAL_ERR);
                                 return NULL;
                             }

@@ -22,17 +22,17 @@ void pass2(void){
 
 static void _pass2(void){
 
-    if(register_callback_search_for_symbol(&find_symbol_for_instruction_assemble) != 1){
+    if(~register_callback_search_for_symbol(&find_symbol_for_instruction_assemble)){
         fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
         exit(EXIT_FAILURE);
     }
 
-    if(register_callback_convert_to_int(&convert_to_int) != 1){
+    if(~register_callback_convert_to_int(&convert_to_int)){
         fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
         exit(EXIT_FAILURE);
     }
 
-    if(register_callback_is_number(&is_number) != 1){
+    if(~register_callback_is_number(&is_number)){
         fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
         exit(EXIT_FAILURE);
     }
@@ -70,7 +70,7 @@ static void _pass2(void){
 
                 last_found_symbol = NULL;
 
-                if(assemble_instruction(item->payload.i, (void *)s) != 1){
+                if(~assemble_instruction(item->payload.i, (void *)s)){
                     fprintf(stderr, "Error in isa library! Errno: %d\n", get_isalib_errno());
                     exit(EXIT_FAILURE);
                 }

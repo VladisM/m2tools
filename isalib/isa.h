@@ -1,15 +1,19 @@
 /**
  * @file isa.h
  *
- * @brief Library for dealing with ISA related tasks.
+ * @brief Header file of the library for dealing with ISA related tasks.
  *
- * @todo Use stdbool.h instead of int for return
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 15.06.2019
+ *
+ * @note This file is part of m2tools project.
  */
 
 #ifndef ISA_H_included
 #define ISA_H_included
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * @defgroup isa ISA library
@@ -65,9 +69,9 @@ typedef struct sInstruction{
  * @param base_address Adress offset given to the instruction.
  * @param i Structure with instruction to retarget.
  *
- * @return -1 on failrule, 0 otherwise
+ * @return true if ok, false if failed
  */
-int retarget_instruction(tInstruction *i, uint32_t base_address);
+bool retarget_instruction(tInstruction *i, uint32_t base_address);
 
 /**
  * @brief Return error code occured in ISA lib.
@@ -142,18 +146,18 @@ void free_istruction_struct(tInstruction *i);
  * @param inst Instruction structure
  * @param size Pointer to variable where result will be written
  *
- * @return 1 if ok; 0 if fail
+ * @return true if ok, false if failed
  */
-int get_instruction_size(tInstruction *inst, unsigned int * size);
+bool get_instruction_size(tInstruction *inst, unsigned int * size);
 
 /**
  * @brief Check valid instruction format.
  *
  * @param s Tokenized string with instruction. Separed with semicollon ';'.
  *
- * @return 1 - if tokens are valid, 0 - if tokens are invalid
+ * @return true if tokens are valid, false if tokens are invalid
  */
-int check_instruction_args(char *i);
+bool check_instruction_args(char *i);
 
 /**
  * @brief Create line for writing instruction into object file.
@@ -164,9 +168,9 @@ int check_instruction_args(char *i);
  * @warning line have to be allocated before entering this function
  * and have to be atleast 32 chars wide
  *
- * @return 1 if ok; 0 if fail
+ * @return true if ok; false if fail
  */
-int export_into_object_file_line(tInstruction *inst, char *line);
+bool export_into_object_file_line(tInstruction *inst, char *line);
 
 /**
  * @brief Read line from object file into intruction structure.
@@ -174,9 +178,9 @@ int export_into_object_file_line(tInstruction *inst, char *line);
  * @param inst Pointer to structure where result will be stored.
  * @param line Pointer to string buffer where line is stored.
  *
- * @return 1 if ok; 0 if fail
+ * @return true if ok; false if fail
  */
-int import_from_object_file_line(tInstruction *inst, char *line);
+bool import_from_object_file_line(tInstruction *inst, char *line);
 
 /**
  * @brief Create new instance of tInstruction structure and fill it
@@ -195,9 +199,9 @@ tInstruction *new_instru(void);
  * @param i Instruction to assemble
  * @param section_ptr void pointer given to callback together with symbol label. Used for specifing section.
  *
- * @return 1 if ok; 0 if fail
+ * @return true if ok; false if fail
  */
-int assemble_instruction(tInstruction * i, void * section_ptr);
+bool assemble_instruction(tInstruction * i, void * section_ptr);
 
 /**
  * @brief Register call back function for ISA library module.
@@ -213,12 +217,12 @@ int assemble_instruction(tInstruction * i, void * section_ptr);
  *
  * @param f Pointer to function for search in symbol table.
  *
- * @return 1 if ok; 0 if fail
+ * @return true if ok, false if failed
  *
  * @warning Call this function only once and before any assemble_instruction is called.
  * Otherwise you may cause error.
  */
-int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) );
+bool register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) );
 
 /**
  * @brief Register call back function for ISA library module.
@@ -233,12 +237,12 @@ int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) );
  *
  * @param f pointer to such function.
  *
- * @return 1 if ok; 0 if fail
+ * @return true if ok, false if failed
  *
  * @warning Call this function only once and before any assemble_instruction is called.
  * Otherwise you may cause error.
  */
-int register_callback_convert_to_int( long int (*f)(char *) );
+bool register_callback_convert_to_int( long int (*f)(char *) );
 
 /**
  * @brief Register call back function for ISA library module.
@@ -249,12 +253,12 @@ int register_callback_convert_to_int( long int (*f)(char *) );
  *
  * @param f pointer to such function.
  *
- * @return 1 if ok; 0 if fail
+ * @return true if ok, false if failed
  *
  * @warning Call this function only once and before any assemble_instruction is called.
  * Otherwise you may cause error.
  */
-int register_callback_is_number( int (*f)(char *) );
+bool register_callback_is_number( int (*f)(char *) );
 
 /**
  * @}

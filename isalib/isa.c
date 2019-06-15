@@ -1,3 +1,14 @@
+/**
+ * @file isa.c
+ *
+ * @brief Implementation of the library for dealing with ISA related tasks.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 15.06.2019
+ *
+ * @note This file is part of m2tools project.
+ */
+
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -5,6 +16,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "isa.h"
 
@@ -687,12 +699,12 @@ static int is_reg(char *s){
  *
  */
 
-int retarget_instruction(tInstruction *i, uint32_t base_address){
+bool retarget_instruction(tInstruction *i, uint32_t base_address){
 
     uint32_t operand;
 
     if(get_instruction_24CONST_operand(i, &operand) < 0){
-        return -1;
+        return false;
     }
 
     //relocate operand
@@ -701,15 +713,15 @@ int retarget_instruction(tInstruction *i, uint32_t base_address){
     //check if instruction argument dont overflow
     if(operand > 0x00FFFFFF){
         SET_ERROR(ISAERR_INSTRUCTION_ARG_OVERFLOW);
-        return -1;
+        return false;
     }
 
     //put operand back to instruction word
     if(set_instruction_24CONST_operand(i, operand) < 0){
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 tIsaError get_isalib_errno(void){
@@ -766,16 +778,16 @@ void free_istruction_struct(tInstruction *i){
 
 }
 
-int get_instruction_size(tInstruction *inst, unsigned int *size){
+bool get_instruction_size(tInstruction *inst, unsigned int *size){
 
     //create local copy of line
     char * line_copy = (char *)malloc(sizeof(char) * (strlen(inst->line) + 1));
 
-    int ret_val = 0;
+    bool ret_val = false;
 
     if(line_copy == NULL){
         SET_ERROR(ISAERR_MALLOC_FAIL);
-        return 0;
+        return false;
     }
 
     strcpy(line_copy, inst->line);
@@ -789,7 +801,7 @@ int get_instruction_size(tInstruction *inst, unsigned int *size){
     for(unsigned int i = 0; i < MY_INSTRS_LEN; i++){
         if(strcmp(line_copy, my_instrs[i].line) == 0){
             *size = my_instrs[i].size;
-            ret_val = 1;
+            ret_val = true;
             break;
         }
     }
@@ -799,14 +811,14 @@ int get_instruction_size(tInstruction *inst, unsigned int *size){
 
 }
 
-int check_instruction_args(char *i){
+bool check_instruction_args(char *i){
 
     char *line_dup = strdup(i);
 
     if(line_dup == NULL){
         SET_ERROR(ISAERR_INTER_ERR);
         free(line_dup);
-        return 0;
+        return false;
     }
 
     for(int index = 0; line_dup[index] != '\0'; index++){
@@ -827,7 +839,7 @@ int check_instruction_args(char *i){
     if(found_instr == NULL){
         SET_ERROR(ISAERR_INSTRUCTION_NOT_RECOGNIZED);
         free(line_dup);
-        return 0;
+        return false;
     }
 
     switch(found_instr->opcode){
@@ -844,7 +856,7 @@ int check_instruction_args(char *i){
 
                 if(is_reg(reg_ptr) == 0){
                     free(line_dup);
-                    return 0;
+                    return false;
                 }
             }
             break;
@@ -861,7 +873,7 @@ int check_instruction_args(char *i){
 
                 if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0){
                     free(line_dup);
-                    return 0;
+                    return false;
                 }
             }
             break;
@@ -893,7 +905,7 @@ int check_instruction_args(char *i){
 
                 if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0 || is_reg(reg3_ptr) == 0){
                     free(line_dup);
-                    return 0;
+                    return false;
                 }
             }
             break;
@@ -907,7 +919,7 @@ int check_instruction_args(char *i){
 
                 if(is_reg(reg1_ptr) == 0 || is_reg(reg2_ptr) == 0 || is_reg(reg3_ptr) == 0|| is_comparison(cmp_flag) == 0){
                     free(line_dup);
-                    return 0;
+                    return false;
                 }
             }
             break;
@@ -919,7 +931,7 @@ int check_instruction_args(char *i){
 
                 if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(cons_ptr) == 0){
                     free(line_dup);
-                    return 0;
+                    return false;
                 }
             }
             break;
@@ -929,7 +941,7 @@ int check_instruction_args(char *i){
 
                 if(can_be_label_or_cons(cons_ptr) == 0){
                     free(line_dup);
-                    return 0;
+                    return false;
                 }
             }
             break;
@@ -940,7 +952,7 @@ int check_instruction_args(char *i){
 
                 if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(adr_ptr) == 0){
                     free(line_dup);
-                    return 0;
+                    return false;
                 }
             }
             break;
@@ -954,7 +966,7 @@ int check_instruction_args(char *i){
 
                 if(is_reg(reg_ptr) == 0 || can_be_label_or_cons(adr_ptr) == 0){
                     free(line_dup);
-                    return 0;
+                    return false;
                 }
             }
             break;
@@ -962,43 +974,43 @@ int check_instruction_args(char *i){
         default:
             SET_ERROR(ISAERR_INTER_ERR);
             free(line_dup);
-            return 0;
+            return false;
     }
 
     free(line_dup);
-    return 1;
+    return true;
 }
 
-int export_into_object_file_line(tInstruction *inst, char *line){
+bool export_into_object_file_line(tInstruction *inst, char *line){
     if(inst == NULL || line == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
-        return 0;
+        return false;
     }
 
     int ret = snprintf(line, 32, "0x%"PRIx32, inst->word);
 
     if(ret < 0){
         SET_ERROR(ISAERR_INTER_ERR);
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 
 }
 
-int import_from_object_file_line(tInstruction *inst, char *line){
+bool import_from_object_file_line(tInstruction *inst, char *line){
 
     if(line == NULL || inst == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
-        return 0;
+        return false;
     }
 
     if(sscanf(line, "%"SCNx32, &(inst->word)) != 1){
         SET_ERROR(ISAERR_FORMAT_ERR);
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
 tInstruction *new_instru(void){
@@ -1017,16 +1029,16 @@ tInstruction *new_instru(void){
 
 }
 
-int assemble_instruction(tInstruction * inst, void * section_ptr){
+bool assemble_instruction(tInstruction * inst, void * section_ptr){
 
     if(inst == NULL || section_ptr == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
-        return 0;
+        return false;
     }
 
     if(inst->line == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
-        return 0;
+        return false;
     }
 
     //create local copy of line
@@ -1034,7 +1046,7 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
 
     if(opcode_copy == NULL){
         SET_ERROR(ISAERR_MALLOC_FAIL);
-        return 0;
+        return false;
     }
 
     strcpy(opcode_copy, inst->line);
@@ -1047,7 +1059,7 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
 
     if(format_string[0] != 'I'){
         SET_ERROR(ISAERR_INSTRUCTION_NOT_RECOGNIZED);
-        return 0;
+        return false;
     }
 
     //detect instruction
@@ -1184,7 +1196,7 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
                 if(op == ISA_CMPF){
                     if(flag->can_be_CMPF == 0){
                         SET_ERROR(ISAERR_INSTRU_SYNTAX_ERR);
-                        return 0;
+                        return false;
                     }
                     else{
                         inst->word |= MOVE_TO_COND(flag->code_CMPF);
@@ -1211,7 +1223,7 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
 
                 if(!((cons >= -32768 && cons <= 32767) || (unsigned)cons < 0xFFFF)){
                     SET_ERROR(ISAERR_ARG_OVERFLOW);
-                    return 0;
+                    return false;
                 }
 
                 inst->word |= ((uint32_t)cons << 8);
@@ -1224,7 +1236,7 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
 
                 inst->word = word;
 
-                if(put_adr_arg_into_inst(inst, adr_ptr, section_ptr) == 0) return 0;
+                if(put_adr_arg_into_inst(inst, adr_ptr, section_ptr) == 0) return false;
             }
             break;
         case ISA_LD:
@@ -1259,19 +1271,19 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
                     inst->word |= MOVE_TO_REGB(reg);
                 }
 
-                if(put_adr_arg_into_inst(inst, adr_ptr, section_ptr) == 0) return 0;
+                if(put_adr_arg_into_inst(inst, adr_ptr, section_ptr) == 0) return false;
 
             }
             break;
         case ISA_UNDEF:
         default:
             SET_ERROR(ISAERR_INTER_ERR);
-            return 0;
+            return false;
     }
 
     free(opcode_copy);
 
-    return 1;
+    return true;
 }
 
 /*
@@ -1282,51 +1294,51 @@ int assemble_instruction(tInstruction * inst, void * section_ptr){
  *
  */
 
-int register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) ){
+bool register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) ){
     if(f == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
-        return 0;
+        return false;
     }
 
     if(search_for_symbol_handler != NULL){
         SET_ERROR(ISAERR_INTER_ERR);
-        return 0;
+        return false;
     }
 
     search_for_symbol_handler = f;
 
-    return 1;
+    return true;
 }
 
-int register_callback_convert_to_int( long int (*f)(char *) ){
+bool register_callback_convert_to_int( long int (*f)(char *) ){
     if(f == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
-        return 0;
+        return false;
     }
 
     if(convert_to_int_handler != NULL){
         SET_ERROR(ISAERR_INTER_ERR);
-        return 0;
+        return false;
     }
 
     convert_to_int_handler = f;
 
-    return 1;
+    return true;
 }
 
-int register_callback_is_number( int (*f)(char *) ){
+bool register_callback_is_number( int (*f)(char *) ){
     if(f == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
-        return 0;
+        return false;
     }
 
     if(is_number_handler != NULL){
         SET_ERROR(ISAERR_INTER_ERR);
-        return 0;
+        return false;
     }
 
     is_number_handler = f;
 
-    return 1;
+    return true;
 }
 
