@@ -9,8 +9,9 @@
 #ifndef SL_H_included
 #define SL_H_included
 
-#include <obj.h>
 #include <stdbool.h>
+
+#include <obj.h>
 
 /**
  * @defgroup sl Library for static library
