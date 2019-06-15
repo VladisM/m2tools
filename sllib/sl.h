@@ -1,7 +1,12 @@
 /**
  * @file sl.h
  *
- * @brief Library for dealing with static library files.
+ * @brief Header file for library for dealing with static library files.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 15.06.2019
+ *
+ * @note This file is part of m2tools project.
  *
  * @todo Add example and some description
  */

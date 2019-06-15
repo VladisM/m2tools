@@ -3,6 +3,8 @@
  *
  * @brief Implementation of the library for dealing with ISA related tasks.
  *
+ * For more informations please see file isa.h.
+ *
  * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
  * @date 15.06.2019
  *

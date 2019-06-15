@@ -1,3 +1,18 @@
+/**
+ * @file obj.c
+ *
+ * @brief Implementation of library that deal with tasks related with object files.
+ *
+ * For more informations please see file obj.h.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 15.06.2019
+ *
+ * @note This file is part of m2tools project.
+ *
+ * @todo Add example of ussage and describe obj group more.
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

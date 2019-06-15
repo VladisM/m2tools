@@ -1,3 +1,16 @@
+/**
+ * @file archiver.c
+ *
+ * @brief Utility for manipulating static library files.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 15.06.2019
+ *
+ * @note This file is part of m2tools project.
+ *
+ * @todo Write short manual how to use this tool. For what is used and simple overview how it work.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

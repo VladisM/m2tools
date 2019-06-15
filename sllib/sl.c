@@ -1,3 +1,16 @@
+/**
+ * @file sl.c
+ *
+ * @brief Implementation of the library for dealing with static library files.
+ *
+ * For more informations please see file sl.h.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 15.06.2019
+ *
+ * @note This file is part of m2tools project.
+ */
+
 #include "sl.h"
 
 #include <stdlib.h>
