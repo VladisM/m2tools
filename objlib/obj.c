@@ -9,8 +9,6 @@
  * @date 15.06.2019
  *
  * @note This file is part of m2tools project.
- *
- * @todo Add example of ussage and describe obj group more.
  */
 
 #include <stdlib.h>
