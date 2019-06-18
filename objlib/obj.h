@@ -47,8 +47,8 @@ typedef enum{
  * @brief Structure to hold data blob.
  */
 typedef struct{
-    unsigned int lenght; /**< @brief Hold information about how long payload is. */
     uint8_t *payload;    /**< @brief Pointer to first byte of payload. */
+    unsigned int lenght; /**< @brief Hold information about how long payload is. */
 }datablob_t;
 
 /**
@@ -63,12 +63,12 @@ typedef struct{
 typedef struct data_symbol_s{
     struct data_symbol_s *next;    /**< @brief Pointer to the next symbol in the list. */
     struct data_symbol_s *prev;    /**< @brief Pointer to the previous symbol in the list. */
-    data_symbol_type_t type;       /**< @brief Type of this symbol. */
-    uint32_t address;              /**< @brief Address of symbol in memory. This isn't absolute addres, it is rather relative to the beggining of the section.*/
     union{
         datablob_t *blob;          /**< @brief Correct pointer when type == DATA_IS_BLOB. */
         tInstruction *inst;        /**< @brief Correct pointer when type == DATA_IS_INST. */
     }payload;                      /**< @brief Union that hold pointer to payload. */
+    uint32_t address;              /**< @brief Address of symbol in memory. This isn't absolute addres, it is rather relative to the beggining of the section.*/
+    data_symbol_type_t type;       /**< @brief Type of this symbol. */
     uint8_t relocation;            /**< @brief Store information about relocation. 0 if should not be relocated, 1 otherwise. */
     uint8_t special;               /**< @brief Store information about argument, if is special symbol. 1 it is, 0 it isn't. */
 }data_symbol_t;

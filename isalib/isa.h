@@ -51,9 +51,9 @@ typedef enum {
  * @brief Structure to hold one instruction and all its informations.
  */
 typedef struct sInstruction{
-    uint32_t word; /**< @brief Instruction word. */
     char* line; /**< @brief Instruction as output from tokenizer, semicollon separed tokens. */
-} tInstruction;
+    uint32_t word; /**< @brief Instruction word. */
+}tInstruction;
 
 /**
  * @brief Retarget direct operand of instruction.
