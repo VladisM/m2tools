@@ -122,7 +122,7 @@ bool sl_load(char *filename, static_library_t **lib){
         return false;
     }
 
-    if(~new_sl(library_name, lib)){
+    if(!new_sl(library_name, lib)){
         SET_ERROR(SLRET_INTERN_ERR);
         free(library_name);
         free(target_arch_name);
@@ -172,7 +172,7 @@ bool sl_load(char *filename, static_library_t **lib){
 
             obj_file_t *tmp_obj = NULL;
 
-            if(~obj_load_from_string(data, &tmp_obj)){
+            if(!obj_load_from_string(data, &tmp_obj)){
                 SET_ERROR(SLRET_INTERN_ERR);
                 free_sl(*lib);
                 free(data);
@@ -182,7 +182,7 @@ bool sl_load(char *filename, static_library_t **lib){
 
             free(data);
 
-            if(~append_objfile_to_sl(tmp_obj, *lib)){
+            if(!append_objfile_to_sl(tmp_obj, *lib)){
                 SET_ERROR(SLRET_INTERN_ERR);
                 free_sl(*lib);
                 mtar_close(&my_tarfile);
@@ -232,7 +232,7 @@ head_write_succes:
 
         char *obj_str = NULL;
 
-        if(~obj_write_to_string(&obj_str, head)){
+        if(!obj_write_to_string(&obj_str, head)){
             SET_ERROR(SLRET_TMP_WRITE_ERR);
             return false;
         }

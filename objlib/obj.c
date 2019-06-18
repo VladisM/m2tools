@@ -644,7 +644,7 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
 
     strbuf_t* strbuf = NULL;
 
-    if(new_strbuf(&strbuf) == -1){
+    if(!new_strbuf(&strbuf)){
         return NULL;
     }
 
@@ -720,7 +720,7 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
                     return NULL;
                 }
 
-                if(~export_into_object_file_line(head_data->payload.inst, line)){
+                if(!export_into_object_file_line(head_data->payload.inst, line)){
                     SET_ERROR(OBJRET_INTERNAL_ERR);
                     free(line);
                     free_strbuf(strbuf);
@@ -802,7 +802,7 @@ static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
                 break;
             case OBJECT_NAME:
                 {
-                    if(~new_obj(line, &my_new_obj)){
+                    if(!new_obj(line, &my_new_obj)){
                         return NULL;
                     }
 
@@ -842,7 +842,7 @@ static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
                     }
 section_care:
                     if(my_new_section != NULL){
-                        if(~append_section_to_obj(my_new_obj, my_new_section)){
+                        if(!append_section_to_obj(my_new_obj, my_new_section)){
                             return NULL;
                         }
                         my_new_section = NULL;
@@ -851,7 +851,7 @@ section_care:
                 break;
             case SECTION_NAME:
                 {
-                    if(~new_section(line, &my_new_section)){
+                    if(!new_section(line, &my_new_section)){
                         return NULL;
                     }
 
@@ -900,11 +900,11 @@ section_care:
                             return NULL;
                         }
 
-                        if(~new_spec_symbol(name, value, type, &new_symbol)){
+                        if(!new_spec_symbol(name, value, type, &new_symbol)){
                             return NULL;
                         }
 
-                        if(~append_spec_symbol_to_section(my_new_section, new_symbol)){
+                        if(!append_spec_symbol_to_section(my_new_section, new_symbol)){
                             return NULL;
                         }
 
@@ -983,7 +983,7 @@ section_care:
 
                             }
 
-                            if(~new_blob(num_buff_index, &blob)){
+                            if(!new_blob(num_buff_index, &blob)){
                                 SET_ERROR(OBJRET_INTERNAL_ERR);
                                 return NULL;
                             }
@@ -992,11 +992,11 @@ section_care:
                                 blob->payload[i] = num_buff[i];
                             }
 
-                            if(~new_data_symbol(address, DATA_IS_BLOB, (void *)blob, &new_data)){
+                            if(!new_data_symbol(address, DATA_IS_BLOB, (void *)blob, &new_data)){
                                 return NULL;
                             }
 
-                            if(~append_data_symbol_to_section(my_new_section, new_data)){
+                            if(!append_data_symbol_to_section(my_new_section, new_data)){
                                 return NULL;
                             }
 
@@ -1042,19 +1042,19 @@ section_care:
                                 return NULL;
                             }
 
-                            if(~import_from_object_file_line(inst, ptr_for_isalib)){
+                            if(!import_from_object_file_line(inst, ptr_for_isalib)){
                                 SET_ERROR(OBJRET_INTERNAL_ERR);
                                 return NULL;
                             }
 
-                            if(~new_data_symbol(address, DATA_IS_INST, (void *)inst, &new_data)){
+                            if(!new_data_symbol(address, DATA_IS_INST, (void *)inst, &new_data)){
                                 return NULL;
                             }
 
                             new_data->relocation = relocation;
                             new_data->special = special;
 
-                            if(~append_data_symbol_to_section(my_new_section, new_data)){
+                            if(!append_data_symbol_to_section(my_new_section, new_data)){
                                 return NULL;
                             }
 

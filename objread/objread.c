@@ -46,7 +46,6 @@ static void arg_parse(int argc, char* argv[]);
 static void print_version(void);
 static void print_help(void);
 static void clean_mem(void);
-static void print_section(section_t s);
 
 static settings_t settings;
 obj_file_t *obj_file = NULL;
@@ -66,7 +65,7 @@ int main(int argc, char* argv[]){
 
     arg_parse(argc, argv);
 
-    if(~obj_load_from_file(settings.i_file, &obj_file)){
+    if(!obj_load_from_file(settings.i_file, &obj_file)){
         fprintf(stderr, "Failed to load object file! obj_lib errno: %d\n", get_objlib_errno());
         exit(EXIT_FAILURE);
     }

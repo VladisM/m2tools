@@ -248,7 +248,7 @@ static void clean_mem(void){
 static void create_library(char *out_file, char **input_files, unsigned file_count){
     static_library_t *new_lib = NULL;
 
-    if(~new_sl(basename(out_file), &new_lib)){
+    if(!new_sl(basename(out_file), &new_lib)){
         fprintf(stderr, "Can't create library, errno: %d.\n", get_sllib_errno());
         exit(EXIT_FAILURE);
     }
@@ -257,13 +257,13 @@ static void create_library(char *out_file, char **input_files, unsigned file_cou
         obj_file_t *new_obj = NULL;
 
         //obj_load fail if we are on wrong arch
-        if(~obj_load_from_file(input_files[i], &new_obj)){
+        if(!obj_load_from_file(input_files[i], &new_obj)){
             fprintf(stderr, "Failed to load object file! objlib errno: %d\n", get_objlib_errno());
             free_sl(new_lib);
             exit(EXIT_FAILURE);
         }
 
-        if(~append_objfile_to_sl(new_obj, new_lib)){
+        if(!append_objfile_to_sl(new_obj, new_lib)){
             fprintf(stderr, "Failed to append object file into library! sllib errno: %d\n", get_sllib_errno());
             free_sl(new_lib);
             exit(EXIT_FAILURE);
@@ -271,7 +271,7 @@ static void create_library(char *out_file, char **input_files, unsigned file_cou
 
     }
 
-    if(~sl_write(out_file, new_lib)){
+    if(!sl_write(out_file, new_lib)){
         fprintf(stderr, "Failed to write library! sllib errno: %d\n", get_sllib_errno());
         free_sl(new_lib);
         exit(EXIT_FAILURE);
@@ -284,7 +284,7 @@ static void extract_library(char *input_archive){
     static_library_t *loaded_lib = NULL;
 
     //fail if wrong arch
-    if(~sl_load(input_archive, &loaded_lib)){
+    if(!sl_load(input_archive, &loaded_lib)){
         fprintf(stderr, "Failed to load library '%s'!\n", input_archive);
         exit(EXIT_FAILURE);
     }
@@ -301,7 +301,7 @@ static void extract_library(char *input_archive){
             printf(" %s\n", head_obj_file->object_file_name);
         }
 
-        if(~obj_write_to_file(head_obj_file->object_file_name, head_obj_file)){
+        if(!obj_write_to_file(head_obj_file->object_file_name, head_obj_file)){
             fprintf(stderr, "Failed to create object file '%s'! objlib errno: %d", head_obj_file->object_file_name, get_objlib_errno());
             free_sl(loaded_lib);
             exit(EXIT_FAILURE);
@@ -318,7 +318,7 @@ static void list_library(char *input_archive){
     static_library_t *loaded_lib = NULL;
 
     //fail if wrong arch
-    if(~sl_load(input_archive, &loaded_lib)){
+    if(!sl_load(input_archive, &loaded_lib)){
         fprintf(stderr, "Failed to load library '%s'!\n", input_archive);
         exit(EXIT_FAILURE);
     }
