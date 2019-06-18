@@ -608,12 +608,12 @@ void eval_tok(char * token, char separator, fileInfo_t * fileInfo, unsigned int 
         }
         else if(actual_eval == EVAL_INSTR){
 
-            int ret = is_correct_token(token, format_string[iteration]);
+            int correct_token_ret = is_correct_token(token, format_string[iteration]);
 
-            if(ret == 1){
+            if(correct_token_ret == 1){
                 append_token(token);
             }
-            else if(ret == -1){
+            else if(correct_token_ret == -1){
                 fprintf(stderr, "Internal error in tokenizer!\n");
                 exit(EXIT_FAILURE);
             }

@@ -64,13 +64,13 @@ typedef struct tok_s{
     struct tok_s *next;                 //it is double linked list :)
     struct tok_s *prev;
     fileInfoOut_t *fileInfo;     //pointer to fileinfo where informations about file are stored
-    unsigned int lineNumber;            //token was found on this line
-    token_type_t type;
     union{
         label_t *l;
         pseudo_t *p;
         tInstruction *i;
     }payload;
+    unsigned int lineNumber;            //token was found on this line
+    token_type_t type;
 }tok_t;
 
 /* -----------------------------------------------------------------------------
@@ -83,8 +83,8 @@ typedef enum{
 }pass_item_type_t;
 
 typedef struct{
-    unsigned int blob_len;
     uint8_t *blob_data;
+    unsigned int blob_len;
 }blob_t;
 
 typedef struct pass_item_s{
@@ -106,8 +106,8 @@ typedef struct pass1_section_s{
     struct pass1_section_s *next;
     pass_item_t *first_element;
     pass_item_t *last_element;
-    uint32_t last_location_counter;
     char *section_name;
+    uint32_t last_location_counter;
 }pass_section_t;
 
 /* -----------------------------------------------------------------------------
@@ -123,10 +123,10 @@ typedef struct symbol_s{
     struct symbol_s *next;
     struct symbol_s *prev;
     char *label;
-    uint32_t address;
-    uint8_t stype;
     tok_t *parent;
     void *section;
+    uint32_t address;
+    uint8_t stype;
 }symbol_t;
 
 /* -----------------------------------------------------------------------------
