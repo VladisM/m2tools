@@ -24,7 +24,22 @@
  *  - util.c
  *  - util.h
  *
- * @todo Write short manual how to use this tool. For what is used and simple overview how it work.
+ * Simple two pass assembler with very simple preprocesor. Preprocessor is
+ * implemented in tokenizer.c file. First pass is then in pass1.c and second
+ * in pass2.c. Then object file is written out by functions in file_gen.c.
+ *
+ * Input into tokenizer is path to file, and output is stored into
+ * toklist_first and toklist_last. Like double linked list.
+ *
+ * Then pass1() is called, this function will take toklist like input and
+ * transform it into pass_list_first and pass_list_last. Second pass, the
+ * pass2() function then complete this list. In these two pass, symbol table
+ * in symbol_first and symbol_last is generated too.
+ *
+ * At the end, object file is generated from these pass_list buffer.
+ *
+ * When porting to new architecture, any changes in assembler should be done. All
+ * architecture specific code is in isa library, see files isa.c and isa.h.
  */
 
 #include <stdlib.h>

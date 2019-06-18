@@ -8,7 +8,7 @@ set(target_prefix "m2")
 set(target_arch_name "MARK_II")
 set(ver_string "v1.0 Alpha")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -ggdb")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -ggdb -Wall")
 
 add_definitions(-DVERSION="${ver_string}")
 add_definitions(-DTARGET_ARCH_NAME="${target_arch_name}")
