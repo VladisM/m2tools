@@ -1,3 +1,16 @@
+/**
+ * @file ldm.c
+ *
+ * @brief Library for manipulating LDM files.
+ *
+ * For more informations please see file ldm.h
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 21.06.2019
+ *
+ * @note This file is part of m2tools project.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
