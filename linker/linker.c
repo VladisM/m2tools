@@ -13,6 +13,7 @@
 static void print_version(void);
 static void print_help(void);
 static void arg_parse(int argc, char* argv[]);
+static void clean_mem(void);
 
 typedef struct{
     char **libs;
@@ -41,6 +42,8 @@ Arguments:\n\
 \n"
 
 int main(int argc, char *argv[]){
+
+    atexit(clean_mem);
 
     //get arguments
     settings.libs = NULL;
@@ -139,4 +142,14 @@ static void arg_parse(int argc, char* argv[]){
         }
     }
 
+}
+
+static void clean_mem(void){
+    if(settings.obj_files != NULL){
+        free(settings.obj_files);
+    }
+
+    if(settings.libs != NULL){
+        free(settings.libs);
+    }
 }
