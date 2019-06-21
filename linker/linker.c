@@ -14,9 +14,20 @@ static void print_version(void);
 static void print_help(void);
 static void arg_parse(int argc, char* argv[]);
 
+typedef struct{
+    char **libs;
+    char **obj_files;
+    char *output_filename;
+    unsigned libs_count;
+    unsigned obj_count;
+}settings_t;
+
+static settings_t settings;
+
 #define HELP_STRING "\
 Example usage: \n\
- "PROG_NAME"\n\
+ "PROG_NAME" -o out.ldm -l my_lib.sl main.o\n\
+ "PROG_NAME" main.o\n\
 \n\
         This is linker for "TARGET_ARCH_NAME" CPU that can be used\n\
     to link multiple object files into one executable file. Linker\n\
@@ -25,10 +36,35 @@ Example usage: \n\
 Arguments:\n\
     -h --help           Print this help.\n\
        --version        Print version number and exit.\n\
+    -l                  Link static library, have to be followed by path.\n\
+    -o --output         Set output filenamem have to be followed by filename.\n\
 \n"
 
 int main(int argc, char *argv[]){
+
+    //get arguments
+    settings.libs = NULL;
+    settings.libs_count = 0;
+    settings.obj_files = NULL;
+    settings.obj_count = 0;
+    settings.output_filename = NULL;
+
     arg_parse(argc, argv);
+
+    printf("libs_count: %d \t obj_count: %d \t out_filename: %s\n", settings.libs_count, settings.obj_count, settings.output_filename);
+
+    printf("libs:\n");
+
+    for(int i = 0; i < settings.libs_count; i++){
+        printf("%s\n", settings.libs[i]);
+    }
+
+    printf("objs:\n");
+
+    for(int i = 0; i < settings.obj_count; i++){
+        printf("%s\n", settings.obj_files[i]);
+    }
+
     return 1;
 }
 
@@ -52,9 +88,54 @@ static void arg_parse(int argc, char* argv[]){
             print_version();
             exit(EXIT_SUCCESS);
         }
+        else if(strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0){
+            if(settings.output_filename != NULL){
+                fprintf(stderr, "Too much output files given!\n");
+                exit(EXIT_FAILURE);
+            }
+            else if((i+1)<argc){
+                settings.output_filename = argv[++i];
+            }
+            else{
+                fprintf(stderr, "Wrong arg format!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+        else if(strcmp(argv[i], "-l") == 0){
+            if((i+1)<argc){
+                //~ char **ret_ptr = (char **)realloc((void *)settings.libs, sizeof(char**) * (settings.libs_count + 1));
+
+                //~ if(ret_ptr != NULL){
+                    //~ settings.libs = ret_ptr;
+                    //~ settings.libs[++(settings.libs_count)] = argv[++i];
+                //~ }
+                //~ else{
+                    //~ fprintf(stderr, "Realloc failed!\n");
+                    //~ exit(EXIT_FAILURE);
+                //~ }
+            }
+            else{
+                fprintf(stderr, "Wrong arg format!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
         else{
-            fprintf(stderr, "Wrong arg format!\n");
-            exit(EXIT_FAILURE);
+            if(*(argv[i]) == '-'){
+                fprintf(stderr, "Wrong arg format!\n");
+                exit(EXIT_FAILURE);
+            }
+            else{
+                //~ char **ret_ptr = (char **)realloc((void *)settings.obj_files, sizeof(char**) * (settings.obj_count + 1));
+
+                //~ if(ret_ptr != NULL){
+                    //~ settings.obj_files = ret_ptr;
+                    //~ settings.obj_files[++(settings.obj_count)] = argv[++i];
+                //~ }
+                //~ else{
+                    //~ fprintf(stderr, "Realloc failed!\n");
+                    //~ exit(EXIT_FAILURE);
+                //~ }
+            }
         }
     }
 

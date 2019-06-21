@@ -198,8 +198,12 @@ static void arg_parse(int argc, char* argv[]){
                 fprintf(stderr, "Too much output files given!\n");
                 exit(EXIT_FAILURE);
             }
-            else{
+            else if((i+1)<argc){
                 settings.given_o_file = argv[++i];
+            }
+            else{
+                fprintf(stderr, "Wrong arg format!\n");
+                exit(EXIT_FAILURE);
             }
         }
         else{
