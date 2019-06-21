@@ -1,14 +1,21 @@
-#ifndef MIF_H_included
-#define MIF_H_included
-
 /**
  * @file mif.h
  *
  * @brief Library for dealing with MIF files
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 21.06.2019
+ *
+ * @note This file is part of m2tools project.
+ *
+ * @todo Add support for all mif features.
+ * @todo Add list of supported features.
  */
 
-//TODO Add support for all mif features.
-//TODO Add list of supported features.
+#ifndef MIF_H_included
+#define MIF_H_included
+
+#include <stdint.h>
 
 /**
  * @defgroup mif MIF library
@@ -44,8 +51,6 @@
  *
  * @{
  */
-
-#include <stdint.h>
 
 /**
  * @brief Error codes

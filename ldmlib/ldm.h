@@ -1,11 +1,21 @@
-#ifndef LDM_H_included
-#define LDM_H_included
-
 /**
  * @file ldm.h
  *
  * @brief Library for manipulating LDM files.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 21.06.2019
+ *
+ * @note This file is part of m2tools project.
+ *
+ * @todo as others ldm file should hold target arch information too
+ * @todo instead of hardcoded uint32_t for opcode, add typedef into isalib
  */
+
+#ifndef LDM_H_included
+#define LDM_H_included
+
+#include <stdint.h>
 
 /**
  * @defgroup ldm LDM library
@@ -40,8 +50,6 @@
  *
  * @{
  */
-
-#include <stdint.h>
 
 /**
  * @brief Error codes

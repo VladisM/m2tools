@@ -1,3 +1,16 @@
+/**
+ * @file mif.c
+ *
+ * @brief Library for dealing with MIF files
+ *
+ * For more information please visit file mif.h.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 21.06.2019
+ *
+ * @note This file is part of m2tools project.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

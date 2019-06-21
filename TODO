@@ -1,5 +1,3 @@
-nevytvářet na konci toolchainu ldm soubory ale HEX či BIN či ELF a mělo by to vypadnout rovnou z linkeru
-
 napsat linker
 
 Testovat portabilitu napříč platformama (zkusit použití ve win64, VS studio??)
