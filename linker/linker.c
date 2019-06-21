@@ -103,16 +103,16 @@ static void arg_parse(int argc, char* argv[]){
         }
         else if(strcmp(argv[i], "-l") == 0){
             if((i+1)<argc){
-                //~ char **ret_ptr = (char **)realloc((void *)settings.libs, sizeof(char**) * (settings.libs_count + 1));
+                char **new_ptr = (char **) realloc((void **)settings.libs, sizeof(char **) * (settings.libs_count + 1));
 
-                //~ if(ret_ptr != NULL){
-                    //~ settings.libs = ret_ptr;
-                    //~ settings.libs[++(settings.libs_count)] = argv[++i];
-                //~ }
-                //~ else{
-                    //~ fprintf(stderr, "Realloc failed!\n");
-                    //~ exit(EXIT_FAILURE);
-                //~ }
+                if(new_ptr != NULL){
+                    settings.libs = new_ptr;
+                    settings.libs[settings.libs_count++] = argv[++i];
+                }
+                else{
+                    fprintf(stderr, "Realloc failed!\n");
+                    exit(EXIT_FAILURE);
+                }
             }
             else{
                 fprintf(stderr, "Wrong arg format!\n");
@@ -125,16 +125,16 @@ static void arg_parse(int argc, char* argv[]){
                 exit(EXIT_FAILURE);
             }
             else{
-                //~ char **ret_ptr = (char **)realloc((void *)settings.obj_files, sizeof(char**) * (settings.obj_count + 1));
+                char **new_ptr = (char **) realloc((void **)settings.obj_files, sizeof(char **) * (settings.obj_count + 1));
 
-                //~ if(ret_ptr != NULL){
-                    //~ settings.obj_files = ret_ptr;
-                    //~ settings.obj_files[++(settings.obj_count)] = argv[++i];
-                //~ }
-                //~ else{
-                    //~ fprintf(stderr, "Realloc failed!\n");
-                    //~ exit(EXIT_FAILURE);
-                //~ }
+                if(new_ptr != NULL){
+                    settings.obj_files = new_ptr;
+                    settings.obj_files[settings.obj_count++] = argv[i];
+                }
+                else{
+                    fprintf(stderr, "Realloc failed!\n");
+                    exit(EXIT_FAILURE);
+                }
             }
         }
     }
