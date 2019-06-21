@@ -1,3 +1,5 @@
 napsat linker
 
 Testovat portabilitu napříč platformama (zkusit použití ve win64, VS studio??)
+
+Přidat nástroje ldm2mif ldm2hex ldm2bin  možná i reverzní verze???
