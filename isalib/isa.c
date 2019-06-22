@@ -75,7 +75,7 @@ typedef enum {
 
 typedef struct{
     const char * line;
-    uint32_t code;
+    isa_instruction_word_t code;
 }my_register_t;
 
 typedef struct{
@@ -83,14 +83,14 @@ typedef struct{
     const char * format;
     i_opcode opcode;
     unsigned int size;
-    uint32_t base_of_opcode;
+    isa_instruction_word_t base_of_opcode;
 }my_instruction_t;
 
 typedef struct{
     const char * line;
-    uint32_t code_CMPI;
-    uint32_t code_CMPF;
-    uint8_t can_be_CMPF;
+    isa_instruction_word_t code_CMPI;
+    isa_instruction_word_t code_CMPF;
+    bool can_be_CMPF;
 }my_comp_t;
 
 #define MOVE_TO_REGC(X) (X)
@@ -171,16 +171,16 @@ my_instruction_t my_instrs[] = {
 
 #define MY_COMP_LEN (sizeof(my_comp) / sizeof(my_comp_t))
 my_comp_t my_comp[] = {
-    {"EQ" , 6 , 0, 1},
-    {"NEQ", 7 , 5, 1},
-    {"L"  , 10, 3, 1},
-    {"LU" , 14, 0, 0},
-    {"LE" , 11, 4, 1},
-    {"LEU", 15, 0, 0},
-    {"G"  , 8 , 1, 1},
-    {"GU" , 12, 2, 1},
-    {"GE" , 9 , 0, 0},
-    {"GEU", 13, 0, 0}
+    {"EQ" , 6 , 0, true},
+    {"NEQ", 7 , 5, true},
+    {"L"  , 10, 3, true},
+    {"LU" , 14, 0, false},
+    {"LE" , 11, 4, true},
+    {"LEU", 15, 0, false},
+    {"G"  , 8 , 1, true},
+    {"GU" , 12, 2, true},
+    {"GE" , 9 , 0, false},
+    {"GEU", 13, 0, false}
 };
 
 /*
@@ -214,9 +214,9 @@ static uint32_t * seach_for_symbol(char *l, void *s);
  *
  * @param name String with register name.
  *
- * @return Code of register if exist, NULL othervise
+ * @return Code of register if exist, (isa_instruction_word_t)-1 othervise
  */
-static uint32_t decode_register_name_for_opcode(char *name);
+static isa_instruction_word_t decode_register_name_for_opcode(char *name);
 
 /**
  * @brief Convert string to long int.
@@ -338,13 +338,13 @@ static long int convert_to_int(char *l){
 
 }
 
-static uint32_t decode_register_name_for_opcode(char *name){
+static isa_instruction_word_t decode_register_name_for_opcode(char *name){
 
     for(unsigned int i = 0; i < MY_REGS_LEN; i++){
         if(strcmp(my_regs[i].line, name) == 0) return my_regs[i].code;
     }
 
-    return (uint32_t)-1;
+    return (isa_instruction_word_t)-1;
 }
 
 static int is_number(char *s){
@@ -1089,7 +1089,7 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
             {
                 char * reg_ptr = (opcode_copy + strlen(opcode_copy) + 1);
 
-                uint32_t reg = decode_register_name_for_opcode(reg_ptr);
+                isa_instruction_word_t reg = decode_register_name_for_opcode(reg_ptr);
 
                 inst->word = word;
 
@@ -1112,8 +1112,8 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
                 char * reg1_ptr = (opcode_copy + strlen(opcode_copy) + 1);
                 char * reg2_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg1_ptr) + 2);
 
-                uint32_t reg1 = decode_register_name_for_opcode(reg1_ptr);
-                uint32_t reg2 = decode_register_name_for_opcode(reg2_ptr);
+                isa_instruction_word_t reg1 = decode_register_name_for_opcode(reg1_ptr);
+                isa_instruction_word_t reg2 = decode_register_name_for_opcode(reg2_ptr);
 
                 inst->word = word;
 
@@ -1157,9 +1157,9 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
                 char * reg2_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg1_ptr) + 2);
                 char * reg3_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg1_ptr) + strlen(reg2_ptr) + 3);
 
-                uint32_t reg1 = decode_register_name_for_opcode(reg1_ptr);
-                uint32_t reg2 = decode_register_name_for_opcode(reg2_ptr);
-                uint32_t reg3 = decode_register_name_for_opcode(reg3_ptr);
+                isa_instruction_word_t reg1 = decode_register_name_for_opcode(reg1_ptr);
+                isa_instruction_word_t reg2 = decode_register_name_for_opcode(reg2_ptr);
+                isa_instruction_word_t reg3 = decode_register_name_for_opcode(reg3_ptr);
 
                 inst->word = word;
 
@@ -1175,9 +1175,9 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
                 char * reg2_ptr = (opcode_copy + strlen(cmp_flag) + strlen(opcode_copy) + strlen(reg1_ptr) + 3);
                 char * reg3_ptr = (opcode_copy + strlen(cmp_flag) + strlen(opcode_copy) + strlen(reg1_ptr) + strlen(reg2_ptr) + 4);
 
-                uint32_t reg1 = decode_register_name_for_opcode(reg1_ptr);
-                uint32_t reg2 = decode_register_name_for_opcode(reg2_ptr);
-                uint32_t reg3 = decode_register_name_for_opcode(reg3_ptr);
+                isa_instruction_word_t reg1 = decode_register_name_for_opcode(reg1_ptr);
+                isa_instruction_word_t reg2 = decode_register_name_for_opcode(reg2_ptr);
+                isa_instruction_word_t reg3 = decode_register_name_for_opcode(reg3_ptr);
 
                 inst->word = word;
 
@@ -1196,7 +1196,7 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
 
                 //put cond reg into word
                 if(op == ISA_CMPF){
-                    if(flag->can_be_CMPF == 0){
+                    if(flag->can_be_CMPF == false){
                         SET_ERROR(ISAERR_INSTRU_SYNTAX_ERR);
                         return false;
                     }
@@ -1216,7 +1216,7 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
                 char * reg_ptr = (opcode_copy + strlen(opcode_copy) + 1);
                 char * cons_ptr = (opcode_copy + strlen(opcode_copy) + strlen(reg_ptr) + 2);
 
-                uint32_t reg = decode_register_name_for_opcode(reg_ptr);
+                isa_instruction_word_t reg = decode_register_name_for_opcode(reg_ptr);
                 long int cons = convert_to_int(cons_ptr);
 
                 inst->word = word;
@@ -1261,7 +1261,7 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
 
                 inst->word = word;
 
-                uint32_t reg = decode_register_name_for_opcode(reg_ptr);
+                isa_instruction_word_t reg = decode_register_name_for_opcode(reg_ptr);
 
                 if(op == ISA_MVIA || op == ISA_LD){
                     inst->word |= MOVE_TO_REGC(reg);
