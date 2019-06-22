@@ -37,8 +37,8 @@ typedef enum{
 
 typedef struct strbuf_s{
     char *str_ptr;
-    unsigned int actual_lenght;
-    unsigned int total_lenght;
+    long unsigned int actual_lenght;
+    long unsigned int total_lenght;
 }strbuf_t;
 
 /**
@@ -48,7 +48,7 @@ typedef struct strbuf_s{
  *
  * @return -1 if fail; 0 if OK
  */
-static bool my_sprintf(strbuf_t *sbuffer, char *fmt, ...);
+static bool my_sprintf(strbuf_t *sbuffer, const char *fmt, ...);
 
 /**
  * @brief Create string buffer structure and initialize it
@@ -593,7 +593,7 @@ static bool new_strbuf(strbuf_t **sbuffer){
     return true;
 }
 
-static bool my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
+static bool my_sprintf(strbuf_t *sbuffer, const char *fmt, ...){
 
     va_list argptr;
     va_list argptr_2;
@@ -607,7 +607,14 @@ static bool my_sprintf(strbuf_t *sbuffer, char *fmt, ...){
     va_start(argptr, fmt);
     va_copy(argptr_2, argptr);
 
-    int char_count_to_print = vsnprintf(NULL, 0, fmt, argptr);
+    int vsnprintf_ret = vsnprintf(NULL, 0, fmt, argptr);
+
+    if(vsnprintf_ret < 0){
+        SET_ERROR(OBJRET_INTERNAL_ERR);
+        return false;
+    }
+
+    long unsigned int char_count_to_print = (long unsigned int)vsnprintf_ret;
 
     if((sbuffer->actual_lenght + char_count_to_print + 1) >= sbuffer->total_lenght){
         void *ptr = realloc(sbuffer->str_ptr, sbuffer->total_lenght * 2);
@@ -776,14 +783,16 @@ static obj_file_t *obj_load_from_strbuf(strbuf_t *strbuf){
 
         memset((void *)line, '\0', sizeof(line));
 
-        int i = 0;
-        while(
-            (strbuf->str_ptr[strbufpos] != '\0') &&
-            (strbuf->str_ptr[strbufpos] != '\n') &&
-            (strbuf->str_ptr[strbufpos] != '\r') &&
-            (i < (sizeof(line) - 1))
-        ){
-            line[i++] = strbuf->str_ptr[strbufpos++];
+        {
+            unsigned int i = 0;
+            while(
+                (strbuf->str_ptr[strbufpos] != '\0') &&
+                (strbuf->str_ptr[strbufpos] != '\n') &&
+                (strbuf->str_ptr[strbufpos] != '\r') &&
+                (i < (sizeof(line) - 1))
+            ){
+                line[i++] = strbuf->str_ptr[strbufpos++];
+            }
         }
 
         strbufpos++;
