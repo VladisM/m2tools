@@ -989,7 +989,7 @@ bool export_into_object_file_line(tInstruction *inst, char *line){
         return false;
     }
 
-    int ret = snprintf(line, 32, "0x%"PRIx32, inst->word);
+    int ret = snprintf(line, 32, PRIisa_iw, inst->word);
 
     if(ret < 0){
         SET_ERROR(ISAERR_INTER_ERR);
@@ -1007,7 +1007,7 @@ bool import_from_object_file_line(tInstruction *inst, char *line){
         return false;
     }
 
-    if(sscanf(line, "%"SCNx32, &(inst->word)) != 1){
+    if(sscanf(line, SCNisa_iw, &(inst->word)) != 1){
         SET_ERROR(ISAERR_FORMAT_ERR);
         return false;
     }
