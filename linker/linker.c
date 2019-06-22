@@ -19,8 +19,8 @@ typedef struct{
     char **libs;
     char **obj_files;
     char *output_filename;
-    unsigned libs_count;
-    unsigned obj_count;
+    unsigned int libs_count;
+    unsigned int obj_count;
 }settings_t;
 
 static settings_t settings;
@@ -58,13 +58,13 @@ int main(int argc, char *argv[]){
 
     printf("libs:\n");
 
-    for(int i = 0; i < settings.libs_count; i++){
+    for(unsigned int i = 0; i < settings.libs_count; i++){
         printf("%s\n", settings.libs[i]);
     }
 
     printf("objs:\n");
 
-    for(int i = 0; i < settings.obj_count; i++){
+    for(unsigned int i = 0; i < settings.obj_count; i++){
         printf("%s\n", settings.obj_files[i]);
     }
 
