@@ -18,6 +18,7 @@
 
 #include "ldm.h"
 
+#include <isa.h>
 /*
  * ---------------------------------------------------------------------
  * Macro definitions
@@ -101,9 +102,9 @@ static int decode_line(ldm_buffer_item_t* i, char* line){
 
     char buff[32];
     uint32_t adr= 0;
-    uint32_t val = 0;
+    isa_instruction_word_t val = 0;
 
-    int ret = sscanf(line, "%x:%x:%s", &adr, &val, buff);
+    int ret = sscanf(line, "%x:"SCNisa_iw":%s", &adr, &val, buff);
 
     if(ret != 3){
         SET_ERROR(LDMERR_BAD_LDM_FORMAT);
@@ -283,7 +284,7 @@ int ldm_write(char* filename, ldm_buffer_item_t* b){
         }
 
         //write data into file
-        int ret = fprintf(fp, "0x%x:0x%x:%s\n", b->address, b->value, rel_buff);
+        int ret = fprintf(fp, "0x%x:"PRIisa_iw":%s\n", b->address, b->value, rel_buff);
 
         //check return code
         if(ret < 0){
