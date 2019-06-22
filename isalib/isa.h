@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 /**
  * @defgroup isa ISA library
@@ -48,11 +49,20 @@ typedef enum {
 } tIsaError;
 
 /**
+ * @brief Type to hold one instruction word.
+ */
+typedef uint32_t isa_instruction_word_t;
+
+#define PRIisa_iw "0x%"PRIx32
+#define SCNisa_iw "0x%"SCNx32
+
+
+/**
  * @brief Structure to hold one instruction and all its informations.
  */
 typedef struct sInstruction{
     char* line; /**< @brief Instruction as output from tokenizer, semicollon separed tokens. */
-    uint32_t word; /**< @brief Instruction word. */
+    isa_instruction_word_t word; /**< @brief Instruction word. */
 }tInstruction;
 
 /**
