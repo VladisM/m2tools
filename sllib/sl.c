@@ -237,7 +237,7 @@ head_write_succes:
             return false;
         }
 
-        unsigned size = strlen(obj_str) + 1;
+        size_t size = strlen(obj_str) + 1;
 
         if(mtar_write_file_header(&my_tarfile, head->object_file_name, size) != MTAR_ESUCCESS){
             SET_ERROR(SLRET_CANT_CREATE_SL);
