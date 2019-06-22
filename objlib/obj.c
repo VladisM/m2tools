@@ -55,7 +55,7 @@ static bool my_sprintf(strbuf_t *sbuffer, const char *fmt, ...);
  *
  * @param sbuffer Pointer that will point to new structure, have to be NULL.
  *
- * @return -1 if fail; 0 if OK
+ * @return false if fail; true if OK
  */
 static bool new_strbuf(strbuf_t **sbuffer);
 
@@ -176,14 +176,14 @@ bool obj_load_from_file(char *filename, obj_file_t **o){
 
     strbuf_t *strbuf = NULL;
 
-    if(new_strbuf(&strbuf) != 0){
+    if(!new_strbuf(&strbuf)){
         SET_ERROR(OBJRET_INTERNAL_ERR);
         return false;
     }
 
     int c;
     while((c = fgetc(fp)) != EOF){
-        if(my_sprintf(strbuf, "%c", (char)c) != 0){
+        if(!my_sprintf(strbuf, "%c", (char)c)){
             SET_ERROR(OBJRET_INTERNAL_ERR);
             return false;
         }
