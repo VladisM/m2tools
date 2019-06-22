@@ -16,6 +16,7 @@
 #define LDM_H_included
 
 #include <stdint.h>
+#include <isa.h>
 
 /**
  * @defgroup ldm LDM library
@@ -36,7 +37,7 @@
  * printf("------------------------\nPrinting buffer:\n\n");
  * for(ldm_buffer_item_t *p = buffer;p!=NULL;p=p->next){
  *     printf("Address:    0x%x\n", p->address);
- *     printf("Value:      0x%x\n", p->value);
+ *     printf("Value:      "PRIisa_iw"\n", p->value);
  *     printf("Relocation: 0x%d\n\n", p->relocation);
  * }
  * printf("Done.\n------------------------\n");
@@ -85,7 +86,7 @@ typedef enum{
  */
 typedef struct ldm_buffer_item_s{
     uint32_t address; /**< @brief Address of the item parsed from LDM file. */
-    uint32_t value;  /**< @brief Value of the item. */
+    isa_instruction_word_t value;  /**< @brief Value of the item. */
     unsigned int relocation; /**< @brief Retarget flag. */
     struct ldm_buffer_item_s * next; /**< @brief Pointer to the next item. It is linked list.*/
 }ldm_buffer_item_t;
