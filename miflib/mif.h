@@ -10,7 +10,7 @@
  *
  * @todo Add support for all mif features.
  * @todo Add list of supported features.
- * @todo Also mif can support various types of opcode accoring to target ISA. Add it!
+ * @todo Add support for diferent datatypes of words used by diferent ISA, should be possible to set somehow
  */
 
 #ifndef MIF_H_included
