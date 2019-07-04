@@ -19,15 +19,15 @@ int fd;
 
 static void send_3b_word(unsigned int word){
     send_char((unsigned char)((word >> 16) & 0x000000FF));
-    send_char((unsigned char)((word >> 8) & 0x000000FF)); 
-    send_char((unsigned char)(word & 0x000000FF));        
+    send_char((unsigned char)((word >> 8) & 0x000000FF));
+    send_char((unsigned char)(word & 0x000000FF));
 }
 
 static void send_4b_word(unsigned int word){
     send_char((unsigned char)((word >> 24) & 0x000000FF));
     send_char((unsigned char)((word >> 16) & 0x000000FF));
     send_char((unsigned char)((word >> 8) & 0x000000FF));
-    send_char((unsigned char)(word & 0x000000FF));    
+    send_char((unsigned char)(word & 0x000000FF));
 }
 
 static void send_char(unsigned char data){
@@ -40,11 +40,11 @@ static void send_char(unsigned char data){
         y = (int)read(fd,&x,1);
     }
     while(y != 1);
-    if(y == 0xBB){
+    if(x == 0xBB){
         fprintf(stderr, "Error! Something went wrong with comunication.\n");
         exit(EXIT_FAILURE);
     }
-        
+
 }
 
 static void init_port(sender_info_t * info){
@@ -60,9 +60,9 @@ static void init_port(sender_info_t * info){
         printf("Error! Can't open port.\n");
         exit(EXIT_FAILURE);
     }
-    
+
     atexit(close_device);
-    
+
     memset(&new_termios, 0, sizeof(new_termios));
     new_termios.c_iflag = IGNPAR;
     new_termios.c_oflag = 0;
@@ -129,7 +129,7 @@ void send_buffer(sender_info_t *info, ldm_buffer_item_t *b){
     }
     while(y != 1);
     if(x != 0xAA){
-        fprintf(stderr, "Error! Can't connect to the target.\n");        
+        fprintf(stderr, "Error! Can't connect to the target.\n");
         exit(EXIT_FAILURE);
     }
 
