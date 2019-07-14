@@ -19,6 +19,7 @@ typedef struct{
     char **libs;
     char **obj_files;
     char *output_filename;
+    char *linker_script;
     unsigned int libs_count;
     unsigned int obj_count;
 }settings_t;
@@ -27,8 +28,7 @@ static settings_t settings;
 
 #define HELP_STRING "\
 Example usage: \n\
- "PROG_NAME" -o out.ldm -l my_lib.sl main.o\n\
- "PROG_NAME" main.o\n\
+ "PROG_NAME" -o out.ldm -T linker.ld -l my_lib.sl main.o\n\
 \n\
         This is linker for "TARGET_ARCH_NAME" CPU that can be used\n\
     to link multiple object files into one executable file. Linker\n\
@@ -39,6 +39,7 @@ Arguments:\n\
        --version        Print version number and exit.\n\
     -l                  Link static library, have to be followed by path.\n\
     -o --output         Set output filenamem have to be followed by filename.\n\
+    -T                  Path to the linker script.\n\
 \n"
 
 int main(int argc, char *argv[]){
@@ -46,12 +47,6 @@ int main(int argc, char *argv[]){
     atexit(clean_mem);
 
     //get arguments
-    settings.libs = NULL;
-    settings.libs_count = 0;
-    settings.obj_files = NULL;
-    settings.obj_count = 0;
-    settings.output_filename = NULL;
-
     arg_parse(argc, argv);
 
     printf("libs_count: %d \t obj_count: %d \t out_filename: %s\n", settings.libs_count, settings.obj_count, settings.output_filename);
@@ -82,6 +77,13 @@ static void print_help(void){
 
 static void arg_parse(int argc, char* argv[]){
 
+    settings.libs = NULL;
+    settings.libs_count = 0;
+    settings.obj_files = NULL;
+    settings.obj_count = 0;
+    settings.output_filename = NULL;
+    settings.linker_script = NULL;
+
     for(int i = 1; i<argc; i++){
         if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ){
             print_help();
@@ -98,6 +100,19 @@ static void arg_parse(int argc, char* argv[]){
             }
             else if((i+1)<argc){
                 settings.output_filename = argv[++i];
+            }
+            else{
+                fprintf(stderr, "Wrong arg format!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+        else if(strcmp(argv[i], "-T") == 0){
+            if(settings.linker_script != NULL){
+                fprintf(stderr, "Too much output files given!\n");
+                exit(EXIT_FAILURE);
+            }
+            else if ((i+1)<argc){
+                settings.linker_script = argv[++i];
             }
             else{
                 fprintf(stderr, "Wrong arg format!\n");
@@ -140,6 +155,21 @@ static void arg_parse(int argc, char* argv[]){
                 }
             }
         }
+    }
+
+    if(settings.linker_script == NULL){
+        fprintf(stderr, "Missing linker script path!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(settings.obj_count == 0 && settings.libs_count == 0){
+        fprintf(stderr, "Given zero libs and zero object, nothink to link!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(settings.output_filename == NULL){
+        fprintf(stderr, "Missing output filename!\n");
+        exit(EXIT_FAILURE);
     }
 
 }
