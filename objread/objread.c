@@ -101,7 +101,7 @@ int main(int argc, char* argv[]){
                     printf(" %c  %c  %c- '%s' %s\n", c_for_section, cc, c, symbol->name, s);
                 }
                 else{
-                    printf(" %c  %c  %c- '%s' 0x%"PRIX32" %s\n", c_for_section, cc, c, symbol->name, symbol->value, s);
+                    printf(" %c  %c  %c- '%s' "PRIisa_addr" %s\n", c_for_section, cc, c, symbol->name, symbol->value, s);
 
                 }
             }
@@ -123,12 +123,12 @@ int main(int argc, char* argv[]){
                 if(data->type == DATA_IS_BLOB){
                     printf("Blob: ");
 
-                    printf("Off:0x%"PRIX32" Len:%dB\n", data->address, data->payload.blob->lenght);
+                    printf("Off:"PRIisa_addr" Len:%dB\n", data->address, data->payload.blob->lenght);
                 }
                 else{
                     printf("Inst: ");
 
-                    printf("Off:0x%"PRIX32" Opc:0x%"PRIX32" r:%"PRId8" s:%"PRId8"\n", data->address, data->payload.inst->word, data->relocation, data->special);
+                    printf("Off:"PRIisa_addr" Opc:0x%"PRIX32" r:%"PRId8" s:%"PRId8"\n", data->address, data->payload.inst->word, data->relocation, data->special);
                 }
 
 
