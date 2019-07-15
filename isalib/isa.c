@@ -207,7 +207,7 @@ my_comp_t my_comp[] = {
  *
  * @return pointer to value, NULL if not found
  */
-static uint32_t * seach_for_symbol(char *l, void *s);
+static isa_address_t * seach_for_symbol(char *l, void *s);
 
 /**
  * @brief Decode name of register into code for instruction opcode
@@ -305,7 +305,7 @@ static int is_comparison(char *s);
  */
 
 static tIsaError isalib_errno = ISAERR_OK;
-static uint32_t *(*search_for_symbol_handler)(char *, void *) = NULL;
+static isa_address_t *(*search_for_symbol_handler)(char *, void *) = NULL;
 static long int (*convert_to_int_handler)(char *) = NULL;
 static int (*is_number_handler)(char *) = NULL;
 inline static int put_adr_arg_into_inst(tInstruction * inst, char * adr_ptr, void * section_ptr);
@@ -318,7 +318,7 @@ inline static int put_adr_arg_into_inst(tInstruction * inst, char * adr_ptr, voi
  *
  */
 
-static uint32_t * seach_for_symbol(char *l, void *s){
+static isa_address_t * seach_for_symbol(char *l, void *s){
     if(search_for_symbol_handler == NULL) {
         SET_ERROR(ISAERR_MISSING_CALLBACK);
         return NULL;
@@ -372,7 +372,7 @@ inline static int put_adr_arg_into_inst(tInstruction * inst, char * adr_ptr, voi
     }
     else if(ret == 0){
         //instruction have symbol as arg
-        uint32_t *adr = seach_for_symbol(adr_ptr, section_ptr);
+        uint32_t *adr = (uint32_t *)seach_for_symbol(adr_ptr, section_ptr);
 
         if(adr == NULL){
             SET_ERROR(ISAERR_ARG_UNKOWN_SYMBOL);
@@ -701,11 +701,11 @@ static int is_reg(char *s){
  *
  */
 
-bool retarget_instruction(tInstruction *i, uint32_t base_address){
+bool retarget_instruction(tInstruction *i, isa_address_t base_address){
 
-    uint32_t operand;
+    isa_address_t operand;
 
-    if(get_instruction_24CONST_operand(i, &operand) < 0){
+    if(get_instruction_24CONST_operand(i, (uint32_t *)&operand) < 0){
         return false;
     }
 
@@ -719,7 +719,7 @@ bool retarget_instruction(tInstruction *i, uint32_t base_address){
     }
 
     //put operand back to instruction word
-    if(set_instruction_24CONST_operand(i, operand) < 0){
+    if(set_instruction_24CONST_operand(i, (uint32_t)operand) < 0){
         return false;
     }
 
@@ -1296,7 +1296,7 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
  *
  */
 
-bool register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) ){
+bool register_callback_search_for_symbol( isa_address_t *(*f)(char *, void *) ){
     if(f == NULL){
         SET_ERROR(ISAERR_NULL_PTR);
         return false;

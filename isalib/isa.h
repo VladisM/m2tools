@@ -88,7 +88,7 @@ typedef struct sInstruction{
  *
  * @return true if ok, false if failed
  */
-bool retarget_instruction(tInstruction *i, uint32_t base_address);
+bool retarget_instruction(tInstruction *i, isa_address_t base_address);
 
 /**
  * @brief Return error code occured in ISA lib.
@@ -239,7 +239,7 @@ bool assemble_instruction(tInstruction * i, void * section_ptr);
  * @warning Call this function only once and before any assemble_instruction is called.
  * Otherwise you may cause error.
  */
-bool register_callback_search_for_symbol( uint32_t *(*f)(char *, void *) );
+bool register_callback_search_for_symbol( isa_address_t *(*f)(char *, void *) );
 
 /**
  * @brief Register call back function for ISA library module.
