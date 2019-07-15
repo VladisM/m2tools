@@ -11,6 +11,7 @@
  * @todo Add support for all mif features.
  * @todo Add list of supported features.
  * @todo Add support for diferent datatypes of words used by diferent ISA, should be possible to set somehow
+ * @todo Add support for diferent datatypes of addresses used by diferent ISA.
  */
 
 #ifndef MIF_H_included
