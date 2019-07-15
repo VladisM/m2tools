@@ -10,6 +10,7 @@
  *
  * @todo as others ldm file should hold target arch information too
  * @todo instead of hardcoded uint32_t for opcode, add typedef into isalib
+ * @todo use isa_address_t
  */
 
 #ifndef LDM_H_included
