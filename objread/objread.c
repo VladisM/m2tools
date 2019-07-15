@@ -15,16 +15,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <obj.h>
 #include <isa.h>
 
-//TODO: use boolean types
 typedef struct{
     char *i_file;
-    uint8_t print_symbols;
-    uint8_t print_symbol_vals;
-    uint8_t print_data;
+    bool print_symbols;
+    bool print_symbol_vals;
+    bool print_data;
 }settings_t;
 
 #define HELP_STRING "\
@@ -59,11 +59,6 @@ int main(int argc, char* argv[]){
     atexit(clean_mem);
 
     //get args
-    settings.i_file = NULL;
-    settings.print_symbols = 0;
-    settings.print_symbol_vals = 0;
-    settings.print_data = 0;
-
     arg_parse(argc, argv);
 
     if(!obj_load_from_file(settings.i_file, &obj_file)){
@@ -79,11 +74,11 @@ int main(int argc, char* argv[]){
         if(section->next != NULL) printf(" |- Section: '%s'\n", section->section_name);
         else printf(" '- Section: '%s'\n", section->section_name);
 
-        if(settings.print_symbols == 1){
+        if(settings.print_symbols == true){
             char c_for_symbol_table = '\'';
             char c_for_section = '|';
 
-            if(settings.print_data == 1) c_for_symbol_table = '|';
+            if(settings.print_data == true) c_for_symbol_table = '|';
             if(section->next == NULL) c_for_section = ' ';
 
             printf(" %c  %c- Symbol table:\n", c_for_section, c_for_symbol_table);
@@ -94,10 +89,10 @@ int main(int argc, char* argv[]){
                 const char *s = EXPORT_TEXT;
 
                 if(symbol->next == NULL) c = '\'';
-                if(settings.print_data == 1) cc = '|';
+                if(settings.print_data == true) cc = '|';
                 if(symbol->type == SYMBOL_IMPORT) s = IMPORT_TEXT;
 
-                if(settings.print_symbol_vals == 0){
+                if(settings.print_symbol_vals == false){
                     printf(" %c  %c  %c- '%s' %s\n", c_for_section, cc, c, symbol->name, s);
                 }
                 else{
@@ -108,7 +103,7 @@ int main(int argc, char* argv[]){
 
         }
 
-        if(settings.print_data == 1){
+        if(settings.print_data == true){
             if(section->next != NULL) printf(" |  '- Data:\n");
             else printf("    '- Data:\n");
 
@@ -140,6 +135,11 @@ int main(int argc, char* argv[]){
 }
 
 static void arg_parse(int argc, char* argv[]){
+    settings.i_file = NULL;
+    settings.print_symbols = false;
+    settings.print_symbol_vals = false;
+    settings.print_data = false;
+
     int file_given = 0;
     int toomuchfiles_given = 0;
 
@@ -153,19 +153,19 @@ static void arg_parse(int argc, char* argv[]){
             exit(EXIT_SUCCESS);
         }
         else if(strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--symbol-table") == 0 ){
-            settings.print_symbols = 1;
+            settings.print_symbols = true;
         }
         else if(strcmp(argv[i], "--symbol-values") == 0 ){
-            settings.print_symbol_vals = 1;
-            settings.print_symbols = 1;
+            settings.print_symbol_vals = true;
+            settings.print_symbols = true;
         }
         else if(strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--all") == 0 ){
-            settings.print_symbol_vals = 1;
-            settings.print_symbols = 1;
-            settings.print_data = 1;
+            settings.print_symbol_vals = true;
+            settings.print_symbols = true;
+            settings.print_data = true;
         }
         else if(strcmp(argv[i], "--data") == 0 ){
-            settings.print_data = 1;
+            settings.print_data = true;
         }
         else{
             if(argv[i][0] != '-'){
