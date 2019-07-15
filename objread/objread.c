@@ -19,6 +19,7 @@
 #include <obj.h>
 #include <isa.h>
 
+//TODO: use boolean types
 typedef struct{
     char *i_file;
     uint8_t print_symbols;
