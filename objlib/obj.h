@@ -59,6 +59,8 @@ typedef struct{
  * binary blob, it simple data payload without any big meaning.
  *
  * All data symbols in section together form a double linked list.
+ *
+ * @todo: use boolean types in relocation and special
  */
 typedef struct data_symbol_s{
     struct data_symbol_s *next;    /**< @brief Pointer to the next symbol in the list. */
@@ -67,7 +69,7 @@ typedef struct data_symbol_s{
         datablob_t *blob;          /**< @brief Correct pointer when type == DATA_IS_BLOB. */
         tInstruction *inst;        /**< @brief Correct pointer when type == DATA_IS_INST. */
     }payload;                      /**< @brief Union that hold pointer to payload. */
-    uint32_t address;              /**< @brief Address of symbol in memory. This isn't absolute addres, it is rather relative to the beggining of the section.*/
+    isa_address_t address;              /**< @brief Address of symbol in memory. This isn't absolute addres, it is rather relative to the beggining of the section.*/
     data_symbol_type_t type;       /**< @brief Type of this symbol. */
     uint8_t relocation;            /**< @brief Store information about relocation. 0 if should not be relocated, 1 otherwise. */
     uint8_t special;               /**< @brief Store information about argument, if is special symbol. 1 it is, 0 it isn't. */
@@ -84,7 +86,7 @@ typedef struct spec_symbol_s{
     char *name;                     /**< @brief Name of the symbol. */
     struct spec_symbol_s *next;     /**< @brief Pointer to the next symbol in list.  */
     struct spec_symbol_s *prev;     /**< @brief Pointer to the previous symbol in the list. */
-    uint32_t value;                 /**< @brief Value for this symbol.*/
+    isa_address_t value;                 /**< @brief Value for this symbol.*/
     symbol_type_t type;             /**< @brief Type of the symbol, can be exported or imported to the section.*/
 }spec_symbol_t;
 
@@ -265,7 +267,7 @@ bool new_section(char *secion_name, section_t **s);
  *
  * @return true if ok, false if failed
  */
-bool new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s);
+bool new_spec_symbol(char *name, isa_address_t value, symbol_type_t type, spec_symbol_t **s);
 
 /**
  * @brief Create new data symbl.
@@ -280,7 +282,7 @@ bool new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol
  *
  * @return true if ok, false if failed
  */
-bool new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d);
+bool new_data_symbol(isa_address_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d);
 
 /**
  * @brief Create new instance of datablob_struct.
