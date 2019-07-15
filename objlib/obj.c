@@ -294,7 +294,7 @@ bool obj_write_to_file(char *filename, obj_file_t *o){
     return true;
 }
 
-bool new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol_t **s){
+bool new_spec_symbol(char *name, isa_address_t value, symbol_type_t type, spec_symbol_t **s){
 
     if(name == NULL || s == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
@@ -329,7 +329,7 @@ bool new_spec_symbol(char *name, uint32_t value, symbol_type_t type, spec_symbol
     return true;
 }
 
-bool new_data_symbol(uint32_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d){
+bool new_data_symbol(isa_address_t address, data_symbol_type_t type, void *payload_ptr, data_symbol_t **d){
 
     if(d == NULL){
         SET_ERROR(OBJRET_NULL_PTR);
@@ -672,7 +672,7 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
 
         while(head_spec_symbol != NULL){
 
-            my_sprintf(strbuf, "%s:0x%" PRIx32 ":", head_spec_symbol->name, head_spec_symbol->value);
+            my_sprintf(strbuf, "%s:" PRIisa_addr ":", head_spec_symbol->name, head_spec_symbol->value);
 
             if(head_spec_symbol->type == SYMBOL_EXPORT){
                 my_sprintf(strbuf, "export\n");
@@ -701,7 +701,7 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
 
                 if(head_data->payload.blob->lenght > 0){
 
-                    my_sprintf(strbuf, "0x%" PRIx32 ":0x%" PRIx8, head_data->address, head_data->payload.blob->payload[0]);
+                    my_sprintf(strbuf, PRIisa_addr ":0x%" PRIx8, head_data->address, head_data->payload.blob->payload[0]);
                     for(unsigned int i = 1; i < head_data->payload.blob->lenght; i++){
                         my_sprintf(strbuf, ":0x%" PRIx8, head_data->payload.blob->payload[i]);
                     }
@@ -734,7 +734,7 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
                     return NULL;
                 }
 
-                my_sprintf(strbuf, "0x%"PRIx32":%"PRIx8":%"PRIx8":%s\n", head_data->address, head_data->relocation, head_data->special, line);
+                my_sprintf(strbuf, PRIisa_addr":%"PRIx8":%"PRIx8":%s\n", head_data->address, head_data->relocation, head_data->special, line);
 
                 free(line);
             }
@@ -886,13 +886,13 @@ section_care:
                     else{
                         spec_symbol_t *new_symbol = NULL;
 
-                        uint32_t value;
+                        isa_address_t value;
                         char *type_s = (char *)malloc(sizeof(char) * 128);
                         char *name = (char *)malloc(sizeof(char) * 128);
 
                         for(int i = 0; line[i] != '\0'; i++) if(line[i] == ':') line[i] = ' ';
 
-                        if(sscanf(line, "%s 0x%X %s", name, &value, type_s) != 3){
+                        if(sscanf(line, "%s "SCNisa_addr" %s", name, &value, type_s) != 3){
                             SET_ERROR(OBJRET_BROKEN_FILE);
                             return NULL;
                         }
@@ -936,7 +936,7 @@ section_care:
 
                         if(line[0] == 'B'){
 
-                            uint32_t address;
+                            isa_address_t address;
                             char buff[80];
                             data_symbol_t *new_data = NULL;
                             int base = 2;
@@ -953,7 +953,7 @@ section_care:
                                 buff[i - 1] = '\0';
                             }
 
-                            if(sscanf(buff, "0x%"SCNx32 , &address) != 1){
+                            if(sscanf(buff, SCNisa_addr , &address) != 1){
                                 SET_ERROR(OBJRET_BROKEN_FILE);
                                 return NULL;
                             }
@@ -1011,7 +1011,7 @@ section_care:
 
                         }
                         else if(line[0] == 'I'){
-                            uint32_t address = 0;
+                            isa_address_t address = 0;
                             uint8_t relocation = 0;
                             uint8_t special = 0;
 
@@ -1046,7 +1046,7 @@ section_care:
                             ptr_for_objlib = linedup + 2;
 
 
-                            if(sscanf(ptr_for_objlib, "0x%"SCNx32":%"SCNx8":%"SCNx8, &address, &relocation, &special) != 3){
+                            if(sscanf(ptr_for_objlib, SCNisa_addr":%"SCNx8":%"SCNx8, &address, &relocation, &special) != 3){
                                 SET_ERROR(OBJRET_BROKEN_FILE);
                                 return NULL;
                             }
