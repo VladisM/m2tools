@@ -49,7 +49,7 @@ void pass1(void){
 }
 
 static void _pass1(void){
-    uint32_t location_counter = 0;
+    isa_address_t location_counter = 0;
 
     for(tok_t * t = toklist_first; t != NULL; t = t->next){
         if(t->type == TOKEN_IS_INSTR){
@@ -583,10 +583,10 @@ void print_pass1_buffer(void){
             else{
                 for(pass_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: - \t Spec: - \t '%s'\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
+                        printf("      - from %s @ %d \t Addr: "PRIisa_addr" \t INST \t Rel: - \t Spec: - \t '%s'\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.i->line);
                     }
                     else if(t->type == TYPE_BLOB){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t BLOB \t Len: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
+                        printf("      - from %s @ %d \t Addr: "PRIisa_addr" \t BLOB \t Len: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
                     }
                     else{
                         fprintf(stderr, "Internal error in pass1, unknown pass1_item type!\n");

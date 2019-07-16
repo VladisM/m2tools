@@ -95,7 +95,7 @@ typedef struct pass_item_s{
         blob_t *b;
         tInstruction *i;
     }payload;
-    uint32_t location;
+    isa_address_t location;
     pass_item_type_t type;
     uint8_t relocation;
     uint8_t special;
@@ -107,7 +107,7 @@ typedef struct pass1_section_s{
     pass_item_t *first_element;
     pass_item_t *last_element;
     char *section_name;
-    uint32_t last_location_counter;
+    isa_address_t last_location_counter;
 }pass_section_t;
 
 /* -----------------------------------------------------------------------------
@@ -125,7 +125,7 @@ typedef struct symbol_s{
     char *label;
     tok_t *parent;
     void *section;
-    uint32_t address;
+    isa_address_t address;
     uint8_t stype;
 }symbol_t;
 
