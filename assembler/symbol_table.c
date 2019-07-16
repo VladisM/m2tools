@@ -37,7 +37,7 @@ symbol_t *symbol_last = NULL;
 
 static int is_equal(symbol_t *x1, symbol_t *x2);
 
-void new_symbol(char *label, uint32_t address, uint8_t stype, tok_t * parent, void *section){
+void new_symbol(char *label, isa_address_t address, uint8_t stype, tok_t * parent, void *section){
     symbol_t *x = (symbol_t *) malloc( sizeof(symbol_t) );
     char *l = (char *) malloc( sizeof(char) * (strlen(label) + 1) );
 
@@ -107,7 +107,7 @@ void print_symboltable(void){
     }
     else{
         for(symbol_t *t = symbol_first; t != NULL; t = t->next){
-            printf("  - %-30s \t Value: 0x%08X \t Stype: %d \t Section: '%s'\n", t->label, t->address, t->stype, ((pass_section_t *)(t->section))->section_name);
+            printf("  - %-30s \t Value: "PRIisa_addr" \t Stype: %d \t Section: '%s'\n", t->label, t->address, t->stype, ((pass_section_t *)(t->section))->section_name);
         }
     }
 }

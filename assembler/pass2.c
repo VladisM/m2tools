@@ -39,7 +39,7 @@
 
 static void _pass2(void);
 static symbol_t *find_exported_symbol_definition(symbol_t *e);
-static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section);
+static isa_address_t *find_symbol_for_instruction_assemble(char *label, void *section);
 
 static symbol_t * last_found_symbol = NULL;
 
@@ -143,7 +143,7 @@ static symbol_t * find_exported_symbol_definition(symbol_t *exported_symbol){
     return NULL;
 }
 
-static uint32_t *find_symbol_for_instruction_assemble(char *label, void *section){
+static isa_address_t *find_symbol_for_instruction_assemble(char *label, void *section){
 
     for(symbol_t *i = symbol_first; i != NULL; i = i->next){
         if(
@@ -180,10 +180,10 @@ void print_pass2_buffer(void){
             else{
                 for(pass_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t INST \t Rel: %d \t Spec: %d \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->relocation, t->special, t->payload.i->line);
+                        printf("      - from %s @ %d \t Addr: "PRIisa_addr" \t INST \t Rel: %d \t Spec: %d \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->relocation, t->special, t->payload.i->line);
                     }
                     else if(t->type == TYPE_BLOB){
-                        printf("      - from %s @ %d \t Addr: 0x%X \t BLOB \t Len: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
+                        printf("      - from %s @ %d \t Addr: "PRIisa_addr" \t BLOB \t Len: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);
                     }
                     else{
                         fprintf(stderr, "Internal error in pass1, unknown pass1_item type!\n");
