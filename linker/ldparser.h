@@ -31,6 +31,10 @@ typedef struct lds_s{
 }lds_t;
 
 lds_t *parse_lds(char *path);
-void free_lds_t(lds_t *l);
+void free_lds(lds_t *l);
+
+#ifndef NDEBUG
+void print_lds(lds_t *l);
+#endif
 
 #endif
