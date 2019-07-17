@@ -11,8 +11,6 @@ static inline lds_t *new_lds(void);
 static inline mem_t *new_mem(char *name, isa_address_t size, isa_address_t orig);
 static inline sym_t *new_sym(char *name, isa_address_t value);
 static inline void check_malloc(void *p);
-static inline void free_mem(mem_t *m);
-static inline void free_sym(sym_t *s);
 
 lds_t *parse_lds(char *path){
     //TODO: add parsing script
@@ -32,7 +30,9 @@ void free_lds(lds_t *l){
                 tmp = head;
                 head = head->next;
 
-                free_mem(tmp);
+                free(tmp->name);
+                free(tmp->sections);
+                free(tmp);
             }
         }
         if(l->first_sym != NULL){
@@ -43,7 +43,8 @@ void free_lds(lds_t *l){
                 tmp = head;
                 head = head->next;
 
-                free_sym(tmp);
+                free(tmp->name);
+                free(tmp);
             }
         }
         free(l);
@@ -113,24 +114,54 @@ static inline void check_malloc(void *p){
     }
 }
 
-static inline void free_mem(mem_t *m){
-    free(m->name);
-    free(m->sections);
-    free(m);
-}
-
-static inline void free_sym(sym_t *s){
-    free(s->name);
-    free(s);
-}
-
 #ifndef NDEBUG
 void print_lds(lds_t *l){
+
     if(l == NULL){
-        printf("(null)\n");
-        return;
+        printf("LDS: (null)\n");
+    }
+    else{
+        printf("LDS:\n");
+        printf("|- Entry point: %s \n", l->entry_point);
+
+        if(l->first_mem != NULL){
+            printf("|- Mem:\n");
+
+            for(mem_t *head = l->first_mem; head != NULL; head = head->next){
+                if(head->next != NULL){
+                    printf("|  |- Name: %s\n", head->name);
+                    printf("|  |  |- size:"PRIisa_addr, head->size);
+                    printf("|  |  '- orig:"PRIisa_addr, head->orig);
+                }
+                else{
+                    printf("|  |- Name: %s\n", head->name);
+                    printf("|     |- size:"PRIisa_addr, head->size);
+                    printf("|     '- orig:"PRIisa_addr, head->orig);
+                }
+            }
+        }
+        else{
+            printf("|- Mem: (null)\n");
+        }
+
+        if(l->first_sym != NULL){
+            printf("'- Sym:\n");
+
+            for(sym_t *head = l->first_sym; head != NULL; head = head->next){
+                if(head->next != NULL){
+                    printf("   |- Name: %s\n", head->name);
+                    printf("   |  '- value:"PRIisa_addr, head->value);
+                }
+                else{
+                    printf("   '- Name: %s\n", head->name);
+                    printf("      '- value:"PRIisa_addr, head->value);
+                }
+            }
+        }
+        else{
+            printf("'- Sym: (null)\n");
+        }
     }
 
-    //TODO: finish this
 }
 #endif
