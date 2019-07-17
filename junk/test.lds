@@ -1,0 +1,4 @@
+ENT crt0
+MEM RAM0 1kB 0
+SET RAM0_START 0
+PUT .text RAM0
