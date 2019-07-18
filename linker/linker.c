@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "ldparser.h"
+
 static void print_version(void);
 static void print_help(void);
 static void arg_parse(int argc, char* argv[]);
@@ -62,6 +64,11 @@ int main(int argc, char *argv[]){
     for(unsigned int i = 0; i < settings.obj_count; i++){
         printf("%s\n", settings.obj_files[i]);
     }
+
+    lds_t *lds = parse_lds(settings.linker_script);
+
+    print_lds(lds);
+    free_lds(lds);
 
     return 1;
 }

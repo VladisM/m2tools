@@ -8,17 +8,23 @@
 
 #include <isa.h>
 
-static inline lds_t *new_lds(void);
-static inline mem_t *new_mem(char *name, isa_address_t size, isa_address_t orig);
-static inline sym_t *new_sym(char *name, isa_address_t value);
-static inline void check_malloc(void *p);
-static inline void parse_tokens(char *t);
+typedef struct tok_s{
+    struct tok_s *next;
+    char *tok;
+    unsigned int line;
+}tok_t;
 
 typedef enum{
     PS_IDLE = 0,
     PS_COMMENT,
     PS_TOK
 }lds_parser_state_t;
+
+static inline lds_t *new_lds(void);
+static inline mem_t *new_mem(char *name, isa_address_t size, isa_address_t orig);
+static inline sym_t *new_sym(char *name, isa_address_t value);
+static inline void check_malloc(void *p);
+static inline tok_t *new_tok(char *t);
 
 lds_t *parse_lds(char *path){
     FILE *f = fopen(path, "r");
@@ -29,6 +35,8 @@ lds_t *parse_lds(char *path){
     unsigned int tok_size_real = 2;
     unsigned int tok_size_used = 0;
     lds_t *my_lds = new_lds();
+    tok_t *tokens = NULL;
+    tok_t *last_tok = NULL;
 
     tok = malloc(sizeof(char) * tok_size_real);
     check_malloc((void *)tok);
@@ -78,7 +86,13 @@ lds_t *parse_lds(char *path){
                     }
                     tok[tok_size_used] = '\0';
 
-                    parse_tokens(tok);
+                    tok_t *new = new_tok(tok);
+
+                    if(tokens == NULL) tokens = new;
+                    else last_tok->next = new;
+
+                    last_tok = new;
+                    new->line = line_num;
 
                     memset((void *)tok, 0, sizeof(char) * tok_size_real);
                     tok_size_used = 0;
@@ -123,6 +137,103 @@ care_about_token:
 
     fclose(f);
     free(tok);
+
+    for(tok_t *head = tokens; head != NULL; head = head->next){
+        //TODO: parse tokens
+
+        if(strcmp(head->tok, "MEM") == 0){
+
+            if(head->next == NULL || head->next->next == NULL || head->next->next->next == NULL){
+                fprintf(stderr, "Syntax error in lds file at line %d! Missing argument!\n", head->line);
+                exit(EXIT_FAILURE);
+            }
+
+            char *mem_name_s = head->next->tok;
+            char *mem_size_s = head->next->next->tok;
+            char *mem_orig_s = head->next->next->next->tok;
+
+            for(int i = 0; mem_name_s[i] != '\0'; i++){
+                if(isalnum(mem_name_s[i]) == 0 && mem_name_s[i] != '.' && mem_name_s[i] != '_'){
+                    fprintf(stderr, "Syntax error in lds file at line: %d! Unallowed char in memory name.\n", head->line);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            for(int i = 0; mem_size_s[i] != '\0'; i++){
+                if(isdigit(mem_size_s[i]) == 0 && mem_size_s[i] != 'k' && mem_size_s[i] != 'M'){
+                    fprintf(stderr, "Syntax error in lds file at line: %d! Unallowed char in memory size.\n", head->line);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            for(int i = 0; mem_orig_s[i] != '\0'; i++){
+                if(isxdigit(mem_orig_s[i]) == 0 && mem_orig_s[i] != 'x'){
+                    fprintf(stderr, "Syntax error in lds file at line: %d! Unallowed char in memory origin.\n", head->line);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            //create memory, decode size and orig, check if memory exist already
+            isa_address_t orig = 0;
+            isa_address_t size = 0;
+
+            sscanf(mem_orig_s, SCNisa_addr, &orig);
+
+
+            head = head->next->next->next;
+        }
+        else if(strcmp(head->tok, "PUT") == 0){
+            head = head->next->next;
+        }
+        else if(strcmp(head->tok, "SET") == 0){
+            head = head->next->next;
+        }
+        else if(strcmp(head->tok, "ENT") == 0){
+            if(head->next == NULL){
+                fprintf(stderr, "Syntax error in lds file at line %d! Missing argument!\n", head->line);
+                exit(EXIT_FAILURE);
+            }
+
+            tok_t *name = head->next;
+            char *name_s = name->tok;
+
+            for(int i = 0; name_s[i] != '\0'; i++){
+                if(isalnum(name_s[i]) == 0 && name_s[i] != '.' && name_s[i] != '_'){
+                    fprintf(stderr, "Syntax error in lds file at line: %d! Unallowed char in name.\n", head->line);
+                }
+            }
+
+            if(my_lds->entry_point == NULL){
+                char *tmp = (char *)malloc(sizeof(char) * (strlen(name_s) + 1));
+                check_malloc(tmp);
+                strcpy(tmp, name_s);
+                my_lds->entry_point = tmp;
+            }
+            else{
+                fprintf(stderr, "Multiple use of ENT! Cannot set multiple entry points!\n");
+                exit(EXIT_FAILURE);
+            }
+
+            head = head->next;
+        }
+        else{
+            fprintf(stderr, "Syntax error in lds file at line: %d!\n", head->line);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    {
+        tok_t *tmp = NULL;
+        tok_t *head = tokens;
+
+        while(head != NULL){
+            tmp = head;
+            head = head->next;
+
+            free(tmp->tok);
+            free(tmp);
+        }
+    }
 
     return my_lds;
 }
@@ -224,9 +335,18 @@ static inline void check_malloc(void *p){
     }
 }
 
-static inline void parse_tokens(char *t){
-    printf("%s\n", t);
-    //TODO: finish parsing tokens
+static inline tok_t *new_tok(char *t){
+    tok_t *tmp = (tok_t *)malloc(sizeof(tok_t));
+    char *tmp_s = (char *)malloc(sizeof(char) * (strlen(t) + 1));
+
+    check_malloc((void *)tmp);
+    check_malloc((void *)tmp_s);
+
+    strcpy(tmp_s, t);
+    tmp->tok = tmp_s;
+    tmp->next = NULL;
+
+    return tmp;
 }
 
 #ifndef NDEBUG
