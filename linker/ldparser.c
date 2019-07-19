@@ -233,6 +233,48 @@ care_about_token:
             head = head->next->next;
         }
         else if(strcmp(head->tok, "SET") == 0){
+
+            if(head->next == NULL || head->next->next == NULL){
+                fprintf(stderr, "Syntax error in lds file at line %d! Missing argument!\n", head->line);
+                exit(EXIT_FAILURE);
+            }
+
+            char *sym_name_s = head->next->tok;
+            char *sym_value_s = head->next->next->tok;
+
+            for(int i = 0; sym_name_s[i] != '\0'; i++){
+                if(isalnum(sym_name_s[i]) == 0 && sym_name_s[i] != '.' && sym_name_s[i] != '_'){
+                    fprintf(stderr, "Syntax error in lds file at line: %d! Unallowed char in symbol name.\n", head->line);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            for(int i = 0; sym_value_s[i] != '\0'; i++){
+                if(isxdigit(sym_value_s[i]) == 0 && sym_value_s[i] != 'x'){
+                    fprintf(stderr, "Syntax error in lds file at line: %d! Unallowed char in symbol value.\n", head->line);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            isa_address_t value = 0;
+
+            if(sscanf(sym_value_s, SCNisa_addr, &value) != 1){
+                fprintf(stderr, "Syntax error in lds at line %d! Can't parse symbol value!\n", head->line);
+                exit(EXIT_FAILURE);
+            }
+
+            sym_t *ns = new_sym(sym_name_s, value);
+
+            if(my_lds->first_sym == NULL){
+                my_lds->first_sym = ns;
+                my_lds->last_sym = ns;
+            }
+            else{
+                my_lds->last_sym->next = ns;
+                ns->prev = my_lds->last_sym;
+                my_lds->last_sym = ns;
+            }
+
             head = head->next->next;
         }
         else if(strcmp(head->tok, "ENT") == 0){
