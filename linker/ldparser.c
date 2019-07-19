@@ -275,15 +275,15 @@ care_about_token:
                 }
             }
 
-            char **new_ptr = (char **)realloc(target_mem->sections, sizeof(char **) * (target_mem->section_count + 1));
-            check_malloc(new_ptr);
-            target_mem->sections = new_ptr;
-
             char *s = (char *)malloc(sizeof(char) * (strlen(put_sec_s) + 1));
             check_malloc(s);
             strcpy(s, put_sec_s);
 
-            target_mem->sections[++(target_mem->section_count)] = s;
+            char **new_ptr = (char **)realloc(target_mem->sections, sizeof(char **) * (target_mem->section_count + 1));
+            check_malloc(new_ptr);
+            target_mem->sections = new_ptr;
+
+            target_mem->sections[(target_mem->section_count)++] = s;
 
             head = head->next->next;
         }
@@ -394,6 +394,10 @@ void free_lds(lds_t *l){
             while(head != NULL){
                 tmp = head;
                 head = head->next;
+
+                for(unsigned int i = 0; i < tmp->section_count; i++){
+                    free(tmp->sections[i]);
+                }
 
                 free(tmp->name);
                 free(tmp->sections);
@@ -510,12 +514,33 @@ void print_lds(lds_t *l){
                 if(head->next != NULL){
                     printf("|  |- Name: %s\n", head->name);
                     printf("|  |  |- size:"PRIisa_addr"\n", head->size);
-                    printf("|  |  '- orig:"PRIisa_addr"\n", head->orig);
+                    printf("|  |  |- orig:"PRIisa_addr"\n", head->orig);
+
+                    if(head->section_count == 0){
+                        printf("|  |  '- assig sec: (null)\n");
+                    }
+                    else{
+                        printf("|  |  '- assig sec: %d\n", head->section_count);
+                        for(unsigned int i = 0; i < head->section_count - 1; i++){
+                            printf("|  |     |- '%s'\n", head->sections[i]);
+                        }
+                        printf("|  |     '- '%s'\n", head->sections[head->section_count - 1]);
+                    }
                 }
                 else{
                     printf("|  '- Name: %s\n", head->name);
                     printf("|     |- size:"PRIisa_addr"\n", head->size);
                     printf("|     '- orig:"PRIisa_addr"\n", head->orig);
+                    if(head->section_count == 0){
+                        printf("|     '- assig sec: (null)\n");
+                    }
+                    else{
+                        printf("|     '- assig sec: %d\n", head->section_count);
+                        for(unsigned int i = 0; i < head->section_count - 1; i++){
+                            printf("|        |- '%s'\n", head->sections[i]);
+                        }
+                        printf("|        '- '%s'\n", head->sections[head->section_count - 1]);
+                    }
                 }
             }
         }
