@@ -230,6 +230,61 @@ care_about_token:
             head = head->next->next->next;
         }
         else if(strcmp(head->tok, "PUT") == 0){
+
+            if(head->next == NULL || head->next->next == NULL){
+                fprintf(stderr, "Syntax error in lds file at line %d! Missing argument!\n", head->line);
+                exit(EXIT_FAILURE);
+            }
+
+            char *put_sec_s = head->next->tok;
+            char *put_mem_s = head->next->next->tok;
+
+            for(int i = 0; put_mem_s[i] != '\0'; i++){
+                if(isalnum(put_mem_s[i]) == 0 && put_mem_s[i] != '.' && put_mem_s[i] != '_'){
+                    fprintf(stderr, "Syntax error in lds file at line: %d! Unallowed char in mem name.\n", head->line);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            for(int i = 0; put_sec_s[i] != '\0'; i++){
+                if(isalnum(put_sec_s[i]) == 0 && put_sec_s[i] != '.' && put_sec_s[i] != '_' && put_sec_s[i] != '*'){
+                    fprintf(stderr, "Syntax error in lds file at line: %d! Unallowed char in section name.\n", head->line);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            mem_t *target_mem = NULL;
+
+            for(mem_t *head_mem = my_lds->first_mem; head_mem != NULL; head_mem = head_mem->next){
+                if(strcmp(head_mem->name, put_mem_s) == 0){
+                    target_mem = head_mem;
+                    break;
+                }
+            }
+
+            if(target_mem == NULL){
+                fprintf(stderr, "Error at line %d! Memory %s was not found!\n", head->line, put_mem_s);
+                exit(EXIT_FAILURE);
+            }
+
+
+            for(unsigned int i = 0; i < target_mem->section_count; i++){
+                if(strcmp(target_mem->sections[i], put_sec_s) == 0){
+                    fprintf(stderr, "Error, section %s is already assigned to memory %s!\n", put_sec_s, put_mem_s);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            char **new_ptr = (char **)realloc(target_mem->sections, sizeof(char **) * (target_mem->section_count + 1));
+            check_malloc(new_ptr);
+            target_mem->sections = new_ptr;
+
+            char *s = (char *)malloc(sizeof(char) * (strlen(put_sec_s) + 1));
+            check_malloc(s);
+            strcpy(s, put_sec_s);
+
+            target_mem->sections[++(target_mem->section_count)] = s;
+
             head = head->next->next;
         }
         else if(strcmp(head->tok, "SET") == 0){
