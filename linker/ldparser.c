@@ -60,7 +60,7 @@ lds_t *parse_lds(char *path){
                 if(c == ';'){
                     parser_state = PS_COMMENT;
                 }
-                else if(c == ' '){
+                else if(c == ' ' || c == '\n'){
                     parser_state = PS_IDLE;
                 }
                 else if(isalnum(c) || c == '.' || c == '_'){
@@ -173,13 +173,60 @@ care_about_token:
                 }
             }
 
-            //create memory, decode size and orig, check if memory exist already
             isa_address_t orig = 0;
             isa_address_t size = 0;
+            isa_address_t size_mul = 1;
 
-            sscanf(mem_orig_s, SCNisa_addr, &orig);
+            char *mem_size_cp_s = (char *) malloc(sizeof(char) * (strlen(mem_size_s) + 1));
+            check_malloc(mem_size_cp_s);
+            strcpy(mem_size_cp_s, mem_size_s);
 
+            if(sscanf(mem_orig_s, SCNisa_addr, &orig) != 1){
+                fprintf(stderr, "Syntax error in lds at line %d! Can't parse orig addr!\n", head->line);
+                exit(EXIT_FAILURE);
+            }
 
+            for(int i = 0; mem_size_cp_s[i] != '\0'; i++){
+                if(mem_size_cp_s[i] == 'k'){
+                    size_mul = 1024;
+                    mem_size_cp_s[i] = '\0';
+                    break;
+                }
+
+                if(mem_size_cp_s[i] == 'M'){
+                    size_mul = 1024 * 1024;
+                    mem_size_cp_s[i] = '\0';
+                    break;
+                }
+            }
+
+            if(sscanf(mem_size_cp_s, "%d", &size) != 1){
+                fprintf(stderr, "Syntax error in lds at line %d! Can't parse size!\n", head->line);
+                exit(EXIT_FAILURE);
+            }
+
+            size *= size_mul;
+
+            mem_t *nm = new_mem(mem_name_s, size, orig);
+
+            for(mem_t *head_mem = my_lds->first_mem; head_mem != NULL; head_mem = head_mem->next){
+                if(strcmp(head_mem->name, nm->name) == 0){
+                    fprintf(stderr, "Mem already exist! Mem: %s.\n", nm->name);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            if(my_lds->first_mem == NULL){
+                my_lds->first_mem = nm;
+                my_lds->last_mem = nm;
+            }
+            else{
+                my_lds->last_mem->next = nm;
+                nm->prev = my_lds->last_mem;
+                my_lds->last_mem = nm;
+            }
+
+            free(mem_size_cp_s);
             head = head->next->next->next;
         }
         else if(strcmp(head->tok, "PUT") == 0){
@@ -365,13 +412,13 @@ void print_lds(lds_t *l){
             for(mem_t *head = l->first_mem; head != NULL; head = head->next){
                 if(head->next != NULL){
                     printf("|  |- Name: %s\n", head->name);
-                    printf("|  |  |- size:"PRIisa_addr, head->size);
-                    printf("|  |  '- orig:"PRIisa_addr, head->orig);
+                    printf("|  |  |- size:"PRIisa_addr"\n", head->size);
+                    printf("|  |  '- orig:"PRIisa_addr"\n", head->orig);
                 }
                 else{
-                    printf("|  |- Name: %s\n", head->name);
-                    printf("|     |- size:"PRIisa_addr, head->size);
-                    printf("|     '- orig:"PRIisa_addr, head->orig);
+                    printf("|  '- Name: %s\n", head->name);
+                    printf("|     |- size:"PRIisa_addr"\n", head->size);
+                    printf("|     '- orig:"PRIisa_addr"\n", head->orig);
                 }
             }
         }
@@ -385,11 +432,11 @@ void print_lds(lds_t *l){
             for(sym_t *head = l->first_sym; head != NULL; head = head->next){
                 if(head->next != NULL){
                     printf("   |- Name: %s\n", head->name);
-                    printf("   |  '- value:"PRIisa_addr, head->value);
+                    printf("   |  '- value:"PRIisa_addr"\n", head->value);
                 }
                 else{
                     printf("   '- Name: %s\n", head->name);
-                    printf("      '- value:"PRIisa_addr, head->value);
+                    printf("      '- value:"PRIisa_addr"\n", head->value);
                 }
             }
         }
