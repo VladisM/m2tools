@@ -1,9 +1,20 @@
 /**
  * @file linker.c
  *
- * @brief Tool for linking object files together.
+ * @brief Portable linker from m2tools.
  *
  * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ *
+ * @note This file is part of m2tools project.
+ *
+ * Linker is splitted into multiple files:
+ *  - ldparser.c
+ *  - ldparser.h
+ *  - linker.c
+ *
+ * @todo add doc about lds file format
+ * @todo finish linker
+ * @todo add date when finished
  */
 
 #include <stdlib.h>

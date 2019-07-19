@@ -1,3 +1,19 @@
+/**
+ * @file ldparser.c
+ *
+ * @brief Portable linker from m2tools.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 19.07.2019
+ *
+ * @note This file is part of m2tools project.
+ *
+ * Linker is splitted into multiple files:
+ *  - ldparser.c
+ *  - ldparser.h
+ *  - linker.c
+ */
+
 #include "ldparser.h"
 
 #include <stdlib.h>
@@ -139,7 +155,6 @@ care_about_token:
     free(tok);
 
     for(tok_t *head = tokens; head != NULL; head = head->next){
-        //TODO: parse tokens
 
         if(strcmp(head->tok, "MEM") == 0){
 

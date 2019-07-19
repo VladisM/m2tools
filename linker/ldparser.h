@@ -1,3 +1,19 @@
+/**
+ * @file ldparser.h
+ *
+ * @brief Portable linker from m2tools.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 19.07.2019
+ *
+ * @note This file is part of m2tools project.
+ *
+ * Linker is splitted into multiple files:
+ *  - ldparser.c
+ *  - ldparser.h
+ *  - linker.c
+ */
+
 #ifndef LDPARSE_H_included
 #define LDPARSE_H_included
 
