@@ -113,7 +113,7 @@ lds_t *parse_lds(char *path){
                     memset((void *)tok, 0, sizeof(char) * tok_size_real);
                     tok_size_used = 0;
                 }
-                else if(isalnum(c) || c == '.' || c == '_'){
+                else if(isalnum(c) || c == '.' || c == '_' || c == '*'){
 care_about_token:
                     parser_state = PS_TOK;
 
