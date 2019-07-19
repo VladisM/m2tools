@@ -17,6 +17,10 @@ static void print_help(void);
 static void arg_parse(int argc, char* argv[]);
 static void clean_mem(void);
 
+#ifndef NDEBUG
+void print_settings(void);
+#endif
+
 typedef struct{
     char **libs;
     char **obj_files;
@@ -51,19 +55,7 @@ int main(int argc, char *argv[]){
     //get arguments
     arg_parse(argc, argv);
 
-    printf("libs_count: %d \t obj_count: %d \t out_filename: %s\n", settings.libs_count, settings.obj_count, settings.output_filename);
-
-    printf("libs:\n");
-
-    for(unsigned int i = 0; i < settings.libs_count; i++){
-        printf("%s\n", settings.libs[i]);
-    }
-
-    printf("objs:\n");
-
-    for(unsigned int i = 0; i < settings.obj_count; i++){
-        printf("%s\n", settings.obj_files[i]);
-    }
+    print_settings();
 
     lds_t *lds = parse_lds(settings.linker_script);
 
@@ -190,3 +182,37 @@ static void clean_mem(void){
         free(settings.libs);
     }
 }
+
+
+#ifndef NDEBUG
+void print_settings(void){
+    printf("Settings:\n");
+
+    printf("|- Linker script: '%s'\n", settings.linker_script);
+    printf("|- Output name: '%s'\n", settings.output_filename);
+
+    if(settings.libs_count == 0){
+        printf("|- Static libs: (null)\n");
+    }
+    else{
+        printf("|- Static libs: %d\n", settings.libs_count);
+
+        for(unsigned int i = 0; i < settings.libs_count - 1; i++){
+            printf("|  |- '%s'\n", settings.libs[i]);
+        }
+        printf("|  '- '%s'\n", settings.libs[settings.libs_count - 1]);
+    }
+
+    if(settings.obj_count == 0){
+        printf("'- Object files: (null)\n");
+    }
+    else{
+        printf("'- Object files: %d\n", settings.obj_count);
+
+        for(unsigned int i = 0; i < settings.obj_count - 1; i++){
+            printf("   |- '%s'\n", settings.obj_files[i]);
+        }
+        printf("   '- '%s'\n", settings.obj_files[settings.obj_count - 1]);
+    }
+}
+#endif
