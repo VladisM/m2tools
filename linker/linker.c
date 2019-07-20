@@ -12,9 +12,51 @@
  *  - ldparser.h
  *  - linker.c
  *
- * @todo add doc about lds file format
  * @todo finish linker
  * @todo add date when finished
+ *
+ * Linker is configured via linker script file. This file have simple syntax.
+ * Main purporse of configuration is to decide wich section goes into wich memory.
+ * Also, is possible to set entry point and define symbols. This can be used to
+ * define for example where RAM end a use this symbol in stack initialization routine.
+ *
+ * Following commands are supported:
+ *
+ * MEM name size orig
+ *      This is used to define new memory. Name is used by PUT command, size can
+ *      use 'k' and 'M' postfix and have to be decimal number, orig have to be
+ *      in format that will be parsed succesfully by sscanf and SCNisa_addr_t
+ *      defined in isa library.
+ *
+ * PUT section_name mem_name
+ *      PUT will place section into specified memory. Memory have to be defined
+ *      before calling PUT. In section name using '*' is possible as usual.
+ *
+ * SET symbol_name symbol_value
+ *      Set will create new symbol with absolute value and place it into global
+ *      symbol table. It can be used to define memory boundaries. Format of
+ *      symbol_value have to be as defined by isa library and is parsed by
+ *      sscanf and SCNisa_addr_t.
+ *
+ * ENT symbol
+ *      This command can be called only once. It is used to specify where
+ *      loader should jump when starting linked program. Symbol have to be defined
+ *      and exported.
+ *
+ * Example of linker file:
+ *
+ *      ;set entry point
+ *      ENT crt0
+ *      ;create two memory
+ *      MEM RAM_0 1k 0x000400
+ *      MEM ROM_0 256 0x000000
+ *      ;create symbols with memory boundaries
+ *      SET RAM_0_START 0x000400
+ *      SET RAM_0_END 0x0007ff
+ *      ;place sections
+ *      PUT .text ROM_0
+ *      PUT .bss RAM_0
+ *      PUT .data RAM_0
  */
 
 #include <stdlib.h>
