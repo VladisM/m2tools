@@ -11,5 +11,6 @@
  * @return true if section have to be in this mem
  */
 bool is_section_in_mem(char *sname, mem_t *m);
+void check_malloc(void *p);
 
 #endif

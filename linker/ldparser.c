@@ -24,6 +24,8 @@
 
 #include <isa.h>
 
+#include "linker_util.h"
+
 typedef struct tok_s{
     struct tok_s *next;
     char *tok;
@@ -39,7 +41,6 @@ typedef enum{
 static inline lds_t *new_lds(void);
 static inline mem_t *new_mem(char *name, isa_address_t size, isa_address_t orig);
 static inline sym_t *new_sym(char *name, isa_address_t value);
-static inline void check_malloc(void *p);
 static inline tok_t *new_tok(char *t);
 
 lds_t *parse_lds(char *path){
@@ -489,13 +490,6 @@ static inline sym_t *new_sym(char *name, isa_address_t value){
     tmp->prev = NULL;
 
     return tmp;
-}
-
-static inline void check_malloc(void *p){
-    if(p == NULL){
-        fprintf(stderr, "Malloc failed!\n");
-        exit(EXIT_FAILURE);
-    }
 }
 
 static inline tok_t *new_tok(char *t){
