@@ -21,8 +21,8 @@
  *  - symbol_table.h
  *  - tokenizer.c
  *  - tokenizer.h
- *  - util.c
- *  - util.h
+ *  - asm_util.c
+ *  - asm_util.h
  *
  * Simple two pass assembler with very simple preprocesor. Preprocessor is
  * implemented in tokenizer.c file. First pass is then in pass1.c and second
@@ -53,7 +53,7 @@
 #include "symbol_table.h"
 #include "pass2.h"
 #include "common_defs.h"
-#include "util.h"
+#include "asm_util.h"
 #include "file_gen.h"
 
 typedef struct{

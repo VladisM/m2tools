@@ -21,8 +21,8 @@
  *  - symbol_table.h
  *  - tokenizer.c
  *  - tokenizer.h
- *  - util.c
- *  - util.h
+ *  - asm_util.c
+ *  - asm_util.h
  */
 
 #include "pass2.h"
@@ -33,7 +33,7 @@
 #include <stdio.h>
 
 #include "common_defs.h"
-#include "util.h"
+#include "asm_util.h"
 
 #include <isa.h>
 

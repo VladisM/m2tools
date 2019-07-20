@@ -21,8 +21,8 @@
  *  - symbol_table.h
  *  - tokenizer.c
  *  - tokenizer.h
- *  - util.c
- *  - util.h
+ *  - asm_util.c
+ *  - asm_util.h
  */
 
 #include "tokenizer.h"
@@ -33,7 +33,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "util.h"
+#include "asm_util.h"
 #include "common_defs.h"
 
 #define TOKEN_EVAL_BUFF_MAX 160

@@ -1,5 +1,5 @@
 /**
- * @file util.h
+ * @file asm_util.h
  *
  * @brief Two pass assembler with simple preprocessor.
  *
@@ -21,12 +21,12 @@
  *  - symbol_table.h
  *  - tokenizer.c
  *  - tokenizer.h
- *  - util.c
- *  - util.h
+ *  - ams_util.c
+ *  - ams_util.h
  */
 
-#ifndef UTIL_H_included
-#define UTIL_H_included
+#ifndef ASM_UTIL_H_included
+#define ASM_UTIL_H_included
 
 #include <stdint.h>
 
