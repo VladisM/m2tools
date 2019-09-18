@@ -97,7 +97,7 @@ Arguments:\n\
     -h --help           Print this help.\n\
        --version        Print version number and exit.\n\
     -l                  Link static library, have to be followed by path.\n\
-    -o --output         Set output filenamem have to be followed by filename.\n\
+    -o --output         Set output filename, have to be followed by name.\n\
     -T                  Path to the linker script.\n\
 \n"
 
