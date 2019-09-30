@@ -41,6 +41,7 @@ add_subdirectory(./isalib)
 add_subdirectory(./objlib)
 add_subdirectory(./microtarlib)
 add_subdirectory(./sllib)
+add_subdirectory(./ldmlib)
 
 #define executable targets
 add_subdirectory(./assembler)
