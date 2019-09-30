@@ -58,6 +58,8 @@ typedef struct{
 typedef enum{
     LDMERR_OK = 0,              /**< @brief Everything is ok ... have a nice day :) */
     LDMERR_PTR_NOT_NULL,
+    LDMERR_NULL_PTR,
+    LDMERR_BROKEN_STRUCT,
     LDMERR_MALLOC_FAILED        /**< @brief Error when trying to allocate memory from heap. */
 } tLdmError;
 
@@ -86,9 +88,8 @@ bool ldm_write(char *filename, ldm_file_t *f);
  *
  * @param f Pointer to clear.
  *
- * @return true if ok, false if fail
  */
-bool free_ldm_file_struct(ldm_file_t *f);
+void free_ldm_file_struct(ldm_file_t *f);
 
 /**
  * @brief Return last error code.
@@ -114,6 +115,9 @@ void clear_ldmlib_errno(void);
 bool new_ldm_file(ldm_file_t **f, char *filename, isa_address_t entry_point);
 bool new_mem(ldm_mem_t **m, char *mem_name, isa_address_t begin_addr, isa_address_t size);
 bool new_item(ldm_item_t **i, isa_address_t address, isa_address_t opword);
+
+bool append_item_into_mem(ldm_item_t *i, ldm_mem_t *m);
+bool append_mem_into_file(ldm_mem_t *m, ldm_file_t *f);
 
 /**
  * @}
