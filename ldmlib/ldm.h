@@ -7,7 +7,15 @@
  * @date 30.09.2019
  *
  * @note This file is part of m2tools project.
+ *
+ * LDM is file that hold informations about memories and associated content of
+ * memory. Each memory (ldm_mem_t) have name, start address and size. Memory
+ * containt items (ldm_item_t). Item is storing one piece of information in
+ * that memory. File is stored in structure ldm_file_t, and stored is also arch name,
+ * file name, and entry point address.
  */
+
+//TODO: doplnit komentáře
 
 #ifndef LDM_H_included
 #define LDM_H_included
@@ -24,23 +32,32 @@
  * @{
  */
 
+/**
+ * @brief
+ */
 typedef struct ldm_item_s{
-    struct ldm_item_s *next;
-    struct ldm_item_s *prev;
-    isa_address_t address;
-    isa_instruction_word_t word;
+    struct ldm_item_s *next;     /**< @b */
+    struct ldm_item_s *prev;     /**< @b */
+    isa_address_t address;       /**< @b */
+    isa_instruction_word_t word; /**< @b */
 } ldm_item_t;
 
+/**
+ * @brief
+ */
 typedef struct ldm_mem_s{
-    struct ldm_mem_s *next;
-    struct ldm_mem_s *prev;
-    ldm_item_t *first_item;
-    ldm_item_t *last_item;
-    char *mem_name;
-    isa_address_t begin_addr;
-    isa_address_t size;
+    struct ldm_mem_s *next;      /**< @b */
+    struct ldm_mem_s *prev;      /**< @b */
+    ldm_item_t *first_item;      /**< @b */
+    ldm_item_t *last_item;       /**< @b */
+    char *mem_name;              /**< @b */
+    isa_address_t begin_addr;    /**< @b */
+    isa_address_t size;          /**< @b */
 } ldm_mem_t;
 
+/**
+ * @brief
+ */
 typedef struct{
     ldm_mem_t *first_mem;
     ldm_mem_t *last_mem;
@@ -110,13 +127,58 @@ tLdmError get_ldmlib_errno(void);
  */
 void clear_ldmlib_errno(void);
 
-
-
+/**
+ * @brief
+ *
+ * @param f
+ * @param filename
+ * @param entry_point
+ *
+ * @return
+ */
 bool new_ldm_file(ldm_file_t **f, char *filename, isa_address_t entry_point);
+
+/**
+ * @brief
+ *
+ * @param m
+ * @param mem_name
+ * @param begin_addr
+ * @param size
+ *
+ * @return
+ */
 bool new_mem(ldm_mem_t **m, char *mem_name, isa_address_t begin_addr, isa_address_t size);
+
+/**
+ * @brief
+ *
+ * @param i
+ * @param address
+ * @param opword
+ *
+ * @return
+ */
 bool new_item(ldm_item_t **i, isa_address_t address, isa_address_t opword);
 
+/**
+ * @brief
+ *
+ * @param i
+ * @param m
+ *
+ * @return
+ */
 bool append_item_into_mem(ldm_item_t *i, ldm_mem_t *m);
+
+/**
+ * @brief
+ *
+ * @param m
+ * @param f
+ *
+ * @return
+ */
 bool append_mem_into_file(ldm_mem_t *m, ldm_file_t *f);
 
 /**
