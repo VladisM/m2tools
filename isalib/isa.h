@@ -53,8 +53,8 @@ typedef enum {
  */
 typedef uint32_t isa_instruction_word_t;
 
-#define PRIisa_iw "0x08%"PRIx32 /**< @brief Macro for printf to use with isa_instruction_word_t. */
-#define SCNisa_iw "0x08%"SCNx32 /**< @brief Macro for scanf to use with isa_instruction_word_t. */
+#define PRIisa_iw "0x%08"PRIx32 /**< @brief Macro for printf to use with isa_instruction_word_t. */
+#define SCNisa_iw "0x%08"SCNx32 /**< @brief Macro for scanf to use with isa_instruction_word_t. */
 
 /**
  * Type to hold address in memory on target arch.
