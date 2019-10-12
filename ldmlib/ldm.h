@@ -77,6 +77,7 @@ typedef enum{
     LDMERR_PTR_NOT_NULL,
     LDMERR_NULL_PTR,
     LDMERR_BROKEN_STRUCT,
+    LDMERR_FOPEN_ERROR,
     LDMERR_MALLOC_FAILED        /**< @brief Error when trying to allocate memory from heap. */
 } tLdmError;
 

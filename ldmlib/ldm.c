@@ -35,8 +35,39 @@ bool ldm_load(char *filename, ldm_file_t **f){
 }
 
 bool ldm_write(char *filename, ldm_file_t *f){
-    //TODO: dopsat
-    return false;
+
+    FILE fp = fopen(filename, "w");
+
+    if(fp == NULL){
+        SET_ERROR(LDMERR_FOPEN_ERROR);
+        return false;
+    }
+
+    fprintf(fp, ".ldm\n%s\n", f->ldm_file_name);
+    fprintf(fp, ".arch\n%s\n", f->target_arch_name);
+    fprintf(fp, ".entry\n"PRIisa_addr"\n", f->entry_point);
+
+    ldm_mem_t *head_mem = f->first_mem;
+
+    while(head_mem != NULL){
+        fprintf(fp, ".mem\n%s\n", head_mem->mem_name);
+        fprintf(fp, ".begin\n"PRIisa_addr"\n", head_mem->begin_addr);
+        fprintf(fp, ".size\n"PRIisa_addr"\n", head_mem->size);
+        fprintf(fp, ".item\n");
+
+        ldm_item_t *head_item = head_mem->first_item;
+
+        while(head_item != NULL){
+            fprintf(fp, PRIisa_addr";"PRIisa_iw"\n", head_item->address, head_item->word);
+            head_item = head_item->next;
+        }
+
+        head_mem = head_mem->next;
+    }
+
+    fclose(fp);
+
+    return true;
 }
 
 void free_ldm_file_struct(ldm_file_t *f){
