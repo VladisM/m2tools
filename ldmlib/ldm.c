@@ -14,8 +14,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "ldm.h"
+
+#include <isa.h>
 
 #define SET_ERROR(n) if(ldmlib_errno == 0) ldmlib_errno = n
 
@@ -35,8 +38,7 @@ bool ldm_load(char *filename, ldm_file_t **f){
 }
 
 bool ldm_write(char *filename, ldm_file_t *f){
-
-    FILE fp = fopen(filename, "w");
+    FILE *fp = fopen(filename, "w");
 
     if(fp == NULL){
         SET_ERROR(LDMERR_FOPEN_ERROR);
@@ -85,17 +87,17 @@ void free_ldm_file_struct(ldm_file_t *f){
         tmp_mem = head_mem;
         head_mem = head_mem->next;
 
-        head_item = head_mem->first_item;
+        head_item = tmp_mem->first_item;
 
         while(head_item != NULL){
             tmp_item = head_item;
             head_item = head_item->next;
 
-            free(head_item);
+            free(tmp_item);
         }
 
-        free(head_mem->mem_name);
-        free(head_mem);
+        free(tmp_mem->mem_name);
+        free(tmp_mem);
     }
 
     free(f->target_arch_name);
@@ -116,20 +118,20 @@ bool new_ldm_file(ldm_file_t **f, char *filename, isa_address_t entry_point){
         return false;
     }
 
-    *f->file_name = (char *)malloc(sizeof(char) * (strlen(filename) + 1));
-    *f->target_arch_name = (char *)malloc(sizeof(char) * (strlen(TARGET_ARCH) + 1));
+    (*f)->ldm_file_name = (char *)malloc(sizeof(char) * (strlen(filename) + 1));
+    (*f)->target_arch_name = (char *)malloc(sizeof(char) * (strlen(TARGET_ARCH_NAME) + 1));
 
-    if(*f->file_name == NULL || *f->target_arch_name == NULL){
+    if((*f)->ldm_file_name == NULL || (*f)->target_arch_name == NULL){
         SET_ERROR(LDMERR_MALLOC_FAILED);
         return false;
     }
 
-    strcpy(*f->file_name, filename);
-    strcpy(*f->target_arch_name, TARGET_ARCH);
+    strcpy((*f)->ldm_file_name, filename);
+    strcpy((*f)->target_arch_name, TARGET_ARCH_NAME);
 
-    *f->entry_point = entry_point;
-    *f->first_mem = NULL;
-    *f->last_mem = NULL;
+    (*f)->entry_point = entry_point;
+    (*f)->first_mem = NULL;
+    (*f)->last_mem = NULL;
 
     return true;
 }
@@ -147,21 +149,21 @@ bool new_mem(ldm_mem_t **m, char *mem_name, isa_address_t begin_addr, isa_addres
         return false;
     }
 
-    *m->mem_name = (char *)malloc(sizeof(char) * (strlen(mem_name) + 1));
+    (*m)->mem_name = (char *)malloc(sizeof(char) * (strlen(mem_name) + 1));
 
-    if(*m->mem_name == NULL){
+    if((*m)->mem_name == NULL){
         SET_ERROR(LDMERR_MALLOC_FAILED);
         return false;
     }
 
-    strcpy(*m->mem_name, mem_name);
+    strcpy((*m)->mem_name, mem_name);
 
-    *m->being_addr = begin_addr;
-    *m->size = size;
-    *m->first_item = NULL;
-    *m->last_item = NULL;
-    *m->prev = NULL;
-    *m->next = NULL;
+    (*m)->begin_addr = begin_addr;
+    (*m)->size = size;
+    (*m)->first_item = NULL;
+    (*m)->last_item = NULL;
+    (*m)->prev = NULL;
+    (*m)->next = NULL;
 
     return true;
 }
@@ -179,10 +181,10 @@ bool new_item(ldm_item_t **i, isa_address_t address, isa_address_t opword){
         return false;
     }
 
-    *i->prev = NULL;
-    *i->next = NULL;
-    *i->address = address;
-    *i = opword = opword;
+    (*i)->prev = NULL;
+    (*i)->next = NULL;
+    (*i)->address = address;
+    (*i)->word = opword;
 
     return true;
 }
