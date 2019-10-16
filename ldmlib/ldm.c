@@ -20,9 +20,27 @@
 
 #include <isa.h>
 
-#define SET_ERROR(n) if(ldmlib_errno == 0) ldmlib_errno = n
+#define SET_ERROR(n) if(ldmlib_errno == LDMERR_OK) ldmlib_errno = n
 
-static tLdmError ldmlib_errno;
+typedef enum{
+    LDM_FILE = 0,
+    LDM_NAME,
+    ARCH,
+    ARCH_NAME,
+    ENTRY,
+    ENTRY_VAL,
+    MEM,
+    MEM_NAME,
+    BEGIN,
+    BEGIN_ADDR,
+    SIZE,
+    SIZE_VAL,
+    ITEM,
+    ITEM_VAL
+}ldm_reader_state_t;
+
+static tLdmError ldmlib_errno = LDMERR_OK;
+static ldm_reader_state_t ldmload_decoder_state = LDM_FILE;
 
 tLdmError get_ldmlib_errno(void){
     return ldmlib_errno;
@@ -33,11 +51,100 @@ void clear_ldmlib_errno(void){
 }
 
 bool ldm_load(char *filename, ldm_file_t **f){
-    //TODO: dopsat
+
+    if(filename == NULL || f == NULL){
+        SET_ERROR(LDMERR_NULL_PTR);
+        return false;
+    }
+
+    if(*f != NULL){
+        SET_ERROR(LDMERR_PTR_NOT_NULL);
+        return false;
+    }
+
+    FILE *fp = fopen(filename, "r");
+
+    if(fp == NULL){
+        SET_ERROR(LDMERR_FOPEN_ERROR);
+        return false;
+    }
+
+
+    char line[128];
+    unsigned int line_pos = 0;
+    bool end_of_file = false;
+
+    while(end_of_file != true){
+
+        memset((void *)line, '\0', sizeof(line));
+
+        {
+            int c;
+            while(true){
+                c = fgetc(fp);
+                if((c == EOF)||(c == '\n')||(c == '\r')||(c == '\0'))
+                    break;
+                else if (line_pos > (sizeof(line) - 1)){
+                    SET_ERROR(LDMERR_BROKEN_FILE);
+                    fclose(fp);
+                    return false;
+                }
+                else
+                    line[line_pos++] = (char)c;
+            }
+        }
+
+        //TODO: finish FSM
+        switch(ldmload_decoder_state){
+            case LDM_FILE:
+                break;
+            case LDM_NAME:
+                break;
+            case ARCH:
+                break;
+            case ARCH_NAME:
+                break;
+            case ENTRY:
+                break;
+            case ENTRY_VAL:
+                break;
+            case MEM:
+                break;
+            case MEM_NAME:
+                break;
+            case BEGIN:
+                break;
+            case BEGIN_ADDR:
+                break;
+            case SIZE:
+                break;
+            case SIZE_VAL:
+                break;
+            case ITEM:
+                break;
+            case ITEM_VAL:
+                break;
+            default:
+                SET_ERROR(LDMERR_INTERNAL_ERR);
+                fclose(fp);
+                return false;
+                break;
+        }
+    }
+
+    fclose(fp);
+
+    //TODO: až to bude hotové tak vracet true!!!!!!
     return false;
 }
 
 bool ldm_write(char *filename, ldm_file_t *f){
+
+    if(filename == NULL || f == NULL){
+        SET_ERROR(LDMERR_NULL_PTR);
+        return false;
+    }
+
     FILE *fp = fopen(filename, "w");
 
     if(fp == NULL){
@@ -66,6 +173,8 @@ bool ldm_write(char *filename, ldm_file_t *f){
 
         head_mem = head_mem->next;
     }
+
+    fprintf(fp, ".end\n");
 
     fclose(fp);
 
