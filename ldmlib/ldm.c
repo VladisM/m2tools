@@ -75,8 +75,10 @@ bool ldm_load(char *filename, ldm_file_t **f){
     unsigned int line_pos = 0;
     bool end_of_file = false;
 
-    char *name_buf = NULL;
+    char name_buf[128];
     isa_address_t entry_point = 0;
+
+    memset((void *)name_buf, '\0', sizeof(name_buf));
 
     while(end_of_file != true){
 
@@ -101,83 +103,101 @@ bool ldm_load(char *filename, ldm_file_t **f){
         //TODO: finish FSM
         switch(ldmload_decoder_state){
             case LDM_FILE:
-                if(strcmp(line, ".ldm") == 0)
+                if(strcmp(line, ".ldm") == 0){
                     ldmload_decoder_state = LDM_NAME;
-                else
+                }
+                else{
                     BROKEN_FILE_RETURN(fp);
+                }
                 break;
 
             case LDM_NAME:
-                name_buf = (char *)malloc(sizeof(char) * (strlen(line) + 1));
-
-                if(name_buff == NULL){
-                    SET_ERROR(LDMERR_MALLOC_FAILED);
-                    fclose(fp);
-                    return false;
-                }
-
                 strcpy(name_buf, line);
-
                 ldmload_decoder_state = ARCH;
                 break;
 
             case ARCH:
-                if(strcmp(line, ".arch") == 0)
+                if(strcmp(line, ".arch") == 0){
                     ldmload_decoder_state = ARCH_NAME;
+                }
                 else{
-                    free(name_buf);
                     BROKEN_FILE_RETURN(fp);
                 }
                 break;
 
             case ARCH_NAME:
-                if(strcmp(line, TARGET_ARCH_NAME) == 0)
+                if(strcmp(line, TARGET_ARCH_NAME) == 0){
                     ldmload_decoder_state = ENTRY;
+                }
                 else{
                     SET_ERROR(LDMERR_WRONG_ARCH);
-                    free(name_buf);
                     fclose(fp);
                     return false;
                 }
                 break;
 
             case ENTRY:
-                if(strcmp(line, ".entry") == 0)
+                if(strcmp(line, ".entry") == 0){
                     ldmload_decoder_state = ENTRY_VAL;
+                }
                 else{
-                    free(name_buf);
                     BROKEN_FILE_RETURN(fp);
                 }
                 break;
 
             case ENTRY_VAL:
                 if(sscanf(line, SCNisa_addr, &entry_point) != 1){
-                    free(name_buf);
                     BROKEN_FILE_RETURN(fp);
                 }
                 else{
                     if(new_ldm_file(f, name_buf, entry_point) != true){
-                        free(name_buf);
                         SET_ERROR(LDMERR_INTERNAL_ERR);
                         fclose(fp);
+                        memset((void *)name_buf, '\0', sizeof(name_buf));
                         return false;
                     }
                     else{
-                        free(name_buf);
                         ldmload_decoder_state = MEM;
+                        memset((void *)name_buf, '\0', sizeof(name_buf));
                     }
                 }
                 break;
+
             case MEM:
+                if(strcmp(line, ".mem") == 0){
+                    ldmload_decoder_state = MEM_NAME;
+                }
+                else{
+                    BROKEN_FILE_RETURN(fp);
+                }
                 break;
+
             case MEM_NAME:
+                strcpy(name_buf, line);
+                ldmload_decoder_state = BEGIN;
                 break;
+
             case BEGIN:
+                if(strcmp(line, ".begin") == 0){
+                    ldmload_decoder_state = BEGIN_ADDR;
+                }
+                else{
+                    BROKEN_FILE_RETURN(fp);
+                }
                 break;
+
             case BEGIN_ADDR:
                 break;
+
             case SIZE:
+                if(strcmp(line, ".size") == 0){
+                    ldmload_decoder_state = BEGIN_ADDR;
+                }
+                else{
+                    BROKEN_FILE_RETURN(fp);
+                }
                 break;
+
             case SIZE_VAL:
                 break;
             case ITEM:
