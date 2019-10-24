@@ -76,9 +76,17 @@ bool ldm_load(char *filename, ldm_file_t **f){
     bool end_of_file = false;
 
     char name_buf[128];
+    char mem_name_buf[128];
     isa_address_t entry_point = 0;
+    isa_address_t begin_addr = 0;
+    isa_address_t size_val = 0;
+    isa_address_t item_adr = 0;
+    isa_instruction_word_t item_val = 0;
 
     memset((void *)name_buf, '\0', sizeof(name_buf));
+    memset((void *)mem_name_buf, '\0', sizeof(name_buf));
+
+    ldm_mem_t *last_mem_ptr = NULL;
 
     while(end_of_file != true){
 
@@ -100,7 +108,6 @@ bool ldm_load(char *filename, ldm_file_t **f){
             }
         }
 
-        //TODO: finish FSM
         switch(ldmload_decoder_state){
             case LDM_FILE:
                 if(strcmp(line, ".ldm") == 0){
@@ -153,7 +160,6 @@ bool ldm_load(char *filename, ldm_file_t **f){
                     if(new_ldm_file(f, name_buf, entry_point) != true){
                         SET_ERROR(LDMERR_INTERNAL_ERR);
                         fclose(fp);
-                        memset((void *)name_buf, '\0', sizeof(name_buf));
                         return false;
                     }
                     else{
@@ -173,7 +179,7 @@ bool ldm_load(char *filename, ldm_file_t **f){
                 break;
 
             case MEM_NAME:
-                strcpy(name_buf, line);
+                strcpy(mem_name_buf, line);
                 ldmload_decoder_state = BEGIN;
                 break;
 
@@ -187,11 +193,17 @@ bool ldm_load(char *filename, ldm_file_t **f){
                 break;
 
             case BEGIN_ADDR:
+                if(sscanf(line, SCNisa_addr, &begin_addr) != 1){
+                    BROKEN_FILE_RETURN(fp);
+                }
+                else{
+                    ldmload_decoder_state = SIZE;
+                }
                 break;
 
             case SIZE:
                 if(strcmp(line, ".size") == 0){
-                    ldmload_decoder_state = BEGIN_ADDR;
+                    ldmload_decoder_state = SIZE_VAL;
                 }
                 else{
                     BROKEN_FILE_RETURN(fp);
@@ -199,23 +211,73 @@ bool ldm_load(char *filename, ldm_file_t **f){
                 break;
 
             case SIZE_VAL:
+                if(sscanf(line, SCNisa_addr, &size_val) != 1){
+                    BROKEN_FILE_RETURN(fp);
+                }
+                else{
+                    last_mem_ptr = NULL;
+
+                    if(new_mem(&last_mem_ptr, mem_name_buf, begin_addr, size_val) == true){
+                        if(append_mem_into_file(last_mem_ptr, *f) == true){
+                            ldmload_decoder_state = ITEM;
+                            break;
+                        }
+                    }
+
+                    SET_ERROR(LDMERR_INTERNAL_ERR);
+                    fclose(fp);
+                    return false;
+                }
                 break;
+
             case ITEM:
+                if(strcmp(line, ".item") == 0){
+                    ldmload_decoder_state = ITEM_VAL;
+                }
+                else{
+                    BROKEN_FILE_RETURN(fp);
+                }
                 break;
+
             case ITEM_VAL:
+                if(strcmp(line, ".mem") == 0){
+                    ldmload_decoder_state = MEM_NAME;
+                }
+                else if(strcmp(line, ".end") == 0){
+                    end_of_file = true;
+                    break;
+                }
+                else{
+                    if(sscanf(line, SCNisa_addr":"SCNisa_iw, &item_adr, &item_val) == 2){
+                        ldm_item_t *new_item_ptr = NULL;
+
+                        if(new_item(&new_item_ptr, item_adr, item_val) == true){
+                            if(append_item_into_mem(new_item_ptr, last_mem_ptr) == true){
+                                ldmload_decoder_state = ITEM_VAL;
+                                break;
+                            }
+                        }
+
+                        SET_ERROR(LDMERR_INTERNAL_ERR);
+                        fclose(fp);
+                        return false;
+                    }
+                    else{
+                        BROKEN_FILE_RETURN(fp);
+                    }
+                }
                 break;
+
             default:
                 SET_ERROR(LDMERR_INTERNAL_ERR);
                 fclose(fp);
                 return false;
-                break;
         }
     }
 
     fclose(fp);
 
-    //TODO: až to bude hotové tak vracet true!!!!!!
-    return false;
+    return true;
 }
 
 bool ldm_write(char *filename, ldm_file_t *f){
@@ -311,6 +373,9 @@ bool new_ldm_file(ldm_file_t **f, char *filename, isa_address_t entry_point){
     (*f)->target_arch_name = (char *)malloc(sizeof(char) * (strlen(TARGET_ARCH_NAME) + 1));
 
     if((*f)->ldm_file_name == NULL || (*f)->target_arch_name == NULL){
+        free((*f)->ldm_file_name);
+        free((*f)->target_arch_name);
+        free(*f);
         SET_ERROR(LDMERR_MALLOC_FAILED);
         return false;
     }
@@ -341,6 +406,7 @@ bool new_mem(ldm_mem_t **m, char *mem_name, isa_address_t begin_addr, isa_addres
     (*m)->mem_name = (char *)malloc(sizeof(char) * (strlen(mem_name) + 1));
 
     if((*m)->mem_name == NULL){
+        free(*m);
         SET_ERROR(LDMERR_MALLOC_FAILED);
         return false;
     }
