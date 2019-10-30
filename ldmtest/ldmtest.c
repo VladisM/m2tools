@@ -9,7 +9,8 @@
 
 int main(int argc, char **argv){
 
-    ldm_file_t *lfile = NULL;
+    ldm_file_t *lfile_1 = NULL;
+    ldm_file_t *lfile_2 = NULL;
     ldm_mem_t *mem_1 = NULL;
     ldm_mem_t *mem_2 = NULL;
 
@@ -20,7 +21,7 @@ int main(int argc, char **argv){
     ldm_item_t *item_2m2 = NULL;
     ldm_item_t *item_3m2 = NULL;
 
-    if(new_ldm_file(&lfile, "test.ldm", 0x100) != true){
+    if(new_ldm_file(&lfile_1, "test.ldm", 0x100) != true){
         FAIL("failed create file!");
     }
 
@@ -32,11 +33,11 @@ int main(int argc, char **argv){
         FAIL("failed create mem_2!");
     }
 
-    if(append_mem_into_file(mem_1, lfile) != true){
+    if(append_mem_into_file(mem_1, lfile_1) != true){
         FAIL("failed to add mem_1 into ldm file!");
     }
 
-    if(append_mem_into_file(mem_2, lfile) != true){
+    if(append_mem_into_file(mem_2, lfile_1) != true){
         FAIL("failed to add mem_2 into ldm file!");
     }
 
@@ -88,11 +89,20 @@ int main(int argc, char **argv){
         FAIL("failed to append item_3m2!");
     }
 
-    if(ldm_write("test.ldm", lfile) != true){
+    if(ldm_write("test.ldm", lfile_1) != true){
         FAIL("failed to writeout file!");
     }
 
-    free_ldm_file_struct(lfile);
+    if(ldm_load("test.ldm", &lfile_2) != true){
+        FAIL("failed to read file!");
+    }
+
+    if(ldm_write("test_2.ldm", lfile_2) != true){
+        FAIL("failed to write second file out!");
+    }
+
+    free_ldm_file_struct(lfile_1);
+    free_ldm_file_struct(lfile_2);
 
     printf("ldmtest - OK\n");
 

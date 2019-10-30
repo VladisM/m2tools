@@ -84,13 +84,14 @@ bool ldm_load(char *filename, ldm_file_t **f){
     isa_instruction_word_t item_val = 0;
 
     memset((void *)name_buf, '\0', sizeof(name_buf));
-    memset((void *)mem_name_buf, '\0', sizeof(name_buf));
+    memset((void *)mem_name_buf, '\0', sizeof(mem_name_buf));
 
     ldm_mem_t *last_mem_ptr = NULL;
 
     while(end_of_file != true){
 
         memset((void *)line, '\0', sizeof(line));
+        line_pos = 0;
 
         {
             int c;
