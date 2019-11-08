@@ -48,5 +48,3 @@ add_subdirectory(./assembler)
 add_subdirectory(./archiver)
 add_subdirectory(./objread)
 add_subdirectory(./linker)
-
-add_subdirectory(./ldmtest)
