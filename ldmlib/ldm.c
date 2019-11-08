@@ -310,7 +310,7 @@ bool ldm_write(char *filename, ldm_file_t *f){
         ldm_item_t *head_item = head_mem->first_item;
 
         while(head_item != NULL){
-            fprintf(fp, PRIisa_addr";"PRIisa_iw"\n", head_item->address, head_item->word);
+            fprintf(fp, PRIisa_addr":"PRIisa_iw"\n", head_item->address, head_item->word);
             head_item = head_item->next;
         }
 
