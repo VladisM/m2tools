@@ -65,6 +65,10 @@
 
 #include "ldparser.h"
 
+#include <isa.h>
+#include <ldm.h>
+#include <obj.h>
+
 static void print_version(void);
 static void print_help(void);
 static void arg_parse(int argc, char* argv[]);
@@ -84,6 +88,7 @@ typedef struct{
 }settings_t;
 
 static settings_t settings;
+ldm_file_t *finalLDM = NULL;
 
 #define HELP_STRING "\
 Example usage: \n\
@@ -111,6 +116,11 @@ int main(int argc, char *argv[]){
     print_settings();
 
     lds_t *lds = parse_lds(settings.linker_script);
+
+    if(new_ldm_file(&finalLDM, settings.output_filename, lds->entry_point) != true){
+        fprintf(stderr, "Failed to create LDM file struct! ldmlib errno: %d\n", get_ldmlib_errno());
+        exit(EXIT_FAILURE);
+    }
 
     print_lds(lds);
     free_lds(lds);
@@ -233,6 +243,10 @@ static void clean_mem(void){
 
     if(settings.libs != NULL){
         free(settings.libs);
+    }
+
+    if(finalLDM != NULL){
+        free_ldm_file_struct(finalLDM);
     }
 }
 
