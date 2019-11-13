@@ -5,6 +5,6 @@ set(sources linker.c ldparser.c linker_util.c ln_symbol_table.c)
 
 add_executable(${target_prefix}-linker ${sources})
 
-target_link_libraries(${target_prefix}-linker objlib isalib sllib)
+target_link_libraries(${target_prefix}-linker objlib isalib sllib ldmlib)
 
 target_compile_definitions(${target_prefix}-linker PRIVATE -DPROG_NAME="${target_prefix}-linker")

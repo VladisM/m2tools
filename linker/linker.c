@@ -89,6 +89,7 @@ typedef struct{
 
 static settings_t settings;
 ldm_file_t *finalLDM = NULL;
+lds_t *lds = NULL;
 
 #define HELP_STRING "\
 Example usage: \n\
@@ -115,15 +116,15 @@ int main(int argc, char *argv[]){
 
     print_settings();
 
-    lds_t *lds = parse_lds(settings.linker_script);
+    lds = parse_lds(settings.linker_script);
 
-    if(new_ldm_file(&finalLDM, settings.output_filename, lds->entry_point) != true){
-        fprintf(stderr, "Failed to create LDM file struct! ldmlib errno: %d\n", get_ldmlib_errno());
-        exit(EXIT_FAILURE);
-    }
+    //TODO: vytvoření struktury je možné až po rozluštění symbolů - protože ENTRY_POINT
+    //~ if(new_ldm_file(&finalLDM, settings.output_filename, ENTRY_POINT) != true){
+        //~ fprintf(stderr, "Failed to create LDM file struct! ldmlib errno: %d\n", get_ldmlib_errno());
+        //~ exit(EXIT_FAILURE);
+    //~ }
 
     print_lds(lds);
-    free_lds(lds);
 
     return 1;
 }
@@ -247,6 +248,10 @@ static void clean_mem(void){
 
     if(finalLDM != NULL){
         free_ldm_file_struct(finalLDM);
+    }
+
+    if(lds != NULL){
+        free_lds(lds);
     }
 }
 
