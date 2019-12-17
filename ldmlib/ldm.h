@@ -136,11 +136,20 @@ void clear_ldmlib_errno(void);
  *
  * @param f
  * @param filename
+ *
+ * @return
+ */
+bool new_ldm_file(ldm_file_t **f, char *filename);
+
+/**
+ * @brief
+ *
+ * @param f
  * @param entry_point
  *
  * @return
  */
-bool new_ldm_file(ldm_file_t **f, char *filename, isa_address_t entry_point);
+bool set_entry_point(ldm_file_t *f, isa_address_t entry_point);
 
 /**
  * @brief

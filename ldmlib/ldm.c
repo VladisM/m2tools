@@ -158,12 +158,13 @@ bool ldm_load(char *filename, ldm_file_t **f){
                     BROKEN_FILE_RETURN(fp);
                 }
                 else{
-                    if(new_ldm_file(f, name_buf, entry_point) != true){
+                    if(new_ldm_file(f, name_buf) != true){
                         SET_ERROR(LDMERR_INTERNAL_ERR);
                         fclose(fp);
                         return false;
                     }
                     else{
+                        set_entry_point(*f, entry_point);
                         ldmload_decoder_state = MEM;
                         memset((void *)name_buf, '\0', sizeof(name_buf));
                     }
@@ -357,7 +358,7 @@ void free_ldm_file_struct(ldm_file_t *f){
     free(f);
 }
 
-bool new_ldm_file(ldm_file_t **f, char *filename, isa_address_t entry_point){
+bool new_ldm_file(ldm_file_t **f, char *filename){
     if(*f != NULL){
         SET_ERROR(LDMERR_PTR_NOT_NULL);
         return false;
@@ -384,9 +385,20 @@ bool new_ldm_file(ldm_file_t **f, char *filename, isa_address_t entry_point){
     strcpy((*f)->ldm_file_name, filename);
     strcpy((*f)->target_arch_name, TARGET_ARCH_NAME);
 
-    (*f)->entry_point = entry_point;
+    (*f)->entry_point = 0;
     (*f)->first_mem = NULL;
     (*f)->last_mem = NULL;
+
+    return true;
+}
+
+bool set_entry_point(ldm_file_t *f, isa_address_t entry_point){
+    if(f == NULL){
+        SET_ERROR(LDMERR_NULL_PTR);
+        return false;
+    }
+
+    f->entry_point = entry_point;
 
     return true;
 }
