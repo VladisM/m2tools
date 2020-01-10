@@ -118,11 +118,10 @@ int main(int argc, char *argv[]){
 
     lds = parse_lds(settings.linker_script);
 
-    //TODO: vytvoření struktury je možné až po rozluštění symbolů - protože ENTRY_POINT
-    //~ if(new_ldm_file(&finalLDM, settings.output_filename, ENTRY_POINT) != true){
-        //~ fprintf(stderr, "Failed to create LDM file struct! ldmlib errno: %d\n", get_ldmlib_errno());
-        //~ exit(EXIT_FAILURE);
-    //~ }
+    if(new_ldm_file(&finalLDM, settings.output_filename) != true){
+        fprintf(stderr, "Failed to create LDM file struct! ldmlib errno: %d\n", get_ldmlib_errno());
+        exit(EXIT_FAILURE);
+    }
 
     print_lds(lds);
 
