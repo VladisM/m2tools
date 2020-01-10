@@ -62,6 +62,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "ldparser.h"
 
@@ -114,16 +115,45 @@ int main(int argc, char *argv[]){
     //get arguments
     arg_parse(argc, argv);
 
+    #ifndef NDEBUG
     print_settings();
+    #endif
 
     lds = parse_lds(settings.linker_script);
 
+    //create LDM structure
     if(new_ldm_file(&finalLDM, settings.output_filename) != true){
         fprintf(stderr, "Failed to create LDM file struct! ldmlib errno: %d\n", get_ldmlib_errno());
         exit(EXIT_FAILURE);
     }
 
+    mem_t *head = lds->first_mem;
+
+    if(head == NULL){
+        fprintf(stderr, "There is no memory defined in the LDS file!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    while(head != NULL){
+        ldm_mem_t *tmp_mem = NULL;
+
+        if(new_mem(&tmp_mem, head->name, head->orig, head->size) != true){
+            fprintf(stderr, "Failed to create memory item %s. ldmlib errno: %d\n", head->name, get_ldmlib_errno());
+            exit(EXIT_FAILURE);
+        }
+
+        if(append_mem_into_file(tmp_mem, finalLDM) != true){
+            fprintf(stderr, "Failed to append memory item %s into LDM file! ldmlib errno: %d\n", head->name, get_ldmlib_errno());
+            exit(EXIT_FAILURE);
+        }
+
+        head = head->next;
+    }
+
+
+    #ifndef NDEBUG
     print_lds(lds);
+    #endif
 
     return 1;
 }
