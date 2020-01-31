@@ -214,10 +214,10 @@ bool sl_write(char *filename, static_library_t *lib){
         return false;
     }
 
-    if(mtar_write_file_header(&my_tarfile, "library_name", strlen(lib->library_name))         != MTAR_ESUCCESS) goto head_write_fail;
-    if(mtar_write_data(&my_tarfile, lib->library_name, strlen(lib->library_name))             != MTAR_ESUCCESS) goto head_write_fail;
-    if(mtar_write_file_header(&my_tarfile, "target_arch_name", strlen(lib->target_arch_name)) != MTAR_ESUCCESS) goto head_write_fail;
-    if(mtar_write_data(&my_tarfile, lib->target_arch_name, strlen(lib->target_arch_name))     != MTAR_ESUCCESS) goto head_write_fail;
+    if(mtar_write_file_header(&my_tarfile, "library_name", (unsigned)strlen(lib->library_name))         != MTAR_ESUCCESS) goto head_write_fail;
+    if(mtar_write_data(&my_tarfile, lib->library_name, (unsigned)strlen(lib->library_name))             != MTAR_ESUCCESS) goto head_write_fail;
+    if(mtar_write_file_header(&my_tarfile, "target_arch_name", (unsigned)strlen(lib->target_arch_name)) != MTAR_ESUCCESS) goto head_write_fail;
+    if(mtar_write_data(&my_tarfile, lib->target_arch_name, (unsigned)strlen(lib->target_arch_name))     != MTAR_ESUCCESS) goto head_write_fail;
 
     goto head_write_succes;
 
@@ -237,7 +237,7 @@ head_write_succes:
             return false;
         }
 
-        size_t size = strlen(obj_str) + 1;
+        unsigned size = (unsigned)strlen(obj_str) + 1;
 
         if(mtar_write_file_header(&my_tarfile, head->object_file_name, size) != MTAR_ESUCCESS){
             SET_ERROR(SLRET_CANT_CREATE_SL);
