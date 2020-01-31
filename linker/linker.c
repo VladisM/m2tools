@@ -11,6 +11,8 @@
  *  - ldparser.c
  *  - ldparser.h
  *  - linker.c
+ *  - linker_util.c
+ *  - linker_util.h
  *
  * @todo finish linker
  * @todo add date when finished

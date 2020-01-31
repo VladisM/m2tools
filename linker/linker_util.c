@@ -1,3 +1,21 @@
+/**
+ * @file linker_util.c
+ *
+ * @brief Portable linker from m2tools.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 31.01.2020
+ *
+ * @note This file is part of m2tools project.
+ *
+ * Linker is splitted into multiple files:
+ *  - ldparser.c
+ *  - ldparser.h
+ *  - linker.c
+ *  - linker_util.c
+ *  - linker_util.h
+ */
+
 #include "linker_util.h"
 
 #include <stdlib.h>

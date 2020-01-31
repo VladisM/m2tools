@@ -12,6 +12,8 @@
  *  - ldparser.c
  *  - ldparser.h
  *  - linker.c
+ *  - linker_util.c
+ *  - linker_util.h
  */
 
 #ifndef LDPARSE_H_included
