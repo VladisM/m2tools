@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "obj.h"
 
@@ -351,8 +352,8 @@ bool new_data_symbol(isa_address_t address, data_symbol_type_t type, void *paylo
     tmp_d->next = NULL;
     tmp_d->address = address;
     tmp_d->type = type;
-    tmp_d->relocation = 0;
-    tmp_d->special = 0;
+    tmp_d->relocation = false;
+    tmp_d->special = false;
 
     if(type == DATA_IS_BLOB){
         tmp_d->payload.blob = (datablob_t *)payload_ptr;
@@ -734,7 +735,13 @@ static strbuf_t *obj_write_to_strbuf(obj_file_t *o){
                     return NULL;
                 }
 
-                my_sprintf(strbuf, PRIisa_addr":%"PRIx8":%"PRIx8":%s\n", head_data->address, head_data->relocation, head_data->special, line);
+                uint8_t rel = 0;
+                uint8_t spec = 0;
+
+                if(head_data->relocation == true) rel = 1;
+                if(head_data->special == true) spec = 1;
+
+                my_sprintf(strbuf, PRIisa_addr":%"PRIx8":%"PRIx8":%s\n", head_data->address, rel, spec, line);
 
                 free(line);
             }
@@ -1060,8 +1067,8 @@ section_care:
                                 return NULL;
                             }
 
-                            new_data->relocation = relocation;
-                            new_data->special = special;
+                            if(relocation == 1) new_data->relocation = true;
+                            if(special == 1) new_data->special = true;
 
                             if(!append_data_symbol_to_section(my_new_section, new_data)){
                                 return NULL;

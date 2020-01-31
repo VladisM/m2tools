@@ -59,8 +59,6 @@ typedef struct{
  * binary blob, it simple data payload without any big meaning.
  *
  * All data symbols in section together form a double linked list.
- *
- * @todo: use boolean types in relocation and special
  */
 typedef struct data_symbol_s{
     struct data_symbol_s *next;    /**< @brief Pointer to the next symbol in the list. */
@@ -71,8 +69,8 @@ typedef struct data_symbol_s{
     }payload;                      /**< @brief Union that hold pointer to payload. */
     isa_address_t address;              /**< @brief Address of symbol in memory. This isn't absolute addres, it is rather relative to the beggining of the section.*/
     data_symbol_type_t type;       /**< @brief Type of this symbol. */
-    uint8_t relocation;            /**< @brief Store information about relocation. 0 if should not be relocated, 1 otherwise. */
-    uint8_t special;               /**< @brief Store information about argument, if is special symbol. 1 it is, 0 it isn't. */
+    bool relocation;            /**< @brief Store information about relocation. 0 if should not be relocated, 1 otherwise. */
+    bool special;               /**< @brief Store information about argument, if is special symbol. 1 it is, 0 it isn't. */
 }data_symbol_t;
 
 /**

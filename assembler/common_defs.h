@@ -97,8 +97,8 @@ typedef struct pass_item_s{
     }payload;
     isa_address_t location;
     pass_item_type_t type;
-    uint8_t relocation;
-    uint8_t special;
+    bool relocation;
+    bool special;
 }pass_item_t;
 
 typedef struct pass1_section_s{

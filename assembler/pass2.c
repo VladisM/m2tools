@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "common_defs.h"
 #include "asm_util.h"
@@ -90,8 +91,8 @@ static void _pass2(void){
     for(pass_section_t *s = pass_list_first; s != NULL; s = s->next){
         for(pass_item_t *item = s->first_element; item != NULL; item = item->next){
 
-            item->relocation = 0;
-            item->special = 0;
+            item->relocation = false;
+            item->special = false;
 
             if(item->type == TYPE_INSTRUCTION){
 
@@ -104,11 +105,11 @@ static void _pass2(void){
 
                 if(last_found_symbol != NULL){
                     if( ((last_found_symbol->stype & STYPE_ABSOLUTE) != STYPE_ABSOLUTE) && ((last_found_symbol->stype & STYPE_RELOCATION) == STYPE_RELOCATION) ){
-                        item->relocation = 1;
+                        item->relocation = true;
                     }
 
                     if((last_found_symbol->stype & STYPE_IMPORT) == STYPE_IMPORT){
-                        item->special = 1;
+                        item->special = true;
                     }
                 }
             }
@@ -180,7 +181,7 @@ void print_pass2_buffer(void){
             else{
                 for(pass_item_t *t = s->first_element; t != NULL; t = t->next){
                     if(t->type == TYPE_INSTRUCTION){
-                        printf("      - from %s @ %d \t Addr: "PRIisa_addr" \t INST \t Rel: %d \t Spec: %d \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->relocation, t->special, t->payload.i->line);
+                        printf("      - from %s @ %d \t Addr: "PRIisa_addr" \t INST \t Rel: %s \t Spec: %s \t '%s' \n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->relocation ? "true" : "false", t->special ? "true" : "false", t->payload.i->line);
                     }
                     else if(t->type == TYPE_BLOB){
                         printf("      - from %s @ %d \t Addr: "PRIisa_addr" \t BLOB \t Len: %d\n", t->token->fileInfo->name, t->token->lineNumber, t->location, t->payload.b->blob_len);

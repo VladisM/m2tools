@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
                 else{
                     printf("Inst: ");
 
-                    printf("Off:"PRIisa_addr" Opc:0x%"PRIX32" r:%"PRId8" s:%"PRId8"\n", data->address, data->payload.inst->word, data->relocation, data->special);
+                    printf("Off:"PRIisa_addr" Opc:0x%"PRIX32" r:%s s:%s\n", data->address, data->payload.inst->word, data->relocation ? "true" : "false" , data->special ? "true" : "false");
                 }
 
 
