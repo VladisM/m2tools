@@ -172,6 +172,17 @@ obj_file_err_t get_objlib_errno(void);
 void free_object_file(obj_file_t *o);
 
 /**
+ * @brief Clear section in object file.
+ *
+ * This function should not be exported ... but sections as defined by section_t in this
+ * module are used internaly in linker.
+ *
+ * @warning Use it only on deep copy of sections from object file. Otherwise, you will break up
+ * object file structure!
+ */
+void free_obj_section(section_t *section);
+
+/**
  * @brief Load object file from string buffer into structure.
  *
  * @param s String that hold content of object file.

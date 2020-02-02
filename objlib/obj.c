@@ -99,11 +99,47 @@ obj_file_err_t get_objlib_errno(void){
     return objlib_errno;
 }
 
+void free_obj_section(section_t *section){
+    data_symbol_t *tmp_data, *head_data;
+    spec_symbol_t *tmp_spec, *head_spec;
+
+    head_data = section->data_first;
+
+    while(head_data != NULL){
+        tmp_data = head_data;
+        head_data = head_data->next;
+
+        if(tmp_data->type == DATA_IS_BLOB){
+            free(tmp_data->payload.blob->payload);
+            free(tmp_data->payload.blob);
+        }
+        else if(tmp_data->type == DATA_IS_INST){
+            free_istruction_struct(tmp_data->payload.inst);
+        }
+        else{
+            exit(EXIT_FAILURE);
+        }
+
+        free(tmp_data);
+    }
+
+    head_spec = section->spec_symbol_first;
+
+    while(head_spec != NULL){
+        tmp_spec = head_spec;
+        head_spec = head_spec->next;
+
+        free(tmp_spec->name);
+        free(tmp_spec);
+    }
+
+    free(section->section_name);
+    free(section);
+}
+
 void free_object_file(obj_file_t *o){
 
     section_t *tmp_section, *head_section;
-    data_symbol_t *tmp_data, *head_data;
-    spec_symbol_t *tmp_spec, *head_spec;
 
     if(o == NULL){
         return;
@@ -115,38 +151,7 @@ void free_object_file(obj_file_t *o){
         tmp_section = head_section;
         head_section = head_section->next;
 
-        head_data = tmp_section->data_first;
-
-        while(head_data != NULL){
-            tmp_data = head_data;
-            head_data = head_data->next;
-
-            if(tmp_data->type == DATA_IS_BLOB){
-                free(tmp_data->payload.blob->payload);
-                free(tmp_data->payload.blob);
-            }
-            else if(tmp_data->type == DATA_IS_INST){
-                free_istruction_struct(tmp_data->payload.inst);
-            }
-            else{
-                exit(EXIT_FAILURE);
-            }
-
-            free(tmp_data);
-        }
-
-        head_spec = tmp_section->spec_symbol_first;
-
-        while(head_spec != NULL){
-            tmp_spec = head_spec;
-            head_spec = head_spec->next;
-
-            free(tmp_spec->name);
-            free(tmp_spec);
-        }
-
-        free(tmp_section->section_name);
-        free(tmp_section);
+        free_obj_section(tmp_section);
     }
 
     free(o->object_file_name);
