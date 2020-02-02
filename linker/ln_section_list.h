@@ -16,7 +16,7 @@ typedef enum{
 typedef struct section_list_item_s{
     section_t *section;
     ldm_mem_t *assinged_mem;
-    section_list_item_s *next;
+    struct section_list_item_s *next;
     isa_address_t begin_addr;
     bool used;
 }section_list_item_t;
