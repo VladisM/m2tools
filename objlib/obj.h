@@ -183,6 +183,28 @@ void free_object_file(obj_file_t *o);
 void free_obj_section(section_t *section);
 
 /**
+ * @brief Clear special symbol in object file.
+ *
+ * This function should not be exported ... but special symbols as defined by spec_symbol_t in this
+ * module are used internaly in linker.
+ *
+ * @warning Use it only on deep copy of sections from object file. Otherwise, you will break up
+ * object file structure!
+ */
+void free_obj_spec_symbol(spec_symbol_t *symbol);
+
+/**
+ * @brief Clear data symbol in object file.
+ *
+ * This function should not be exported ... but data symbols as defined by data_symbol_t in this
+ * module are used internaly in linker.
+ *
+ * @warning Use it only on deep copy of sections from object file. Otherwise, you will break up
+ * object file structure!
+ */
+void free_obj_data_symbol(data_symbol_t *symbol);
+
+/**
  * @brief Load object file from string buffer into structure.
  *
  * @param s String that hold content of object file.

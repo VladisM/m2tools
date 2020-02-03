@@ -20,7 +20,7 @@ static ln_section_list_errno_t section_list_errno = SECTION_OK;
  *
  * That mean - every object stored in previous structure will be recreated again.
  */
-static section_t * make_deep_copy_of_section(section_t *section);
+static bool make_deep_copy_of_section(section_t *section_in, section_t **section_out);
 
 /**
  * @brief Append section into our list in firts_section_item.
@@ -63,9 +63,55 @@ bool append_into_section_list_obj(obj_file_t *obj){
     return false;
 }
 
-static section_t * make_deep_copy_of_section(section_t *section){
-    //todo: make deep copy of section
-    return false;
+static bool make_deep_copy_of_section(section_t *section_in, section_t **section_out){
+    section_t *new_sec = NULL;
+
+    if(!new_section(section_in->section_name, &new_sec)){
+        SET_ERROR(SECTION_OBJLIB_ERROR);
+        free_obj_section(new_sec);
+        return false;
+    }
+
+    for(spec_symbol_t *head = section_in->spec_symbol_first; head != NULL; head = head->next){
+        spec_symbol_t *new_symbol = NULL;
+
+        if(!new_spec_symbol(head->name, head->value, head->type, &new_symbol)){
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            free_obj_section(new_sec);
+            return false;
+        }
+
+        if(!append_spec_symbol_to_section(new_sec, new_symbol)){
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            free_obj_spec_symbol(new_symbol);
+            free_obj_section(new_sec);
+            return false;
+        }
+    }
+
+    for(data_symbol_t *head = section_in->data_first; head != NULL; head = head->next){
+        data_symbol_t *new_symbol = NULL;
+
+        //TODO: tady je chyba! byl tam new_spec_symbol() musí tama být new_data_symbol()
+
+        //~ if(!new_data_symbol(head->name, head->value, head->type, &new_symbol)){
+            //~ new_data_symbol(
+            //~ SET_ERROR(SECTION_OBJLIB_ERROR);
+            //~ free_obj_section(new_section);
+            //~ return false;
+        //~ }
+
+        if(!append_data_symbol_to_section(new_sec, new_symbol)){
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            free_obj_data_symbol(new_symbol);
+            free_obj_section(new_sec);
+            return false;
+        }
+    }
+
+    *section_out = new_sec;
+
+    return true;
 }
 
 static bool append_into_list(section_t *section){

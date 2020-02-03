@@ -99,6 +99,26 @@ obj_file_err_t get_objlib_errno(void){
     return objlib_errno;
 }
 
+void free_obj_data_symbol(data_symbol_t *symbol){
+    if(symbol->type == DATA_IS_BLOB){
+        free(symbol->payload.blob->payload);
+        free(symbol->payload.blob);
+    }
+    else if(symbol->type == DATA_IS_INST){
+        free_istruction_struct(symbol->payload.inst);
+    }
+    else{
+        exit(EXIT_FAILURE);
+    }
+
+    free(symbol);
+}
+
+void free_obj_spec_symbol(spec_symbol_t *symbol){
+    free(symbol->name);
+    free(symbol);
+}
+
 void free_obj_section(section_t *section){
     data_symbol_t *tmp_data, *head_data;
     spec_symbol_t *tmp_spec, *head_spec;
@@ -109,18 +129,7 @@ void free_obj_section(section_t *section){
         tmp_data = head_data;
         head_data = head_data->next;
 
-        if(tmp_data->type == DATA_IS_BLOB){
-            free(tmp_data->payload.blob->payload);
-            free(tmp_data->payload.blob);
-        }
-        else if(tmp_data->type == DATA_IS_INST){
-            free_istruction_struct(tmp_data->payload.inst);
-        }
-        else{
-            exit(EXIT_FAILURE);
-        }
-
-        free(tmp_data);
+        free_obj_data_symbol(tmp_data);
     }
 
     head_spec = section->spec_symbol_first;
@@ -129,8 +138,7 @@ void free_obj_section(section_t *section){
         tmp_spec = head_spec;
         head_spec = head_spec->next;
 
-        free(tmp_spec->name);
-        free(tmp_spec);
+        free_obj_spec_symbol(tmp_spec);
     }
 
     free(section->section_name);
