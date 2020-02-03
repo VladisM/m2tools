@@ -36,11 +36,26 @@ static bool append_into_list(section_t *section);
  */
 static bool is_same_section(section_t *A, section_t *B);
 
+/**
+ * @brief Create new structure for holding section.
+ */
+static bool create_new_section_list_item(section_list_item_t **item_ptr);
+
 
 
 bool append_into_section_list_sl(static_library_t *sl){
-    //todo: go thru all object files and append them into list
-    return false;
+    if(sl == NULL){
+        SET_ERROR(SECTION_WRONG_ARG);
+        return false;
+    }
+
+    for(obj_file_t *head = sl->first_obj; head != NULL; head = head->next){
+        if(!append_into_section_list_obj(head)){
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool append_into_section_list_obj(obj_file_t *obj){
@@ -57,18 +72,45 @@ static bool append_into_list(section_t *section){
     section_list_item_t *head = NULL;
 
     for(head = firts_section_item; head != NULL; head = head->next){
-        if(is_same_section(head->section, section) == true){
+        if(is_same_section(head->section, section)){
+            SET_ERROR(SECTION_MULTIPLE);
             return false;
         }
 
         if(head->next == NULL){
-            //TODO: tutaj je chybka
+            section_list_item_t *new_holder = NULL;
 
+            if(!create_new_section_list_item(&new_holder)){
+                return false;
+            }
 
-            head->next = section;
+            new_holder->section = section;
+
+            head->next = new_holder;
             break;
         }
     }
+
+    return true;
+}
+
+static bool create_new_section_list_item(section_list_item_t **item_ptr){
+    section_list_item_t *tmp = NULL;
+
+    tmp = (section_list_item_t *)malloc(sizeof(section_list_item_t));
+
+    if(tmp == NULL){
+        SET_ERROR(SECTION_MALLOC_FAIL);
+        return false;
+    }
+
+    tmp->section = NULL;
+    tmp->assinged_mem = NULL;
+    tmp->next = NULL;
+    tmp->begin_addr = 0;
+    tmp->used = false;
+
+    *item_ptr = tmp;
 
     return true;
 }

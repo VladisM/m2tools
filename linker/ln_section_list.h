@@ -10,7 +10,9 @@
 
 typedef enum{
     SECTION_OK = 0,
-    SECTION_MULTIPLE
+    SECTION_MULTIPLE,
+    SECTION_MALLOC_FAIL,
+    SECTION_WRONG_ARG
 }ln_section_list_errno_t;
 
 typedef struct section_list_item_s{
