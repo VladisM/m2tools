@@ -99,10 +99,16 @@ obj_file_err_t get_objlib_errno(void){
     return objlib_errno;
 }
 
+void free_obj_blob_payload(datablob_t *b){
+    if(b != NULL){
+        free(b->payload);
+        free(b);
+    }
+}
+
 void free_obj_data_symbol(data_symbol_t *symbol){
     if(symbol->type == DATA_IS_BLOB){
-        free(symbol->payload.blob->payload);
-        free(symbol->payload.blob);
+        free_obj_blob_payload(symbol->payload.blob);
     }
     else if(symbol->type == DATA_IS_INST){
         free_istruction_struct(symbol->payload.inst);

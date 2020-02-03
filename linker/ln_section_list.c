@@ -59,7 +59,18 @@ bool append_into_section_list_sl(static_library_t *sl){
 }
 
 bool append_into_section_list_obj(obj_file_t *obj){
-    //todo: go thru all sections, make deep copy of them and append them into list
+    if(obj == NULL){
+        SET_ERROR(SECTION_WRONG_ARG);
+        return false;
+    }
+
+    for(section_t *head = obj->first_section; head != NULL; head = head->next){
+        section_t *tmp = NULL;
+
+        if(!make_deep_copy_of_section(head, &tmp)) return false;
+        if(!append_into_list(tmp)) return false;
+    }
+
     return false;
 }
 
@@ -92,14 +103,51 @@ static bool make_deep_copy_of_section(section_t *section_in, section_t **section
     for(data_symbol_t *head = section_in->data_first; head != NULL; head = head->next){
         data_symbol_t *new_symbol = NULL;
 
-        //TODO: tady je chyba! byl tam new_spec_symbol() musí tama být new_data_symbol()
+        if(head->type == DATA_IS_BLOB){
+            datablob_t *blob = NULL;
 
-        //~ if(!new_data_symbol(head->name, head->value, head->type, &new_symbol)){
-            //~ new_data_symbol(
-            //~ SET_ERROR(SECTION_OBJLIB_ERROR);
-            //~ free_obj_section(new_section);
-            //~ return false;
-        //~ }
+            if(new_blob(head->payload.blob->lenght, &blob)){
+                SET_ERROR(SECTION_OBJLIB_ERROR);
+                free_obj_section(new_sec);
+                return false;
+            }
+
+            for(unsigned int i = 0; i < blob->lenght; i++){
+                blob->payload[i] = head->payload.blob->payload[i];
+            }
+
+            if(!new_data_symbol(head->address, DATA_IS_BLOB, (void *)blob, &new_symbol)){
+                SET_ERROR(SECTION_OBJLIB_ERROR);
+                free_obj_blob_payload(blob);
+                free_obj_section(new_sec);
+                return false;
+            }
+        }
+        else if(head->type == DATA_IS_INST){
+            tInstruction *i = new_instru();
+
+            if(i == NULL){
+                SET_ERROR(SECTION_ISALIB_ERROR);
+                free_obj_section(new_sec);
+                return false;
+            }
+
+            i->word = head->payload.inst->word;
+
+            if(!new_data_symbol(head->address, DATA_IS_INST, (void *)i, &new_symbol)){
+                SET_ERROR(SECTION_OBJLIB_ERROR);
+                free_istruction_struct(i);
+                free_obj_section(new_sec);
+                return false;
+            }
+        }
+        else{
+            exit(EXIT_FAILURE);
+        }
+
+        new_symbol->address = head->address;
+        new_symbol->relocation = head->relocation;
+        new_symbol->special = head->special;
 
         if(!append_data_symbol_to_section(new_sec, new_symbol)){
             SET_ERROR(SECTION_OBJLIB_ERROR);

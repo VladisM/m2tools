@@ -205,6 +205,17 @@ void free_obj_spec_symbol(spec_symbol_t *symbol);
 void free_obj_data_symbol(data_symbol_t *symbol);
 
 /**
+ * @brief Clear blob in data symbol in object file.
+ *
+ * This function should not be exported ... but blobs as defined by datablob_t in this
+ * module are used internaly in linker.
+ *
+ * @warning Use it only on deep copy of sections from object file. Otherwise, you will break up
+ * object file structure!
+ */
+void free_obj_blob_payload(datablob_t *b);
+
+/**
  * @brief Load object file from string buffer into structure.
  *
  * @param s String that hold content of object file.
