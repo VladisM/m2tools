@@ -29,7 +29,7 @@ bool append_into_section_list_sl(static_library_t *sl);
 bool append_into_section_list_obj(obj_file_t *obj);
 
 void clear_section_list_errno(void);
-obj_file_err_t get_section_list_errno(void);
+ln_section_list_errno_t get_section_list_errno(void);
 
 void clean_up_section_list(void);
 

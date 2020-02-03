@@ -126,7 +126,7 @@ void clear_section_list_errno(void){
     section_list_errno = SECTION_OK;
 }
 
-obj_file_err_t get_section_list_errno(void){
+ln_section_list_errno_t get_section_list_errno(void){
     return section_list_errno;
 }
 
