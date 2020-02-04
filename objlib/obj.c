@@ -198,6 +198,7 @@ bool obj_load_from_file(char *filename, obj_file_t **o){
 
     if(!new_strbuf(&strbuf)){
         SET_ERROR(OBJRET_INTERNAL_ERR);
+        fclose(fp);
         return false;
     }
 
@@ -205,9 +206,12 @@ bool obj_load_from_file(char *filename, obj_file_t **o){
     while((c = fgetc(fp)) != EOF){
         if(!my_sprintf(strbuf, "%c", (char)c)){
             SET_ERROR(OBJRET_INTERNAL_ERR);
+            fclose(fp);
             return false;
         }
     }
+
+    fclose(fp);
 
     *o = obj_load_from_strbuf(strbuf);
 
