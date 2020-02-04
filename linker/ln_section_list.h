@@ -8,6 +8,8 @@
 #include <obj.h>
 #include <sl.h>
 
+//TODO: append comments
+
 typedef enum{
     SECTION_OK = 0,
     SECTION_MULTIPLE,

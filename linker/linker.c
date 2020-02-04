@@ -67,10 +67,12 @@
 #include <stdbool.h>
 
 #include "ldparser.h"
+#include "ln_section_list.h"
 
 #include <isa.h>
 #include <ldm.h>
 #include <obj.h>
+#include <sl.h>
 
 static void print_version(void);
 static void print_help(void);
@@ -152,6 +154,56 @@ int main(int argc, char *argv[]){
         head = head->next;
     }
 
+    //create cashe with all sections - later we will work with that cashe
+    //first - object files
+    for(unsigned int i = 0; i < settings.obj_count - 1; i++){
+        obj_file_t *tmp_obj = NULL;
+
+        if(!obj_load_from_file(settings.obj_files[i], &tmp_obj)){
+            fprintf(stderr, "Failed to load obj file '%s'! objlib errno: %d\n", settings.obj_files[i], get_objlib_errno());
+            exit(EXIT_FAILURE);
+        }
+
+        if(!append_into_section_list_obj(tmp_obj)){
+            fprintf(stderr, "Failed to append object file '%s' into cashe! ", settings.obj_files[i]);
+
+            if(get_section_list_errno() == SECTION_OBJLIB_ERROR)
+                fprintf(stderr, "Error in objlib, errno: %d\n", get_objlib_errno());
+            else if(get_section_list_errno() == SECTION_ISALIB_ERROR)
+                fprintf(stderr, "Error in isalib, eerno: %d\n", get_isalib_errno());
+            else
+                fprintf(stderr, "section list errno: %d\n", get_section_list_errno());
+
+            exit(EXIT_FAILURE);
+        }
+
+        free_object_file(tmp_obj);
+    }
+
+    //then libraries
+    for(unsigned int i = 0; i < settings.libs_count - 1; i++){
+        static_library_t *tmp_sl = NULL;
+
+        if(!sl_load(settings.libs[i], &tmp_sl)){
+            fprintf(stderr, "Failed to load static library '%s'! sllib errno: %d\n", settings.libs[i], get_sllib_errno());
+            exit(EXIT_FAILURE);
+        }
+
+        if(!append_into_section_list_sl(tmp_sl)){
+            fprintf(stderr, "Failed to append static library '%s' into cashe! ", settings.libs[i]);
+
+            if(get_section_list_errno() == SECTION_OBJLIB_ERROR)
+                fprintf(stderr, "Error in objlib, errno: %d\n", get_objlib_errno());
+            else if(get_section_list_errno() == SECTION_ISALIB_ERROR)
+                fprintf(stderr, "Error in isalib, eerno: %d\n", get_isalib_errno());
+            else
+                fprintf(stderr, "section list errno: %d\n", get_section_list_errno());
+
+            exit(EXIT_FAILURE);
+        }
+
+        free_sl(tmp_sl);
+    }
 
     #ifndef NDEBUG
     print_lds(lds);
@@ -284,8 +336,11 @@ static void clean_mem(void){
     if(lds != NULL){
         free_lds(lds);
     }
-}
 
+    if(firts_section_item != NULL){
+        clean_up_section_list();
+    }
+}
 
 #ifndef NDEBUG
 void print_settings(void){
