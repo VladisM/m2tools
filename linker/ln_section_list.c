@@ -74,7 +74,7 @@ bool append_into_section_list_obj(obj_file_t *obj){
         if(!append_into_list(tmp)) return false;
     }
 
-    return false;
+    return true;
 }
 
 static bool make_deep_copy_of_section(section_t *section_in, section_t **section_out){
@@ -167,24 +167,31 @@ static bool make_deep_copy_of_section(section_t *section_in, section_t **section
 
 static bool append_into_list(section_t *section){
     section_list_item_t *head = NULL;
+    section_list_item_t *new_holder = NULL;
 
-    for(head = first_section_item; head != NULL; head = head->next){
-        if(is_same_section(head->section, section)){
-            SET_ERROR(SECTION_MULTIPLE);
+    if(first_section_item == NULL){
+        if(!create_new_section_list_item(&new_holder)){
             return false;
         }
-
-        if(head->next == NULL){
-            section_list_item_t *new_holder = NULL;
-
-            if(!create_new_section_list_item(&new_holder)){
+        new_holder->section = section;
+        first_section_item = new_holder;
+    }
+    else{
+        for(head = first_section_item; head != NULL; head = head->next){
+            if(is_same_section(head->section, section)){
+                SET_ERROR(SECTION_MULTIPLE);
                 return false;
             }
 
-            new_holder->section = section;
+            if(head->next == NULL){
+                if(!create_new_section_list_item(&new_holder)){
+                    return false;
+                }
 
-            head->next = new_holder;
-            break;
+                new_holder->section = section;
+                head->next = new_holder;
+                break;
+            }
         }
     }
 
