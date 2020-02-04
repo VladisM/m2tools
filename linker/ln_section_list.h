@@ -27,7 +27,7 @@ typedef struct section_list_item_s{
     bool used;
 }section_list_item_t;
 
-extern section_list_item_t *firts_section_item;
+extern section_list_item_t *first_section_item;
 
 bool append_into_section_list_sl(static_library_t *sl);
 bool append_into_section_list_obj(obj_file_t *obj);
@@ -36,5 +36,9 @@ void clear_section_list_errno(void);
 ln_section_list_errno_t get_section_list_errno(void);
 
 void clean_up_section_list(void);
+
+#ifndef NDEBUG
+void print_section_list(void);
+#endif
 
 #endif

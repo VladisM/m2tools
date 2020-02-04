@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include <isa.h>
 #include <ldm.h>
@@ -10,7 +13,7 @@
 
 #define SET_ERROR(n) if(section_list_errno == SECTION_OK) section_list_errno = n
 
-section_list_item_t *firts_section_item = NULL;
+section_list_item_t *first_section_item = NULL;
 static ln_section_list_errno_t section_list_errno = SECTION_OK;
 
 
@@ -23,7 +26,7 @@ static ln_section_list_errno_t section_list_errno = SECTION_OK;
 static bool make_deep_copy_of_section(section_t *section_in, section_t **section_out);
 
 /**
- * @brief Append section into our list in firts_section_item.
+ * @brief Append section into our list in first_section_item.
  *
  * @return true if append OK; false if problem occurs (if same section exist)
  */
@@ -165,7 +168,7 @@ static bool make_deep_copy_of_section(section_t *section_in, section_t **section
 static bool append_into_list(section_t *section){
     section_list_item_t *head = NULL;
 
-    for(head = firts_section_item; head != NULL; head = head->next){
+    for(head = first_section_item; head != NULL; head = head->next){
         if(is_same_section(head->section, section)){
             SET_ERROR(SECTION_MULTIPLE);
             return false;
@@ -228,7 +231,7 @@ void clean_up_section_list(void){
     section_list_item_t *head = NULL;
     section_list_item_t *tmp = NULL;
 
-    head = firts_section_item;
+    head = first_section_item;
     while(head != NULL){
         tmp = head;
         head = head->next;
@@ -237,3 +240,39 @@ void clean_up_section_list(void){
         free(tmp);
     }
 }
+
+#ifndef NDEBUG
+void print_section_list(void){
+    printf("Section cache:\n");
+
+    if(first_section_item == NULL){
+        printf("'- (null)\n");
+        return;
+    }
+
+    for(section_list_item_t *head = first_section_item; head != NULL; head = head->next){
+        if(head->next != NULL){
+            printf("|- Name: %s\n", head->section->section_name);
+
+            if(head->assinged_mem == NULL)
+                printf("|  |- mem: (null)\n");
+            else
+                printf("|  |- mem: %s\n", head->assinged_mem->mem_name);
+
+            printf("|  |- begin address: "PRIisa_addr"\n", head->begin_addr);
+            printf("|  '- used: %s\n", head->used ? "true" : "false");
+        }
+        else{
+            printf("'- Name: %s\n", head->section->section_name);
+
+            if(head->assinged_mem == NULL)
+                printf("   |- mem: (null)\n");
+            else
+                printf("   |- mem: %s\n", head->assinged_mem->mem_name);
+
+            printf("   |- begin address: "PRIisa_addr"\n", head->begin_addr);
+            printf("   '- used: %s\n", head->used ? "true" : "false");
+        }
+    }
+}
+#endif

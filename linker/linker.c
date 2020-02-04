@@ -123,7 +123,12 @@ int main(int argc, char *argv[]){
     print_settings();
     #endif
 
+    // parse linker script
     lds = parse_lds(settings.linker_script);
+
+    #ifndef NDEBUG
+    print_lds(lds);
+    #endif
 
     //create LDM structure
     if(new_ldm_file(&finalLDM, settings.output_filename) != true){
@@ -156,7 +161,7 @@ int main(int argc, char *argv[]){
 
     //create cashe with all sections - later we will work with that cashe
     //first - object files
-    for(unsigned int i = 0; i < settings.obj_count - 1; i++){
+    for(unsigned int i = 0; i < settings.obj_count; i++){
         obj_file_t *tmp_obj = NULL;
 
         if(!obj_load_from_file(settings.obj_files[i], &tmp_obj)){
@@ -181,7 +186,7 @@ int main(int argc, char *argv[]){
     }
 
     //then libraries
-    for(unsigned int i = 0; i < settings.libs_count - 1; i++){
+    for(unsigned int i = 0; i < settings.libs_count; i++){
         static_library_t *tmp_sl = NULL;
 
         if(!sl_load(settings.libs[i], &tmp_sl)){
@@ -206,7 +211,7 @@ int main(int argc, char *argv[]){
     }
 
     #ifndef NDEBUG
-    print_lds(lds);
+    print_section_list();
     #endif
 
     return 1;
@@ -337,7 +342,7 @@ static void clean_mem(void){
         free_lds(lds);
     }
 
-    if(firts_section_item != NULL){
+    if(first_section_item != NULL){
         clean_up_section_list();
     }
 }
