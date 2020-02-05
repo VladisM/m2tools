@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2.0)
 project(linker C)
 
-set(sources linker.c ldparser.c linker_util.c ln_section_list.c)
+set(sources linker.c ldparser.c linker_util.c ln_section_list.c ln_symbol_list.c)
 
 add_executable(${target_prefix}-linker ${sources})
 
