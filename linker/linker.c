@@ -207,7 +207,7 @@ int main(int argc, char *argv[]){
             if(get_section_list_errno() == SECTION_OBJLIB_ERROR)
                 fprintf(stderr, "Error in objlib, errno: %d\n", get_objlib_errno());
             else if(get_section_list_errno() == SECTION_ISALIB_ERROR)
-                fprintf(stderr, "Error in isalib, eerno: %d\n", get_isalib_errno());
+                fprintf(stderr, "Error in isalib, errno: %d\n", get_isalib_errno());
             else if(get_section_list_errno() == SECTION_SYMBOLLIST_ERROR)
                 fprintf(stderr, "Error in symbol list, errno: %d\n", get_symbol_list_errno());
             else
