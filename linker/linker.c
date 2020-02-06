@@ -13,6 +13,10 @@
  *  - linker.c
  *  - linker_util.c
  *  - linker_util.h
+ *  - ln_section_list.c
+ *  - ln_section_lish.h
+ *  - ln_symbol_list.c
+ *  - ln_symbol_list.h
  *
  * @todo finish linker
  * @todo add date when finished
@@ -68,6 +72,7 @@
 
 #include "ldparser.h"
 #include "ln_section_list.h"
+#include "ln_symbol_list.h"
 
 #include <isa.h>
 #include <ldm.h>
@@ -175,7 +180,9 @@ int main(int argc, char *argv[]){
             if(get_section_list_errno() == SECTION_OBJLIB_ERROR)
                 fprintf(stderr, "Error in objlib, errno: %d\n", get_objlib_errno());
             else if(get_section_list_errno() == SECTION_ISALIB_ERROR)
-                fprintf(stderr, "Error in isalib, eerno: %d\n", get_isalib_errno());
+                fprintf(stderr, "Error in isalib, errno: %d\n", get_isalib_errno());
+            else if(get_section_list_errno() == SECTION_SYMBOLLIST_ERROR)
+                fprintf(stderr, "Error in symbol list, errno: %d\n", get_symbol_list_errno());
             else
                 fprintf(stderr, "section list errno: %d\n", get_section_list_errno());
 
@@ -201,6 +208,8 @@ int main(int argc, char *argv[]){
                 fprintf(stderr, "Error in objlib, errno: %d\n", get_objlib_errno());
             else if(get_section_list_errno() == SECTION_ISALIB_ERROR)
                 fprintf(stderr, "Error in isalib, eerno: %d\n", get_isalib_errno());
+            else if(get_section_list_errno() == SECTION_SYMBOLLIST_ERROR)
+                fprintf(stderr, "Error in symbol list, errno: %d\n", get_symbol_list_errno());
             else
                 fprintf(stderr, "section list errno: %d\n", get_section_list_errno());
 
@@ -344,6 +353,10 @@ static void clean_mem(void){
 
     if(first_section_item != NULL){
         clean_up_section_list();
+    }
+
+    if(exported_symbols != NULL || imported_symbols != NULL){
+        clean_up_symbol_lists();
     }
 }
 

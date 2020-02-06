@@ -1,3 +1,25 @@
+/**
+ * @file ln_section_list.c
+ *
+ * @brief Portable linker from m2tools.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 07.02.2020
+ *
+ * @note This file is part of m2tools project.
+ *
+ * Linker is splitted into multiple files:
+ *  - ldparser.c
+ *  - ldparser.h
+ *  - linker.c
+ *  - linker_util.c
+ *  - linker_util.h
+ *  - ln_section_list.c
+ *  - ln_section_lish.h
+ *  - ln_symbol_list.c
+ *  - ln_symbol_list.h
+ */
+
 #include "ln_section_list.h"
 
 #include <stdlib.h>
@@ -10,6 +32,8 @@
 #include <isa.h>
 #include <ldm.h>
 #include <obj.h>
+
+#include "ln_symbol_list.h"
 
 #define SET_ERROR(n) if(section_list_errno == SECTION_OK) section_list_errno = n
 
@@ -169,11 +193,17 @@ static bool append_into_list(section_t *section){
     section_list_item_t *head = NULL;
     section_list_item_t *new_holder = NULL;
 
+    if(!create_new_section_list_item(&new_holder)){
+        return false;
+    }
+    new_holder->section = section;
+
+    if(!parse_symbols(new_holder)){
+        SET_ERROR(SECTION_SYMBOLLIST_ERROR);
+        return false;
+    }
+
     if(first_section_item == NULL){
-        if(!create_new_section_list_item(&new_holder)){
-            return false;
-        }
-        new_holder->section = section;
         first_section_item = new_holder;
     }
     else{
@@ -184,11 +214,6 @@ static bool append_into_list(section_t *section){
             }
 
             if(head->next == NULL){
-                if(!create_new_section_list_item(&new_holder)){
-                    return false;
-                }
-
-                new_holder->section = section;
                 head->next = new_holder;
                 break;
             }

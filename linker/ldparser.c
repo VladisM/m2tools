@@ -14,6 +14,10 @@
  *  - linker.c
  *  - linker_util.c
  *  - linker_util.h
+ *  - ln_section_list.c
+ *  - ln_section_lish.h
+ *  - ln_symbol_list.c
+ *  - ln_symbol_list.h
  */
 
 #include "ldparser.h"
