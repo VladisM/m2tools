@@ -69,4 +69,8 @@ bool parse_symbols(section_list_item_t *section);
 
 void clean_up_symbol_lists(void);
 
+#ifndef NDEBUG
+void print_symbols_lists(void);
+#endif
+
 #endif

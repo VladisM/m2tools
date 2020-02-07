@@ -223,6 +223,10 @@ int main(int argc, char *argv[]){
     print_section_list();
     #endif
 
+    #ifndef NDEBUG
+    print_symbols_lists();
+    #endif
+
     return 1;
 }
 

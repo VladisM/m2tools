@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <obj.h>
 #include <isa.h>
@@ -106,17 +107,21 @@ static bool append_to_exported(spec_symbol_t *symbol, section_list_item_t *secti
     new_hld->section = section;
     new_hld->sym = symbol;
 
-    symbol_holder_t *head = exported_symbols;
-    while(head->next != NULL){
-        if(are_holders_same(head, new_hld)){
-            SET_ERROR(SYMBOLLIST_MULTIPLE);
-            return false;
-        }
-
-        head = head->next;
+    if(exported_symbols == NULL){
+        exported_symbols = new_hld;
     }
+    else{
+        symbol_holder_t *head = exported_symbols;
+        while(head->next != NULL){
+            if(are_holders_same(head, new_hld)){
+                SET_ERROR(SYMBOLLIST_MULTIPLE);
+                return false;
+            }
 
-    head->next = new_hld;
+            head = head->next;
+        }
+        head->next = new_hld;
+    }
 
     return true;
 }
@@ -131,12 +136,16 @@ static bool append_to_imported(spec_symbol_t *symbol, section_list_item_t *secti
     new_hld->section = section;
     new_hld->sym = symbol;
 
-    symbol_holder_t *head = imported_symbols;
-    while(head->next != NULL){
-        head = head->next;
+    if(imported_symbols == NULL){
+        imported_symbols = new_hld;
     }
-
-    head->next = new_hld;
+    else{
+        symbol_holder_t *head = imported_symbols;
+        while(head->next != NULL){
+            head = head->next;
+        }
+        head->next = new_hld;
+    }
 
     return true;
 }
@@ -172,3 +181,33 @@ void clear_symbol_list_errno(void){
 ln_symbol_list_errno_t get_symbol_list_errno(void){
     return symbol_list_errno;
 }
+
+#ifndef NDEBUG
+void print_symbols_lists(void){
+    if(exported_symbols == NULL){
+        printf("Exported symbols:\n'-(null)\n");
+    }
+    else{
+        printf("Exported symbol:\n");
+        for(symbol_holder_t *head = exported_symbols; head != NULL; head = head->next){
+            if(head->next != NULL)
+                printf("|- '%s' from '%s' \n", head->sym->name, head->section->section->section_name);
+            else
+                printf("'- '%s' from '%s' \n", head->sym->name, head->section->section->section_name);
+        }
+    }
+
+    if(imported_symbols == NULL){
+        printf("Imported symbols:\n'-(null)\n");
+    }
+    else{
+        printf("Imported symbol:\n");
+        for(symbol_holder_t *head = imported_symbols; head != NULL; head = head->next){
+            if(head->next != NULL)
+                printf("|- '%s' from '%s' \n", head->sym->name, head->section->section->section_name);
+            else
+                printf("'- '%s' from '%s' \n", head->sym->name, head->section->section->section_name);
+        }
+    }
+}
+#endif

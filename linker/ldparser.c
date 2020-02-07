@@ -545,7 +545,7 @@ void print_lds(lds_t *l){
                 else{
                     printf("|  '- Name: %s\n", head->name);
                     printf("|     |- size:"PRIisa_addr"\n", head->size);
-                    printf("|     '- orig:"PRIisa_addr"\n", head->orig);
+                    printf("|     |- orig:"PRIisa_addr"\n", head->orig);
                     if(head->section_count == 0){
                         printf("|     '- assig sec: (null)\n");
                     }
