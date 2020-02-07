@@ -209,6 +209,7 @@ static bool append_into_list(section_t *section){
     else{
         for(head = first_section_item; head != NULL; head = head->next){
             if(is_same_section(head->section, section)){
+                //TODO: shouldn't be error, merge them!!!!
                 SET_ERROR(SECTION_MULTIPLE);
                 return false;
             }
