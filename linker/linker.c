@@ -181,8 +181,6 @@ int main(int argc, char *argv[]){
                 fprintf(stderr, "Error in objlib, errno: %d\n", get_objlib_errno());
             else if(get_section_list_errno() == SECTION_ISALIB_ERROR)
                 fprintf(stderr, "Error in isalib, errno: %d\n", get_isalib_errno());
-            else if(get_section_list_errno() == SECTION_SYMBOLLIST_ERROR)
-                fprintf(stderr, "Error in symbol list, errno: %d\n", get_symbol_list_errno());
             else
                 fprintf(stderr, "section list errno: %d\n", get_section_list_errno());
 
@@ -208,8 +206,6 @@ int main(int argc, char *argv[]){
                 fprintf(stderr, "Error in objlib, errno: %d\n", get_objlib_errno());
             else if(get_section_list_errno() == SECTION_ISALIB_ERROR)
                 fprintf(stderr, "Error in isalib, errno: %d\n", get_isalib_errno());
-            else if(get_section_list_errno() == SECTION_SYMBOLLIST_ERROR)
-                fprintf(stderr, "Error in symbol list, errno: %d\n", get_symbol_list_errno());
             else
                 fprintf(stderr, "section list errno: %d\n", get_section_list_errno());
 
@@ -222,6 +218,14 @@ int main(int argc, char *argv[]){
     #ifndef NDEBUG
     print_section_list();
     #endif
+
+    //build symbol table
+    for(section_list_item_t *head = first_section_item; head != NULL; head = head->next){
+        if(!parse_symbols(head)){
+            fprintf(stderr, "Error in symbol list, errno: %d\n", get_symbol_list_errno());
+            exit(EXIT_FAILURE);
+        }
+    }
 
     #ifndef NDEBUG
     print_symbols_lists();

@@ -68,7 +68,10 @@ static bool is_same_section(section_t *A, section_t *B);
  */
 static bool create_new_section_list_item(section_list_item_t **item_ptr);
 
-
+/**
+ * @brief Merge section B into section A.
+ */
+static bool merge_sections(section_t *A, section_t *B);
 
 bool append_into_section_list_sl(static_library_t *sl){
     if(sl == NULL){
@@ -193,28 +196,23 @@ static bool append_into_list(section_t *section){
     section_list_item_t *head = NULL;
     section_list_item_t *new_holder = NULL;
 
-    if(!create_new_section_list_item(&new_holder)){
-        return false;
-    }
-    new_holder->section = section;
-
-    if(!parse_symbols(new_holder)){
-        SET_ERROR(SECTION_SYMBOLLIST_ERROR);
-        return false;
-    }
-
     if(first_section_item == NULL){
+        if(!create_new_section_list_item(&new_holder)) return false;
+        new_holder->section = section;
+
         first_section_item = new_holder;
     }
     else{
         for(head = first_section_item; head != NULL; head = head->next){
             if(is_same_section(head->section, section)){
-                //TODO: shouldn't be error, merge them!!!!
-                SET_ERROR(SECTION_MULTIPLE);
-                return false;
+                if(!merge_sections(head->section, section)) return false;
+                break;
             }
 
             if(head->next == NULL){
+                if(!create_new_section_list_item(&new_holder)) return false;
+                new_holder->section = section;
+
                 head->next = new_holder;
                 break;
             }
@@ -249,6 +247,10 @@ static bool is_same_section(section_t *A, section_t *B){
     if(strcmp(A->section_name, B->section_name) == 0){
         return true;
     }
+    return false;
+}
+
+static bool merge_sections(section_t *A, section_t *B){
     return false;
 }
 
