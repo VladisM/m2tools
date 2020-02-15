@@ -141,14 +141,12 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    mem_t *head = lds->first_mem;
-
-    if(head == NULL){
+    if(lds->first_mem == NULL){
         fprintf(stderr, "There is no memory defined in the LDS file!\n");
         exit(EXIT_FAILURE);
     }
 
-    while(head != NULL){
+    for(mem_t *head = lds->first_mem; head != NULL; head = head->next){
         ldm_mem_t *tmp_mem = NULL;
 
         if(new_mem(&tmp_mem, head->name, head->orig, head->size) != true){
@@ -160,8 +158,6 @@ int main(int argc, char *argv[]){
             fprintf(stderr, "Failed to append memory item %s into LDM file! ldmlib errno: %d\n", head->name, get_ldmlib_errno());
             exit(EXIT_FAILURE);
         }
-
-        head = head->next;
     }
 
     //create cashe with all sections - later we will work with that cashe

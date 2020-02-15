@@ -251,6 +251,7 @@ static bool is_same_section(section_t *A, section_t *B){
 }
 
 static bool merge_sections(section_t *A, section_t *B){
+    SET_ERROR(SECTION_FAIL_SECTION_MERGE);
     return false;
 }
 
