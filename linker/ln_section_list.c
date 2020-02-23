@@ -252,6 +252,33 @@ static bool is_same_section(section_t *A, section_t *B){
 
 static bool merge_sections(section_t *A, section_t *B){
     SET_ERROR(SECTION_FAIL_SECTION_MERGE);
+
+    //get informations about section A
+    isa_address_t *addr_offset = 0;
+    unsigned int import_label_counter = 0;
+
+    for(data_symbol_t *head = A->data_first; head != NULL; head = head->next){
+        if(head->next == NULL){
+            if(head->type == DATA_IS_INST){
+                //TODO: +4 should be instruction leng given from ISA library -> portability
+                addr_offset = head->address + 4;
+            }
+            else if(head->type == DATA_IS_BLOB)
+                addr_offset = head->address + head->payload.blob->lenght;
+            }
+            else{
+                SET_ERROR(SECTION_FAIL_SECTION_MERGE);
+                return false;
+            }
+        }
+    }
+
+    for(spec_symbol_t *head = A->spec_symbol_first; head != NULL; head = head->next){
+        if(head->type == SYMBOL_IMPORT){
+            import_label_counter++;
+        }
+    }
+
     return false;
 }
 
@@ -307,7 +334,7 @@ void print_section_list(void){
                 printf("   |- mem: %s\n", head->assinged_mem->mem_name);
 
             printf("   |- begin address: "PRIisa_addr"\n", head->begin_addr);
-            printf("   '- used: %s\n", head->used ? "true" : "false");
+            printf("   '- used: %s\n", head->used ? "true" : "false");0
         }
     }
 }
