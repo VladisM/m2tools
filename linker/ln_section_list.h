@@ -38,7 +38,8 @@ typedef enum{
     SECTION_WRONG_ARG,
     SECTION_OBJLIB_ERROR,
     SECTION_ISALIB_ERROR,
-    SECTION_FAIL_SECTION_MERGE
+    SECTION_FAIL_SECTION_MERGE,
+    SECTION_MULTIPLE_SYMBOL
 }ln_section_list_errno_t;
 
 typedef struct section_list_item_s{

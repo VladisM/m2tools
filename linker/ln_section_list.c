@@ -254,7 +254,7 @@ static bool merge_sections(section_t *A, section_t *B){
     SET_ERROR(SECTION_FAIL_SECTION_MERGE);
 
     //get informations about section A
-    isa_address_t *addr_offset = 0;
+    isa_address_t addr_offset = 0;
     unsigned int import_label_counter = 0;
 
     for(data_symbol_t *head = A->data_first; head != NULL; head = head->next){
@@ -263,7 +263,7 @@ static bool merge_sections(section_t *A, section_t *B){
                 //TODO: +4 should be instruction leng given from ISA library -> portability
                 addr_offset = head->address + 4;
             }
-            else if(head->type == DATA_IS_BLOB)
+            else if(head->type == DATA_IS_BLOB){
                 addr_offset = head->address + head->payload.blob->lenght;
             }
             else{
@@ -277,9 +277,125 @@ static bool merge_sections(section_t *A, section_t *B){
         if(head->type == SYMBOL_IMPORT){
             import_label_counter++;
         }
+
+        //also check if not multiple symbol export
+        if(head->type == SYMBOL_EXPORT){
+            for(spec_symbol_t *head_b = B->spec_symbol_first; head != NULL; head = head->next){
+                if(head_b->type == SYMBOL_EXPORT){
+                    if(strcmp(head_b->name, head->name) == 0){
+                        SET_ERROR(SECTION_MULTIPLE_SYMBOL);
+                        return false;
+                    }
+                }
+            }
+        }
     }
 
-    return false;
+    for(spec_symbol_t *head = B->spec_symbol_first; head != NULL; head = head->next){
+        //add offset to exported symbols
+        if(head->type == SYMBOL_EXPORT){
+            head->value += addr_offset;
+        }
+
+        //add offset to imported symbols
+        if(head->type == SYMBOL_IMPORT){
+            head->value += import_label_counter;
+        }
+    }
+
+    for(data_symbol_t *head = B->data_first; head != NULL; head = head->next){
+        head->address += addr_offset;
+
+        if(head->type == DATA_IS_INST){
+            if(head->special == true){
+                if(!retarget_instruction(head->payload.inst, import_label_counter)){
+                    SET_ERROR(SECTION_ISALIB_ERROR);
+                    return false;
+                }
+            }
+            if(head->relocation == true){
+                if(!retarget_instruction(head->payload.inst, addr_offset)){
+                    SET_ERROR(SECTION_ISALIB_ERROR);
+                    return false;
+                }
+            }
+        }
+    }
+
+    //and finally apend all content of section B into section A - make deep copy ;)
+
+    for(data_symbol_t *head = B->data_first; head != NULL; head = head->next){
+        data_symbol_t *tmp = NULL;
+        void *payload_ptr = NULL;
+
+        if(head->type == DATA_IS_BLOB){
+            datablob_t *tmp_payload = NULL;
+
+            if(!new_blob(head->payload.blob->lenght, &tmp_payload)){
+                SET_ERROR(SECTION_OBJLIB_ERROR);
+                return false;
+            }
+
+            for(unsigned int i = 0; i < head->payload.blob->lenght; i++){
+                tmp_payload->payload[i] = head->payload.blob->payload[i];
+            }
+
+            payload_ptr = (void *)tmp_payload;
+        }
+
+        if(head->type == DATA_IS_INST){
+            tInstruction *tmp_payload = new_instru();
+
+            if(tmp_payload == NULL){
+                SET_ERROR(SECTION_ISALIB_ERROR);
+                return false;
+            }
+
+            tmp_payload->word = head->payload.inst->word;
+
+            payload_ptr = (void *)tmp_payload;
+        }
+
+        if(!new_data_symbol(head->address, head->type, payload_ptr, &tmp)){
+
+            if(head->type == DATA_IS_BLOB){
+                free(((datablob_t *)payload_ptr)->payload);
+                free(payload_ptr);
+            }
+            if(head->type == DATA_IS_INST){
+                free_istruction_struct((tInstruction *)payload_ptr);
+            }
+
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            return false;
+        }
+
+        tmp->relocation = head->relocation;
+        tmp->special = head->special;
+
+        if(!append_data_symbol_to_section(A, tmp)){
+            free_obj_data_symbol(tmp);
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            return false;
+        }
+    }
+
+    for(spec_symbol_t *head = B->spec_symbol_first; head != NULL; head = head->next){
+        spec_symbol_t *tmp = NULL;
+
+        if(!new_spec_symbol(head->name, head->value, head->type, &tmp)){
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            return false;
+        }
+
+        if(!append_spec_symbol_to_section(A, tmp)){
+            free_obj_spec_symbol(tmp);
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void clear_section_list_errno(void){
@@ -334,7 +450,7 @@ void print_section_list(void){
                 printf("   |- mem: %s\n", head->assinged_mem->mem_name);
 
             printf("   |- begin address: "PRIisa_addr"\n", head->begin_addr);
-            printf("   '- used: %s\n", head->used ? "true" : "false");0
+            printf("   '- used: %s\n", head->used ? "true" : "false");
         }
     }
 }
