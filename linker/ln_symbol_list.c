@@ -191,9 +191,9 @@ void print_symbols_lists(void){
         printf("Exported symbol:\n");
         for(symbol_holder_t *head = exported_symbols; head != NULL; head = head->next){
             if(head->next != NULL)
-                printf("|- '%s' from '%s' \n", head->sym->name, head->section->section->section_name);
+                printf("|- '%s' from '%s' val: "PRIisa_addr"\n", head->sym->name, head->section->section->section_name, head->sym->value);
             else
-                printf("'- '%s' from '%s' \n", head->sym->name, head->section->section->section_name);
+                printf("'- '%s' from '%s' val: "PRIisa_addr"\n", head->sym->name, head->section->section->section_name, head->sym->value);
         }
     }
 
@@ -204,9 +204,9 @@ void print_symbols_lists(void){
         printf("Imported symbol:\n");
         for(symbol_holder_t *head = imported_symbols; head != NULL; head = head->next){
             if(head->next != NULL)
-                printf("|- '%s' from '%s' \n", head->sym->name, head->section->section->section_name);
+                printf("|- '%s' from '%s' val: "PRIisa_addr"\n", head->sym->name, head->section->section->section_name, head->sym->value);
             else
-                printf("'- '%s' from '%s' \n", head->sym->name, head->section->section->section_name);
+                printf("'- '%s' from '%s' val: "PRIisa_addr"\n", head->sym->name, head->section->section->section_name, head->sym->value);
         }
     }
 }

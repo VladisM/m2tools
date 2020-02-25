@@ -257,7 +257,7 @@ static bool merge_sections(section_t *A, section_t *B){
     isa_address_t addr_offset = 0;
     unsigned int import_label_counter = 0;
 
-    for(data_symbol_t *head = A->data_first; head != NULL; head = head->next){
+    for(data_symbol_t *head = A->data_first; head->next != NULL; head = head->next){
         if(head->next == NULL){
             if(head->type == DATA_IS_INST){
                 //TODO: +4 should be instruction leng given from ISA library -> portability
@@ -273,7 +273,7 @@ static bool merge_sections(section_t *A, section_t *B){
         }
     }
 
-    for(spec_symbol_t *head = A->spec_symbol_first; head != NULL; head = head->next){
+    for(spec_symbol_t *head = A->spec_symbol_first; head->next != NULL; head = head->next){
         if(head->type == SYMBOL_IMPORT){
             import_label_counter++;
         }
@@ -291,7 +291,7 @@ static bool merge_sections(section_t *A, section_t *B){
         }
     }
 
-    for(spec_symbol_t *head = B->spec_symbol_first; head != NULL; head = head->next){
+    for(spec_symbol_t *head = B->spec_symbol_first; head->next != NULL; head = head->next){
         //add offset to exported symbols
         if(head->type == SYMBOL_EXPORT){
             head->value += addr_offset;
@@ -303,7 +303,7 @@ static bool merge_sections(section_t *A, section_t *B){
         }
     }
 
-    for(data_symbol_t *head = B->data_first; head != NULL; head = head->next){
+    for(data_symbol_t *head = B->data_first; head->next != NULL; head = head->next){
         head->address += addr_offset;
 
         if(head->type == DATA_IS_INST){
@@ -324,7 +324,7 @@ static bool merge_sections(section_t *A, section_t *B){
 
     //and finally apend all content of section B into section A - make deep copy ;)
 
-    for(data_symbol_t *head = B->data_first; head != NULL; head = head->next){
+    for(data_symbol_t *head = B->data_first; head->next != NULL; head = head->next){
         data_symbol_t *tmp = NULL;
         void *payload_ptr = NULL;
 
