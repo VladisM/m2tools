@@ -1,0 +1,17 @@
+.object
+obj_b.o
+.arch
+MARK_II
+.section
+text
+.spec
+LABEL_A:0x00000000:import
+LABEL_C:0x00000001:import
+LABEL_D:0x00000002:import
+some_fun:0x00000000:export
+.data
+I:0x00000000:0:0:0x0cb00000
+I:0x00000004:0:1:0x80000010
+I:0x00000008:0:1:0x80000020
+I:0x0000000c:0:0:0x01000000
+.end
