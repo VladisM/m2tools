@@ -288,14 +288,30 @@ static bool merge_sections(section_t *A, section_t *B){
     }
 
     for(spec_symbol_t *head = B->spec_symbol_first; head != NULL; head = head->next){
-        //add offset to exported symbols
+        spec_symbol_t *tmp = NULL;
+        isa_address_t offset = 0;
+
         if(head->type == SYMBOL_EXPORT){
-            head->value += addr_offset;
+            offset = addr_offset;
+        }
+        else if(head->type == SYMBOL_IMPORT){
+            offset = import_label_counter;
+        }
+        else{
+            SET_ERROR(SECTION_FAIL_SECTION_MERGE);
+            return false;
         }
 
-        //add offset to imported symbols
-        if(head->type == SYMBOL_IMPORT){
-            head->value += import_label_counter;
+        //add it into section A
+        if(!new_spec_symbol(head->name, head->value + offset, head->type, &tmp)){
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            return false;
+        }
+
+        if(!append_spec_symbol_to_section(A, tmp)){
+            free_obj_spec_symbol(tmp);
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            return false;
         }
     }
 
@@ -371,21 +387,6 @@ static bool merge_sections(section_t *A, section_t *B){
 
         if(!append_data_symbol_to_section(A, tmp)){
             free_obj_data_symbol(tmp);
-            SET_ERROR(SECTION_OBJLIB_ERROR);
-            return false;
-        }
-    }
-
-    for(spec_symbol_t *head = B->spec_symbol_first; head != NULL; head = head->next){
-        spec_symbol_t *tmp = NULL;
-
-        if(!new_spec_symbol(head->name, head->value, head->type, &tmp)){
-            SET_ERROR(SECTION_OBJLIB_ERROR);
-            return false;
-        }
-
-        if(!append_spec_symbol_to_section(A, tmp)){
-            free_obj_spec_symbol(tmp);
             SET_ERROR(SECTION_OBJLIB_ERROR);
             return false;
         }
