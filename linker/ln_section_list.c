@@ -251,7 +251,6 @@ static bool is_same_section(section_t *A, section_t *B){
 }
 
 static bool merge_sections(section_t *A, section_t *B){
-    SET_ERROR(SECTION_FAIL_SECTION_MERGE);
 
     //get informations about section A
     isa_address_t addr_offset = 0;
@@ -316,27 +315,6 @@ static bool merge_sections(section_t *A, section_t *B){
     }
 
     for(data_symbol_t *head = B->data_first; head != NULL; head = head->next){
-        head->address += addr_offset;
-
-        if(head->type == DATA_IS_INST){
-            if(head->special == true){
-                if(!retarget_instruction(head->payload.inst, import_label_counter)){
-                    SET_ERROR(SECTION_ISALIB_ERROR);
-                    return false;
-                }
-            }
-            if(head->relocation == true){
-                if(!retarget_instruction(head->payload.inst, addr_offset)){
-                    SET_ERROR(SECTION_ISALIB_ERROR);
-                    return false;
-                }
-            }
-        }
-    }
-
-    //and finally apend all content of section B into section A - make deep copy ;)
-
-    for(data_symbol_t *head = B->data_first; head != NULL; head = head->next){
         data_symbol_t *tmp = NULL;
         void *payload_ptr = NULL;
 
@@ -365,10 +343,24 @@ static bool merge_sections(section_t *A, section_t *B){
 
             tmp_payload->word = head->payload.inst->word;
 
+            if(head->special == true){
+                if(!retarget_instruction(tmp_payload, import_label_counter)){
+                    SET_ERROR(SECTION_ISALIB_ERROR);
+                    return false;
+                }
+            }
+
+            if(head->relocation == true){
+                if(!retarget_instruction(tmp_payload, addr_offset)){
+                    SET_ERROR(SECTION_ISALIB_ERROR);
+                    return false;
+                }
+            }
+
             payload_ptr = (void *)tmp_payload;
         }
 
-        if(!new_data_symbol(head->address, head->type, payload_ptr, &tmp)){
+        if(!new_data_symbol(head->address + addr_offset, head->type, payload_ptr, &tmp)){
 
             if(head->type == DATA_IS_BLOB){
                 free(((datablob_t *)payload_ptr)->payload);
