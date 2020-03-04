@@ -276,7 +276,7 @@ static bool merge_sections(section_t *A, section_t *B){
 
         //also check if not multiple symbol export
         if(head->type == SYMBOL_EXPORT){
-            for(spec_symbol_t *head_b = B->spec_symbol_first; head != NULL; head = head->next){
+            for(spec_symbol_t *head_b = B->spec_symbol_first; head_b != NULL; head_b = head_b->next){
                 if(head_b->type == SYMBOL_EXPORT){
                     if(strcmp(head_b->name, head->name) == 0){
                         SET_ERROR(SECTION_MULTIPLE_SYMBOL);
