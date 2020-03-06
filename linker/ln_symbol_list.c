@@ -153,21 +153,34 @@ static bool append_to_absolute(spec_symbol_t *symbol){
         absolute_linker_symbols = new_hld;
     }
     else{
-        symbol_holder_t *head = absolute_linker_symbols;
+        symbol_holder_t *head_ex = exported_symbols;
+
+        while(head_ex != NULL){
+            if(are_holders_same(head_ex, new_hld)){
+                fprintf(stderr, "Error! Multiple export symbol definition found!\n");
+                fprintf(stderr, "Symbol: %s from linker script colide with same symbol in code.\n", head_ex->sym->name);
+                SET_ERROR(SYMBOLLIST_MULTIPLE);
+                return false;
+            }
+            head_ex = head_ex->next;
+        }
+
+        symbol_holder_t *head_abs = absolute_linker_symbols;
 
         while(1){
-            if(are_holders_same(head, new_hld)){
-                fprintf(stderr, "Error! Multiple export symbol definition found! Symbol: %s\n", head->sym->name);
+            if(are_holders_same(head_abs, new_hld)){
+                fprintf(stderr, "Error! Multiple export symbol definition found!\n");
+                fprintf(stderr, "Symbol: %s from linker script.\n", head_abs->sym->name);
                 SET_ERROR(SYMBOLLIST_MULTIPLE);
                 return false;
             }
 
-            if(head->next == NULL){
-                head->next = new_hld;
+            if(head_abs->next == NULL){
+                head_abs->next = new_hld;
                 break;
             }
 
-            head = head->next;
+            head_abs = head_abs->next;
         }
     }
 
@@ -188,21 +201,33 @@ static bool append_to_exported(spec_symbol_t *symbol, section_list_item_t *secti
         exported_symbols = new_hld;
     }
     else{
-        symbol_holder_t *head = exported_symbols;
+        symbol_holder_t *head_abs = absolute_linker_symbols;
+
+        while(head_abs != NULL){
+            if(are_holders_same(head_abs, new_hld)){
+                fprintf(stderr, "Error! Multiple export symbol definition found!\n");
+                fprintf(stderr, "Symbol: %s colide with symbol from liner script.\n", head_abs->sym->name);
+                SET_ERROR(SYMBOLLIST_MULTIPLE);
+                return false;
+            }
+            head_abs = head_abs->next;
+        }
+
+        symbol_holder_t *head_ex = exported_symbols;
 
         while(1){
-            if(are_holders_same(head, new_hld)){
-                fprintf(stderr, "Error! Multiple export symbol definition found! Symbol: %s\n", head->sym->name);
+            if(are_holders_same(head_ex, new_hld)){
+                fprintf(stderr, "Error! Multiple export symbol definition found! Symbol: %s\n", head_ex->sym->name);
                 SET_ERROR(SYMBOLLIST_MULTIPLE);
                 return false;
             }
 
-            if(head->next == NULL){
-                head->next = new_hld;
+            if(head_ex->next == NULL){
+                head_ex->next = new_hld;
                 break;
             }
 
-            head = head->next;
+            head_ex = head_ex->next;
         }
     }
 
