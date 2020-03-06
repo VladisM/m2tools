@@ -46,8 +46,6 @@
 
 typedef enum{
     SYMBOLLIST_OK = 0,
-    SYMBOLLIST_MALLOC,
-    SYMBOLLIST_WTF,
     SYMBOLLIST_MULTIPLE
 }ln_symbol_list_errno_t;
 

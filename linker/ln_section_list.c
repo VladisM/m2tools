@@ -33,14 +33,19 @@
 #include <ldm.h>
 #include <obj.h>
 
-#include "ln_symbol_list.h"
+#include "linker_util.h"
 
 #define SET_ERROR(n) if(section_list_errno == SECTION_OK) section_list_errno = n
 
+/**
+ * @brief Variable where pointer to list is stored.
+ */
 section_list_item_t *first_section_item = NULL;
+
+/**
+ * @brief Variable for error code.
+ */
 static ln_section_list_errno_t section_list_errno = SECTION_OK;
-
-
 
 /**
  * @brief Create deep copy of section.
@@ -227,10 +232,7 @@ static bool create_new_section_list_item(section_list_item_t **item_ptr){
 
     tmp = (section_list_item_t *)malloc(sizeof(section_list_item_t));
 
-    if(tmp == NULL){
-        SET_ERROR(SECTION_MALLOC_FAIL);
-        return false;
-    }
+    check_malloc((void *)tmp);
 
     tmp->section = NULL;
     tmp->assinged_mem = NULL;
@@ -264,25 +266,13 @@ static bool merge_sections(section_t *A, section_t *B){
         addr_offset = A->data_last->address + A->data_last->payload.blob->lenght;
     }
     else{
-        SET_ERROR(SECTION_FAIL_SECTION_MERGE);
-        return false;
+        fprintf(stderr, "Data is not instruction or blob. This mean that objlibrary is probrably incompatible with this linker!\n");
+        exit(EXIT_FAILURE);
     }
 
     for(spec_symbol_t *head = A->spec_symbol_first; head != NULL; head = head->next){
         if(head->type == SYMBOL_IMPORT){
             import_label_counter++;
-        }
-
-        //also check if not multiple symbol export
-        if(head->type == SYMBOL_EXPORT){
-            for(spec_symbol_t *head_b = B->spec_symbol_first; head_b != NULL; head_b = head_b->next){
-                if(head_b->type == SYMBOL_EXPORT){
-                    if(strcmp(head_b->name, head->name) == 0){
-                        SET_ERROR(SECTION_MULTIPLE_SYMBOL);
-                        return false;
-                    }
-                }
-            }
         }
     }
 
@@ -297,8 +287,8 @@ static bool merge_sections(section_t *A, section_t *B){
             offset = import_label_counter;
         }
         else{
-            SET_ERROR(SECTION_FAIL_SECTION_MERGE);
-            return false;
+            fprintf(stderr, "Special symbol have to by export type or import type! Probably broken assembler?\n");
+            exit(EXIT_FAILURE);
         }
 
         //add it into section A

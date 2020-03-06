@@ -31,6 +31,7 @@
 #include <isa.h>
 
 #include "ln_section_list.h"
+#include "linker_util.h"
 
 #define SET_ERROR(n) if(symbol_list_errno == SYMBOLLIST_OK) symbol_list_errno = n
 
@@ -60,8 +61,8 @@ bool parse_symbols(section_list_item_t *section){
             }
         }
         else{
-            SET_ERROR(SYMBOLLIST_WTF);
-            return false;
+            fprintf(stderr, "Error! Given symbol that is not export type or import type!\nSymbol: %s\n", head->name);
+            exit(EXIT_FAILURE);
         }
 
         head = head->next;
@@ -112,15 +113,21 @@ static bool append_to_exported(spec_symbol_t *symbol, section_list_item_t *secti
     }
     else{
         symbol_holder_t *head = exported_symbols;
-        while(head->next != NULL){
+
+        while(1){
             if(are_holders_same(head, new_hld)){
+                fprintf(stderr, "Error! Multiple export symbol definition found! Symbol: %s\n", head->sym->name);
                 SET_ERROR(SYMBOLLIST_MULTIPLE);
                 return false;
             }
 
+            if(head->next == NULL){
+                head->next = new_hld;
+                break;
+            }
+
             head = head->next;
         }
-        head->next = new_hld;
     }
 
     return true;
@@ -160,10 +167,7 @@ static bool create_new_holder(symbol_holder_t **ptr){
 
     ptr_tmp = (symbol_holder_t *)malloc(sizeof(symbol_holder_t));
 
-    if(ptr_tmp == NULL){
-        SET_ERROR(SYMBOLLIST_MALLOC);
-        return false;
-    }
+    check_malloc((void *)ptr_tmp);
 
     ptr_tmp->next = NULL;
     ptr_tmp->sym = NULL;
