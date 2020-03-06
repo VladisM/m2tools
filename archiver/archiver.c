@@ -8,7 +8,21 @@
  *
  * @note This file is part of m2tools project.
  *
- * @todo Write short manual how to use this tool. For what is used and simple overview how it work.
+ * Archiver is used in order to create static libraries. Simply, you translate bunch of
+ * asm files into object files with assembler. These asm files should contain some
+ * exported symbols like some functions and so on. Then you can create single file
+ * cointaing all these object files by using this utility.
+ *
+ * $archiver -c -o my_lib.sl obj_a.o obj_b.o obj_c.o
+ *
+ * And it is done. :)
+ *
+ * You can also use this tool to extract static library into object files from
+ * wicht it was created. For this --extract is used. Or you can simply list them
+ * by using --list.
+ *
+ * Source code of this utility is pretty straight foward and doesn't need any futher
+ * explaniation. All hard work is done by sllib and objlib.
  */
 
 #include <stdlib.h>

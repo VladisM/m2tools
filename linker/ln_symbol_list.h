@@ -22,8 +22,6 @@
 
 //TODO: add comments
 
-//TODO: implement this module
-
 //How this work? This sould work as cache with symbols.
 //
 // Jak jsou parsovány jednotlivé sekce, budou přidávány symboly z nich. Toto se provede
