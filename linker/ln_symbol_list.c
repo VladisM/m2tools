@@ -32,14 +32,19 @@
 
 #include "ln_section_list.h"
 #include "linker_util.h"
+#include "ldparser.h"
 
 #define SET_ERROR(n) if(symbol_list_errno == SYMBOLLIST_OK) symbol_list_errno = n
 
+//TODO: absolute symbols from linker scripts
+
 symbol_holder_t *exported_symbols = NULL;
 symbol_holder_t *imported_symbols = NULL;
+symbol_holder_t *absolute_linker_symbols = NULL;
 
 static bool append_to_exported(spec_symbol_t *s, section_list_item_t *section);
 static bool append_to_imported(spec_symbol_t *s, section_list_item_t *section);
+static bool append_to_absolute(spec_symbol_t *symbol);
 static bool create_new_holder(symbol_holder_t **ptr);
 static bool are_holders_same(symbol_holder_t *A, symbol_holder_t *B);
 
@@ -71,6 +76,31 @@ bool parse_symbols(section_list_item_t *section){
     return true;
 }
 
+bool parse_linker_symbols(lds_t *lds){
+    sym_t *head = lds->first_sym;
+
+    while(head != NULL){
+        spec_symbol_t *tmp = NULL;
+
+        if(!new_spec_symbol(head->name, head->value, SYMBOL_EXPORT, &tmp)){
+            SET_ERROR(SECTION_OBJLIB_ERROR);
+            return false;
+        }
+        if(!append_to_absolute(tmp)){
+            return false;
+        }
+
+        head = head->next;
+    }
+
+    return true;
+}
+
+bool check_imported_symbols_exist(void){
+    //TODO: finish
+    return false;
+}
+
 void clean_up_symbol_lists(void){
     symbol_holder_t *head = NULL;
     symbol_holder_t *tmp = NULL;
@@ -95,7 +125,53 @@ void clean_up_symbol_lists(void){
         }
     }
 
+    if(absolute_linker_symbols != NULL){
+        head = absolute_linker_symbols;
+        while(head != NULL){
+            tmp = head;
+            head = head->next;
+
+            free_obj_spec_symbol(tmp->sym);
+            free(tmp);
+        }
+    }
+
     return;
+}
+
+static bool append_to_absolute(spec_symbol_t *symbol){
+    symbol_holder_t *new_hld = NULL;
+
+    if(!create_new_holder(&new_hld)){
+        return false;
+    }
+
+    new_hld->section = NULL;
+    new_hld->sym = symbol;
+
+    if(absolute_linker_symbols == NULL){
+        absolute_linker_symbols = new_hld;
+    }
+    else{
+        symbol_holder_t *head = absolute_linker_symbols;
+
+        while(1){
+            if(are_holders_same(head, new_hld)){
+                fprintf(stderr, "Error! Multiple export symbol definition found! Symbol: %s\n", head->sym->name);
+                SET_ERROR(SYMBOLLIST_MULTIPLE);
+                return false;
+            }
+
+            if(head->next == NULL){
+                head->next = new_hld;
+                break;
+            }
+
+            head = head->next;
+        }
+    }
+
+    return true;
 }
 
 static bool append_to_exported(spec_symbol_t *symbol, section_list_item_t *section){
@@ -192,7 +268,7 @@ void print_symbols_lists(void){
         printf("Exported symbols:\n'-(null)\n");
     }
     else{
-        printf("Exported symbol:\n");
+        printf("Exported symbols:\n");
         for(symbol_holder_t *head = exported_symbols; head != NULL; head = head->next){
             if(head->next != NULL)
                 printf("|- '%s' from '%s' val: "PRIisa_addr"\n", head->sym->name, head->section->section->section_name, head->sym->value);
@@ -205,12 +281,25 @@ void print_symbols_lists(void){
         printf("Imported symbols:\n'-(null)\n");
     }
     else{
-        printf("Imported symbol:\n");
+        printf("Imported symbols:\n");
         for(symbol_holder_t *head = imported_symbols; head != NULL; head = head->next){
             if(head->next != NULL)
                 printf("|- '%s' from '%s' val: "PRIisa_addr"\n", head->sym->name, head->section->section->section_name, head->sym->value);
             else
                 printf("'- '%s' from '%s' val: "PRIisa_addr"\n", head->sym->name, head->section->section->section_name, head->sym->value);
+        }
+    }
+
+    if(absolute_linker_symbols == NULL){
+        printf("Absolute symbols:\n'-(null)\n");
+    }
+    else{
+        printf("Absolute symbols:\n");
+        for(symbol_holder_t *head = absolute_linker_symbols; head != NULL; head = head->next){
+            if(head->next != NULL)
+                printf("|- '%s' val: "PRIisa_addr"\n", head->sym->name, head->sym->value);
+            else
+                printf("'- '%s' val: "PRIisa_addr"\n", head->sym->name, head->sym->value);
         }
     }
 }
