@@ -98,20 +98,42 @@ bool parse_linker_symbols(lds_t *lds){
 
 bool check_imported_symbols_exist(void){
 
-    for(symbol_holder_t *head = imported_symbols; head != NULL; head = head->next){
+    for(symbol_holder_t *head_imp = imported_symbols; head_imp != NULL; head_imp = head_imp->next){
         bool found = false;
+        symbol_holder_t same_symbol = NULL;
 
-        for(symbol_holder_t *head_abs = absolute_linker_symbols; head != NULL; head = head->next){
-            //TODO:
+        //find counterpart for actual symbol
+        for(symbol_holder_t *head_abs = absolute_linker_symbols; head_abs != NULL; head_abs = head_abs->next){
+            if(are_holders_same(head_imp, head_abs)){
+                same_symbol = head_abs;
+                found = true;
+            }
         }
-        if(found == true){
-            //TODO:
+        if(!found){
+            for(symbol_holder_t *head_exp = exported_symbols; head_exp != NULL; head_exp = head_exp->next){
+                if(are_holders_same(head_imp, head_exp)){
+                    same_symbol = head_abs;
+                    found = true;
+                }
+            }
         }
-        for(symbol_holder_t *head_exp = exported_symbols; head != NULL; head = head->next){
-            //TODO:
+
+        if(found){
+            //TODO: symbol byl nalezen označit sekci za používanou
         }
+        else{
+            //symbol didn't found that mean there is unresolved symbol as we
+            //should have everything cashed(all libs and objs) at this moment
+
+            fprintf(stderr, "Error: unresolved symbol! Please include definition of this symbol.\n");
+            fprintf(stderr, "Symbol %s from '%s'\n", head_imp->sym->name, head_imp->section->section->section_name);
+            SET_ERROR(SYMBOLLIST_MISSING_EXPORT);
+            return false;
+        }
+
     }
 
+    //TODO: až to bude fungovat vracet true
     return false;
 }
 

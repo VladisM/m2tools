@@ -47,9 +47,10 @@
  * @brief Enum type with error codes.
  */
 typedef enum{
-    SYMBOLLIST_OK = 0,      /**< @b Everything is fine. */
-    SYMBOLLIST_MULTIPLE,    /**< @b Symbol is exported more than once. */
-    SYMBOLLIST_OBJLIB_ERROR /**< @b Error is in objlib. */
+    SYMBOLLIST_OK = 0,          /**< @b Everything is fine. */
+    SYMBOLLIST_MULTIPLE,        /**< @b Symbol is exported more than once. */
+    SYMBOLLIST_OBJLIB_ERROR,    /**< @b Error is in objlib. */
+    SYMBOLLIST_MISSING_EXPORT   /**< @b There are unresolved imported symbols. */
 }ln_symbol_list_errno_t;
 
 /**
