@@ -433,4 +433,22 @@ void print_section_list(void){
         }
     }
 }
+
+void print_section_status(void){
+    printf("Used section summ:\n");
+
+    if(first_section_item == NULL){
+        printf("'- (null)\n");
+        return;
+    }
+
+    for(section_list_item_t *head = first_section_item; head != NULL; head = head->next){
+        char c = '\0';
+
+        if(head->next != NULL) c = '|';
+        else c = '\'';
+
+        printf("%c- %s %s", c, head->section->section_name, head->used ? "used" : "unused");
+    }
+}
 #endif

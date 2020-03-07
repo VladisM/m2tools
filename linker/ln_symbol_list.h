@@ -50,7 +50,8 @@ typedef enum{
     SYMBOLLIST_OK = 0,          /**< @b Everything is fine. */
     SYMBOLLIST_MULTIPLE,        /**< @b Symbol is exported more than once. */
     SYMBOLLIST_OBJLIB_ERROR,    /**< @b Error is in objlib. */
-    SYMBOLLIST_MISSING_EXPORT   /**< @b There are unresolved imported symbols. */
+    SYMBOLLIST_MISSING_EXPORT,  /**< @b There are unresolved imported symbols. */
+    SYMBOLLIST_WRONG_ARG        /**< @b Wrong arguments are given ... NULL pointer? */
 }ln_symbol_list_errno_t;
 
 /**
@@ -112,6 +113,15 @@ void clean_up_symbol_lists(void);
  * @return true if all imported symobols are also exported somewhere.
  */
 bool check_imported_symbols_exist(void);
+
+/**
+ * @brief Find section, where symbol is exported and mark it as used. For entry points and so on.
+ *
+ * @param symbol_name Name of symbol to search for.
+ *
+ * @return True if ok.
+ */
+bool mark_section_with_symbol_as_used(char *symbol_name);
 
 #ifndef NDEBUG
 /**

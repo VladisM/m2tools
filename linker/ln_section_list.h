@@ -99,6 +99,11 @@ void clean_up_section_list(void);
  * @brief Print list of all sections, used for debbuging purposes during development.
  */
 void print_section_list(void);
+
+/**
+ * @brief Print short sum with info about used and unused sections. Used for debugging during development.
+ */
+void print_section_status(void);
 #endif
 
 #endif

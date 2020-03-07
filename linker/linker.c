@@ -241,6 +241,24 @@ int main(int argc, char *argv[]){
     print_symbols_lists();
     #endif
 
+    //check if symbols are closet set and mark unused sections
+    if(!check_imported_symbols_exist()){
+        fprintf(stderr, "Some symbols are missing, provide their declaration!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //mark section with symbol from lds entry point as used
+    if(!mark_section_with_symbol_as_used(lds->entry_point)){
+        fprintf(stderr, "Error! Failed to mark section with symbol '%s' as used!\n", lds->entry_point);
+        fprintf(stderr, "Section list errno: %d\n", get_section_list_errno());
+        exit(EXIT_FAILURE);
+    }
+
+    #ifndef NDEBUG
+    print_section_status();
+    #endif
+
+
     return 1;
 }
 
@@ -254,6 +272,8 @@ static void print_help(void){
 }
 
 static void arg_parse(int argc, char* argv[]){
+
+    //TODO: add strip unsued sections option
 
     settings.libs = NULL;
     settings.libs_count = 0;

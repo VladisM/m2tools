@@ -137,6 +137,32 @@ bool check_imported_symbols_exist(void){
     return true;
 }
 
+bool mark_section_with_symbol_as_used(char *symbol_name){
+    bool found = false;
+
+    if(symbol_name == NULL){
+        SET_ERROR(SYMBOLLIST_WRONG_ARG);
+        return false;
+    }
+
+    //is useless to search abolute_liner_symbols as they are not assigned into any sections
+    for(symbol_holder_t *head = exported_symbols; head != NULL; head = head->next){
+        if(strcmp(symbol_name, head->sym->name) == 0){
+            head->section->used = true;
+            found = true;
+            break;
+        }
+    }
+
+    if(found == true){
+        return true;
+    }
+    else{
+        SET_ERROR(SYMBOLLIST_MISSING_EXPORT);
+        return false;
+    }
+}
+
 void clean_up_symbol_lists(void){
     symbol_holder_t *head = NULL;
     symbol_holder_t *tmp = NULL;
