@@ -219,9 +219,9 @@ int main(int argc, char *argv[]){
     for(section_list_item_t *head = first_section_item; head != NULL; head = head->next){
         if(!parse_symbols(head)){
             if(get_symbol_list_errno() == SYMBOLLIST_OBJLIB_ERROR)
-                fprintf(stderr, "Error in objlib from symbol list when building symbol table.\n objlib errno: %d\n", get_objlib_errno());
+                fprintf(stderr, "Error in objlib from symbol list when building symbol table.\nobjlib errno: %d\n", get_objlib_errno());
             else
-                fprintf(stderr, "Error in symbol list when building symbol table.\n errno: %d\n", get_symbol_list_errno());
+                fprintf(stderr, "Error in symbol list when building symbol table.\nerrno: %d\n", get_symbol_list_errno());
 
             exit(EXIT_FAILURE);
         }
@@ -230,9 +230,9 @@ int main(int argc, char *argv[]){
     //also put into symbol table symbols from linker script
     if(!parse_linker_symbols(lds)){
         if(get_symbol_list_errno() == SYMBOLLIST_OBJLIB_ERROR)
-            fprintf(stderr, "Error in objlib from symbol list when parsing symbols from linker script.\n objlib errno: %d\n", get_objlib_errno());
+            fprintf(stderr, "Error in objlib from symbol list when parsing symbols from linker script.\nobjlib errno: %d\n", get_objlib_errno());
         else
-            fprintf(stderr, "Error in symbol list when parsing symbols from linker script.\n errno: %d\n", get_symbol_list_errno());
+            fprintf(stderr, "Error in symbol list when parsing symbols from linker script.\nerrno: %d\n", get_symbol_list_errno());
 
         exit(EXIT_FAILURE);
     }

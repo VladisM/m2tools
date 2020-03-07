@@ -98,16 +98,16 @@ bool parse_linker_symbols(lds_t *lds){
 
 bool check_imported_symbols_exist(void){
 
-    for(symbol_holder_t head = imported_symbols; head != NULL; head = head->next){
+    for(symbol_holder_t *head = imported_symbols; head != NULL; head = head->next){
         bool found = false;
 
-        for(symbol_holder_t head_abs = absolute_linker_symbols; head != NULL; head = head->next){
+        for(symbol_holder_t *head_abs = absolute_linker_symbols; head != NULL; head = head->next){
             //TODO:
         }
         if(found == true){
             //TODO:
         }
-        for(symbol_holder_t head_exp = exported_symbols; head != NULL; head = head->next){
+        for(symbol_holder_t *head_exp = exported_symbols; head != NULL; head = head->next){
             //TODO:
         }
     }
