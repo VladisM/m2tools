@@ -95,6 +95,7 @@ typedef struct{
     char *linker_script;
     unsigned int libs_count;
     unsigned int obj_count;
+    bool strip_unused_sections;
 }settings_t;
 
 static settings_t settings;
@@ -115,6 +116,7 @@ Arguments:\n\
     -l                  Link static library, have to be followed by path.\n\
     -o --output         Set output filename, have to be followed by name.\n\
     -T                  Path to the linker script.\n\
+       --strip-unused   Put unused sections away. Strip down output size.\n\
 \n"
 
 int main(int argc, char *argv[]){
@@ -273,14 +275,13 @@ static void print_help(void){
 
 static void arg_parse(int argc, char* argv[]){
 
-    //TODO: add strip unsued sections option
-
     settings.libs = NULL;
     settings.libs_count = 0;
     settings.obj_files = NULL;
     settings.obj_count = 0;
     settings.output_filename = NULL;
     settings.linker_script = NULL;
+    settings.strip_unused_sections = false;
 
     for(int i = 1; i<argc; i++){
         if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ){
@@ -334,6 +335,9 @@ static void arg_parse(int argc, char* argv[]){
                 fprintf(stderr, "Wrong arg format!\n");
                 exit(EXIT_FAILURE);
             }
+        }
+        else if(strcmp(argv[i], "--strip-unused") == 0 ){
+            settings.strip_unused_sections = true;
         }
         else{
             if(*(argv[i]) == '-'){

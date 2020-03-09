@@ -36,8 +36,6 @@
 
 #define SET_ERROR(n) if(symbol_list_errno == SYMBOLLIST_OK) symbol_list_errno = n
 
-//TODO: absolute symbols from linker scripts
-
 symbol_holder_t *exported_symbols = NULL;
 symbol_holder_t *imported_symbols = NULL;
 symbol_holder_t *absolute_linker_symbols = NULL;

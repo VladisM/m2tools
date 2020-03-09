@@ -435,7 +435,7 @@ void print_section_list(void){
 }
 
 void print_section_status(void){
-    printf("Used section summ:\n");
+    printf("Used sections summary:\n");
 
     if(first_section_item == NULL){
         printf("'- (null)\n");
@@ -448,7 +448,7 @@ void print_section_status(void){
         if(head->next != NULL) c = '|';
         else c = '\'';
 
-        printf("%c- %s %s", c, head->section->section_name, head->used ? "used" : "unused");
+        printf("%c- Section '%s' - %s\n", c, head->section->section_name, head->used ? "USED" : "UNUSED");
     }
 }
 #endif
