@@ -1,0 +1,10 @@
+.SECTION another_code_section
+
+.EXPORT LABEL_E
+.EXPORT LABEL_F
+
+LABEL_E:
+    OR R0 R0 R0
+LABEL_F:
+    OR R0 R0 R0
+    RET
