@@ -408,7 +408,7 @@ void print_settings(void){
 
     printf("|- Linker script: '%s'\n", settings.linker_script);
     printf("|- Output name: '%s'\n", settings.output_filename);
-
+    printf("|- Strip unused: '%s'\n", settings.strip_unused_sections ? "true" : "false");
     if(settings.libs_count == 0){
         printf("|- Static libs: (null)\n");
     }
