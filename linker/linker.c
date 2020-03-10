@@ -260,6 +260,15 @@ int main(int argc, char *argv[]){
     print_section_status();
     #endif
 
+    //remove unused sections
+    if(settings.strip_unused_sections == true){
+        //TODO: add this feature
+    }
+
+    #ifndef NDEBUG
+    print_section_status();
+    #endif
+
 
     return 1;
 }
