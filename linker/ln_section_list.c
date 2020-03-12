@@ -408,6 +408,11 @@ bool strip_unused_sections(void){
     }
     //TODO: finish this
 
+    // this will work like that:
+    //  - go thru all sections
+    //  - if sections is unsued - there is flag called "used" - remove it from list
+    // flag "used" is set by checking if we have all symbols by check_imported_symbols_exist()
+
     fprintf(stderr, "Strip down unused sections is not implemented yet!\n");
     return false;
 }
