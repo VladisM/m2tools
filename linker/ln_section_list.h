@@ -41,6 +41,7 @@ typedef enum{
     SECTION_WRONG_ARG,              /**< @b You passed wrong arch into fuction ... you fool! */
     SECTION_OBJLIB_ERROR,           /**< @b Error occured in underling objlib module. */
     SECTION_ISALIB_ERROR,           /**< @b Error occured in underling isalib module. */
+    SECTION_LIST_EMPTY              /**< @b Section list is empy, there is no section in cashe. */
 }ln_section_list_errno_t;
 
 /**
@@ -93,6 +94,11 @@ ln_section_list_errno_t get_section_list_errno(void);
  * @brief Free all dynamically allocated memory. Should be called at the end of program.
  */
 void clean_up_section_list(void);
+
+/**
+ * @brief Remove unused sections.
+ */
+bool strip_unused_sections(void);
 
 #ifndef NDEBUG
 /**

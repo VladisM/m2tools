@@ -399,6 +399,19 @@ void clean_up_section_list(void){
     }
 }
 
+
+bool strip_unused_sections(void){
+    if(first_section_item == NULL){
+        fprintf(stderr, "There is no section in the list.\n");
+        SET_ERROR(SECTION_LIST_EMPTY);
+        return false;
+    }
+    //TODO: finish this
+
+    fprintf(stderr, "Strip down unused sections is not implemented yet!\n");
+    return false;
+}
+
 #ifndef NDEBUG
 void print_section_list(void){
     printf("Section cache:\n");

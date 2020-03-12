@@ -262,7 +262,10 @@ int main(int argc, char *argv[]){
 
     //remove unused sections
     if(settings.strip_unused_sections == true){
-        //TODO: add this feature
+        if(!strip_unused_sections()){
+            fprintf(stderr, "Failed to take out unused section! Errno: %d\n", get_section_list_errno());
+            exit(EXIT_FAILURE);
+        }
     }
 
     #ifndef NDEBUG
