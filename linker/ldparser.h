@@ -26,6 +26,9 @@
 #include <stdint.h>
 
 #include <isa.h>
+#include <obj.h>
+#include <ldm.h>
+#include <sl.h>
 
 typedef struct mem_s{
     struct mem_s *next;

@@ -432,6 +432,7 @@ bool new_mem(ldm_mem_t **m, char *mem_name, isa_address_t begin_addr, isa_addres
     (*m)->last_item = NULL;
     (*m)->prev = NULL;
     (*m)->next = NULL;
+    (*m)->last_offset = 0;
 
     return true;
 }

@@ -29,6 +29,9 @@
 #include <ctype.h>
 
 #include <isa.h>
+#include <obj.h>
+#include <ldm.h>
+#include <sl.h>
 
 #include "linker_util.h"
 
@@ -44,10 +47,10 @@ typedef enum{
     PS_TOK
 }lds_parser_state_t;
 
-static inline lds_t *new_lds(void);
-static inline mem_t *new_mem(char *name, isa_address_t size, isa_address_t orig);
-static inline sym_t *new_sym(char *name, isa_address_t value);
-static inline tok_t *new_tok(char *t);
+static inline lds_t *_new_lds(void);
+static inline mem_t *_new_mem(char *name, isa_address_t size, isa_address_t orig);
+static inline sym_t *_new_sym(char *name, isa_address_t value);
+static inline tok_t *_new_tok(char *t);
 
 lds_t *parse_lds(char *path){
     FILE *f = fopen(path, "r");
@@ -57,7 +60,7 @@ lds_t *parse_lds(char *path){
     char *tok = NULL;
     unsigned int tok_size_real = 2;
     unsigned int tok_size_used = 0;
-    lds_t *my_lds = new_lds();
+    lds_t *my_lds = _new_lds();
     tok_t *tokens = NULL;
     tok_t *last_tok = NULL;
 
@@ -109,7 +112,7 @@ lds_t *parse_lds(char *path){
                     }
                     tok[tok_size_used] = '\0';
 
-                    tok_t *new = new_tok(tok);
+                    tok_t *new = _new_tok(tok);
 
                     if(tokens == NULL) tokens = new;
                     else last_tok->next = new;
@@ -229,7 +232,7 @@ care_about_token:
 
             size *= size_mul;
 
-            mem_t *nm = new_mem(mem_name_s, size, orig);
+            mem_t *nm = _new_mem(mem_name_s, size, orig);
 
             for(mem_t *head_mem = my_lds->first_mem; head_mem != NULL; head_mem = head_mem->next){
                 if(strcmp(head_mem->name, nm->name) == 0){
@@ -340,7 +343,7 @@ care_about_token:
                 exit(EXIT_FAILURE);
             }
 
-            sym_t *ns = new_sym(sym_name_s, value);
+            sym_t *ns = _new_sym(sym_name_s, value);
 
             if(my_lds->first_sym == NULL){
                 my_lds->first_sym = ns;
@@ -442,7 +445,7 @@ void free_lds(lds_t *l){
     }
 }
 
-static inline lds_t *new_lds(void){
+static inline lds_t *_new_lds(void){
     lds_t *tmp = (lds_t *)malloc(sizeof(lds_t));
 
     check_malloc((void *)tmp);
@@ -458,7 +461,7 @@ static inline lds_t *new_lds(void){
     return tmp;
 }
 
-static inline mem_t *new_mem(char *name, isa_address_t size, isa_address_t orig){
+static inline mem_t *_new_mem(char *name, isa_address_t size, isa_address_t orig){
     mem_t *tmp = (mem_t *)malloc(sizeof(mem_t));
     char *tmp_s = (char *)malloc(sizeof(char) * (strlen(name) + 1));
 
@@ -480,7 +483,7 @@ static inline mem_t *new_mem(char *name, isa_address_t size, isa_address_t orig)
     return tmp;
 }
 
-static inline sym_t *new_sym(char *name, isa_address_t value){
+static inline sym_t *_new_sym(char *name, isa_address_t value){
     sym_t *tmp = (sym_t *)malloc(sizeof(sym_t));
     char *tmp_s = (char *)malloc(sizeof(char) * (strlen(name) + 1));
 
@@ -498,7 +501,7 @@ static inline sym_t *new_sym(char *name, isa_address_t value){
     return tmp;
 }
 
-static inline tok_t *new_tok(char *t){
+static inline tok_t *_new_tok(char *t){
     tok_t *tmp = (tok_t *)malloc(sizeof(tok_t));
     char *tmp_s = (char *)malloc(sizeof(char) * (strlen(t) + 1));
 

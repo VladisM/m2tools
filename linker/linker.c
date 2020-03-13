@@ -73,10 +73,11 @@
 #include "ldparser.h"
 #include "ln_section_list.h"
 #include "ln_symbol_list.h"
+#include "linker_util.h"
 
 #include <isa.h>
-#include <ldm.h>
 #include <obj.h>
+#include <ldm.h>
 #include <sl.h>
 
 static void print_version(void);
@@ -271,6 +272,41 @@ int main(int argc, char *argv[]){
     #ifndef NDEBUG
     print_section_status();
     #endif
+
+    //put sections into memories - calculating their offset in memory
+    for(section_list_item_t *head = first_section_item; head != NULL; head = head->next){
+        char *found_mem_name = NULL;
+
+        for(mem_t *mem_head = lds->first_mem; mem_head != NULL; mem_head = mem_head->next){
+            if(is_section_in_mem(head->section->section_name, mem_head) == true){
+                found_mem_name = mem_head->name;
+                break;
+            }
+            else{
+                if(mem_head == lds->last_mem){
+                    fprintf(stderr, "Error! Section '%s' is not assigned into any memory!\n", head->section->section_name);
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+
+        for(ldm_mem_t *mem_head = finalLDM->first_mem; mem_head != NULL; mem_head = mem_head->next){
+            if(strcmp(found_mem_name, mem_head->mem_name) == 0){
+                head->assinged_mem = mem_head;
+                break;
+            }
+            else{
+                if(mem_head == finalLDM->last_mem){
+                    fprintf(stderr, "Error! Didn't found ldm_mem but corresponding mem_t exist!\n");
+                    fprintf(stderr, "Name of mem_t: %s \n", found_mem_name);
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+
+        head->begin_addr = head->assinged_mem->last_offset;
+        head->assinged_mem->last_offset += get_section_size(head->section);
+    }
 
 
     return 1;

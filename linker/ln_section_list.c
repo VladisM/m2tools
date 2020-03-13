@@ -30,8 +30,9 @@
 #include <inttypes.h>
 
 #include <isa.h>
-#include <ldm.h>
 #include <obj.h>
+#include <ldm.h>
+#include <sl.h>
 
 #include "linker_util.h"
 
@@ -258,17 +259,7 @@ static bool merge_sections(section_t *A, section_t *B){
     isa_address_t addr_offset = 0;
     unsigned int import_label_counter = 0;
 
-    if(A->data_last->type == DATA_IS_INST){
-        //TODO: +4 should be instruction leng given from ISA library -> portability
-        addr_offset = A->data_last->address + 4;
-    }
-    else if(A->data_last->type == DATA_IS_BLOB){
-        addr_offset = A->data_last->address + A->data_last->payload.blob->lenght;
-    }
-    else{
-        fprintf(stderr, "Data is not instruction or blob. This mean that objlibrary is probrably incompatible with this linker!\n");
-        exit(EXIT_FAILURE);
-    }
+    addr_offset = get_section_size(A);
 
     for(spec_symbol_t *head = A->spec_symbol_first; head != NULL; head = head->next){
         if(head->type == SYMBOL_IMPORT){

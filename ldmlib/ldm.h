@@ -53,6 +53,8 @@ typedef struct ldm_mem_s{
     char *mem_name;              /**< @b */
     isa_address_t begin_addr;    /**< @b */
     isa_address_t size;          /**< @b */
+    //used internally by linker
+    isa_address_t last_offset;   /**< @b Used to store last address in memory when putting sections in. */
 } ldm_mem_t;
 
 /**

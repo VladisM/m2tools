@@ -22,6 +22,11 @@
 
 #include "linker_util.h"
 
+#include <isa.h>
+#include <obj.h>
+#include <ldm.h>
+#include <sl.h>
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -88,3 +93,16 @@ void check_malloc(void *p){
     }
 }
 
+isa_address_t get_section_size(section_t *s){
+    if(s->data_last->type == DATA_IS_INST){
+        //TODO: +4 should be instruction leng given from ISA library -> portability
+        return s->data_last->address + 4;
+    }
+    else if(s->data_last->type == DATA_IS_BLOB){
+        return s->data_last->address + s->data_last->payload.blob->lenght;
+    }
+    else{
+        fprintf(stderr, "Data is not instruction or blob. This mean that objlibrary is probrably incompatible with this linker!\n");
+        exit(EXIT_FAILURE);
+    }
+}

@@ -29,8 +29,8 @@
 #include <stdbool.h>
 
 #include <isa.h>
-#include <ldm.h>
 #include <obj.h>
+#include <ldm.h>
 #include <sl.h>
 
 /**

@@ -37,8 +37,10 @@
 
 #include <stdbool.h>
 
-#include <obj.h>
 #include <isa.h>
+#include <obj.h>
+#include <ldm.h>
+#include <sl.h>
 
 #include "ln_section_list.h"
 #include "ldparser.h"

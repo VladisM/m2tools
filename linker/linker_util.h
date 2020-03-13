@@ -25,6 +25,11 @@
 
 #include <stdbool.h>
 
+#include <isa.h>
+#include <obj.h>
+#include <ldm.h>
+#include <sl.h>
+
 #include "ldparser.h"
 
 /**
@@ -33,6 +38,24 @@
  * @return true if section have to be in this mem
  */
 bool is_section_in_mem(char *sname, mem_t *m);
+
+/**
+ * @brief Check if pointer is null after malloc.
+ *
+ * @param p Pointer to check.
+ *
+ * If pointer p is null then this write out error msg call exit(EXIT_FAILRULE).
+ * Call this after malloc.
+ */
 void check_malloc(void *p);
+
+/**
+ * @brief Count size of section.
+ *
+ * @param s Section to calc.
+ *
+ * @return size
+ */
+isa_address_t get_section_size(section_t *s);
 
 #endif
