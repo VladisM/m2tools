@@ -124,11 +124,18 @@ int main(int argc, char *argv[]){
 
     atexit(clean_mem);
 
+    #ifndef NDEBUG
+    printf("Running debug version of "PROG_NAME" version "VERSION".\n");
+    printf("Parsing args...\n");
+    #endif
+
     //get arguments
     arg_parse(argc, argv);
 
     #ifndef NDEBUG
     print_settings();
+    printf("args OK\n\n");
+    printf("Parsing linker script file...\n");
     #endif
 
     // parse linker script
@@ -136,6 +143,8 @@ int main(int argc, char *argv[]){
 
     #ifndef NDEBUG
     print_lds(lds);
+    printf("lds OK\n\n");
+    printf("Create LDM file structure...\n");
     #endif
 
     //create LDM structure
@@ -162,6 +171,11 @@ int main(int argc, char *argv[]){
             exit(EXIT_FAILURE);
         }
     }
+
+    #ifndef NDEBUG
+    printf("ldm OK\n\n");
+    printf("Create section cashe...\n");
+    #endif
 
     //create cashe with all sections - later we will work with that cashe
     //first - object files
@@ -216,6 +230,8 @@ int main(int argc, char *argv[]){
 
     #ifndef NDEBUG
     print_section_list();
+    printf("cashe OK\n\n");
+    printf("Building symbol table...\n");
     #endif
 
     //build symbol table
@@ -242,6 +258,8 @@ int main(int argc, char *argv[]){
 
     #ifndef NDEBUG
     print_symbols_lists();
+    printf("table OK\n\n");
+    printf("Checking if we have all symbols and marking sections...\n");
     #endif
 
     //check if symbols are closet set and mark unused sections
@@ -259,6 +277,8 @@ int main(int argc, char *argv[]){
 
     #ifndef NDEBUG
     print_section_status();
+    printf("Section marking OK\n\n");
+    printf("Remove unused sections...\n");
     #endif
 
     //remove unused sections
@@ -271,6 +291,8 @@ int main(int argc, char *argv[]){
 
     #ifndef NDEBUG
     print_section_status();
+    printf("unused OK\n\n");
+    printf("allocating sections into memories...\n");
     #endif
 
     //put sections into memories - calculating their offset in memory
@@ -308,7 +330,12 @@ int main(int argc, char *argv[]){
         head->assinged_mem->last_offset += get_section_size(head->section);
     }
 
+    #ifndef NDEBUG
+    print_section_list();
+    printf("allocating OK\n\n");
+    #endif
 
+    printf("Exit!\n");
     return 1;
 }
 
