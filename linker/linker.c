@@ -263,7 +263,7 @@ int main(int argc, char *argv[]){
     #endif
 
     //check if symbols are closet set and mark unused sections
-    if(!check_imported_symbols_exist()){
+    if(!check_imported_symbols_exist(lds->entry_point)){
         fprintf(stderr, "Some symbols are missing, provide their declaration!\n");
         exit(EXIT_FAILURE);
     }

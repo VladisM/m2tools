@@ -427,6 +427,7 @@ void print_section_list(void){
                 printf("|  |- mem: %s\n", head->assinged_mem->mem_name);
 
             printf("|  |- begin address: "PRIisa_addr"\n", head->begin_addr);
+            printf("|  |- size: "PRIisa_addr"\n", get_section_size(head->section));
             printf("|  '- used: %s\n", head->used ? "true" : "false");
         }
         else{
@@ -438,6 +439,7 @@ void print_section_list(void){
                 printf("   |- mem: %s\n", head->assinged_mem->mem_name);
 
             printf("   |- begin address: "PRIisa_addr"\n", head->begin_addr);
+            printf("   |- size: "PRIisa_addr"\n", get_section_size(head->section));
             printf("   '- used: %s\n", head->used ? "true" : "false");
         }
     }

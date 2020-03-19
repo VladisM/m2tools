@@ -60,6 +60,9 @@ bool is_section_in_mem(char *sname, mem_t *m){
         check_malloc(mem_symbol_string);
         check_malloc(sname_copy);
 
+        strcpy(mem_symbol_string, m->sections[i]);
+        strcpy(sname_copy, sname);
+
         for(int ii = 0; mem_symbol_string[ii] != '\0' && sname_copy[ii] != '\0'; ii++){
             if(mem_symbol_string[ii] == '*'){
                 mem_symbol_string[ii] = '\0';

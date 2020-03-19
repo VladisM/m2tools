@@ -96,7 +96,29 @@ bool parse_linker_symbols(lds_t *lds){
     return true;
 }
 
-bool check_imported_symbols_exist(void){
+bool check_imported_symbols_exist(char *entry_point){
+
+    if(entry_point == NULL){
+        SET_ERROR(SYMBOLLIST_WRONG_ARG);
+        return false;
+    }
+
+    {
+        bool found = false;
+        for(symbol_holder_t *head_exp = exported_symbols; head_exp != NULL; head_exp = head_exp->next){
+            if(strcmp(entry_point, head_exp->sym->name) == 0){
+                found = true;
+                head_exp->section->used = true;
+                break;
+            }
+        }
+        if(!found){
+            fprintf(stderr, "Error: unresolved symbol! Please include definition of this symbol.\n");
+            fprintf(stderr, "Symbol '%s' as entry point!\n", entry_point);
+            SET_ERROR(SYMBOLLIST_MISSING_EXPORT);
+            return false;
+        }
+    }
 
     for(symbol_holder_t *head_imp = imported_symbols; head_imp != NULL; head_imp = head_imp->next){
         bool found = false;
@@ -159,6 +181,7 @@ bool mark_section_with_symbol_as_used(char *symbol_name){
     }
     else{
         SET_ERROR(SYMBOLLIST_MISSING_EXPORT);
+        fprintf(stderr, "Error! Missing definition of symbol '%s', please provide it!\n", symbol_name);
         return false;
     }
 }

@@ -112,9 +112,12 @@ void clean_up_symbol_lists(void);
 /**
  * @brief Check if symbols are closed set or not.
  *
+ * @param entry_point In addition to all symbols, also entry point have to be defined. It is
+ * kind of special symbol "imported" by linker script.
+ *
  * @return true if all imported symobols are also exported somewhere.
  */
-bool check_imported_symbols_exist(void);
+bool check_imported_symbols_exist(char *entry_point);
 
 /**
  * @brief Find section, where symbol is exported and mark it as used. For entry points and so on.
