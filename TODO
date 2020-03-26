@@ -3,3 +3,9 @@ napsat linker
 Testovat portabilitu napříč platformama (zkusit použití ve win64, VS studio??)
 
 Přidat nástroje ldm2mif ldm2hex ldm2bin  možná i reverzní verze???
+
+CHYBA:
+Isa knihovna pravděpodobně z linkeru dostává adresy zarovnané na bajty, ale protože
+je stará, možná počítá s adresama na slova jak to má MARK-II. Nicméně, musí pracovat
+s těma na bajty. Toto ověřit hlavně při retarget instrukcí. Musí tam být adressa modulo 4.
+Tj. 4 spodní bity se zahodí protože MARK-II adresu je po 32bit slovech.
