@@ -7,15 +7,7 @@
  * @date 30.09.2019
  *
  * @note This file is part of m2tools project.
- *
- * LDM is file that hold informations about memories and associated content of
- * memory. Each memory (ldm_mem_t) have name, start address and size. Memory
- * containt items (ldm_item_t). Item is storing one piece of information in
- * that memory. File is stored in structure ldm_file_t, and stored is also arch name,
- * file name, and entry point address.
  */
-
-//TODO: doplnit komentáře
 
 #ifndef LDM_H_included
 #define LDM_H_included
@@ -26,6 +18,13 @@
 /**
  * @defgroup ldm LDM library
  *
+ * LDM is file that hold informations about memories and associated content of
+ * memory. Each memory (ldm_mem_t) have name, start address and size. Memory
+ * containt items (ldm_item_t). Item is storing one piece of information in
+ * that memory. File is stored in structure ldm_file_t, and stored is also arch name,
+ * file name, and entry point address.
+ *
+ * @todo add comments
  *
  * @addtogroup ldm
  *
@@ -134,45 +133,48 @@ tLdmError get_ldmlib_errno(void);
 void clear_ldmlib_errno(void);
 
 /**
- * @brief
+ * @brief Create new structure that can hold LDM file.
  *
- * @param f
- * @param filename
+ * @param f Pointer to file. Have to be NULL (*f == NULL)
+ * @param filename Name of new file.
  *
- * @return
+ * @return True if ok.
  */
 bool new_ldm_file(ldm_file_t **f, char *filename);
 
 /**
- * @brief
+ * @brief Set address of starting point.
  *
- * @param f
- * @param entry_point
+ * LDM file hold information about where is beggining of code. This is mean
+ * for use by loader.
  *
- * @return
+ * @param f Pointer fo LDM file struct.
+ * @param entry_point Addres of entry point.
+ *
+ * @return True if ok.
  */
 bool set_entry_point(ldm_file_t *f, isa_address_t entry_point);
 
 /**
- * @brief
+ * @brief Create new mem item. Represent piece of real memory on the board.
  *
- * @param m
- * @param mem_name
- * @param begin_addr
- * @param size
+ * @param m Pointer to new mem, have to be NULL. (*m == NULL)
+ * @param mem_name Name of new memory eg. "RAM0".
+ * @param begin_addr Absolute address where memory start.
+ * @param size Size of memory.
  *
- * @return
+ * @return true if ok.
  */
 bool new_mem(ldm_mem_t **m, char *mem_name, isa_address_t begin_addr, isa_address_t size);
 
 /**
- * @brief
+ * @brief Create new data item in memory.
  *
- * @param i
- * @param address
- * @param opword
+ * @param i Pointer to new item, have to be NULL. (*i == NULL)
+ * @param address Address of item.
+ * @param opword Data of item.
  *
- * @return
+ * @return true if ok.
  */
 bool new_item(ldm_item_t **i, isa_address_t address, isa_address_t opword);
 
