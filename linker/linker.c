@@ -333,6 +333,38 @@ int main(int argc, char *argv[]){
     #ifndef NDEBUG
     print_section_list();
     printf("allocating OK\n\n");
+    printf("actualize addresses of data symbols and exported symbols, relocating instructions\n");
+    #endif
+
+    for(section_list_item_t *head = first_section_item; head != NULL; head = head->next){
+        //actualize value of exported special symbols
+        for(spec_symbol_t *sym_head = head->section->spec_symbol_first; sym_head != NULL; sym_head = sym_head->next){
+            if(sym_head->type == SYMBOL_EXPORT){
+                //section offset in MEM + offset of MEM in whole adress space
+                sym_head->value += (head->begin_addr + head->assinged_mem->begin_addr);
+            }
+        }
+
+        //actualiza addressed of data symbols
+        for(data_symbol_t *data_head = head->section->data_first; data_head != NULL; data_head = data_head->next){
+            if(data_head->type == DATA_IS_INST){
+                if(data_head->relocation == true){
+                    if(!relocate_instruction(data_head->payload.inst, head->begin_addr + head->assinged_mem->begin_addr)){
+                        fprintf(stderr, "Error! Failed to relocate instruction in section %s, \n", head->section->section_name);
+                        fprintf(stderr, "instruction offset "PRIisa_addr", seciton offset "PRIisa_addr"\n", data_head->address, head->begin_addr);
+                        fprintf(stderr, "Error in isalib. ISALib errno: %d\n", get_isalib_errno());
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            }
+
+            data_head->address += (head->begin_addr + head->assinged_mem->begin_addr);
+        }
+    }
+
+    #ifndef NDEBUG
+    print_symbols_lists();
+    printf("actualize OK\n\n");
     #endif
 
     printf("Exit!\n");

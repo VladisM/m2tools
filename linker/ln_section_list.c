@@ -325,14 +325,14 @@ static bool merge_sections(section_t *A, section_t *B){
             tmp_payload->word = head->payload.inst->word;
 
             if(head->special == true){
-                if(!retarget_instruction(tmp_payload, import_label_counter)){
+                if(!relocate_instruction(tmp_payload, import_label_counter)){
                     SET_ERROR(SECTION_ISALIB_ERROR);
                     return false;
                 }
             }
 
             if(head->relocation == true){
-                if(!retarget_instruction(tmp_payload, addr_offset)){
+                if(!relocate_instruction(tmp_payload, addr_offset)){
                     SET_ERROR(SECTION_ISALIB_ERROR);
                     return false;
                 }

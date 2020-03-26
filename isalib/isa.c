@@ -701,7 +701,7 @@ static int is_reg(char *s){
  *
  */
 
-bool retarget_instruction(tInstruction *i, isa_address_t base_address){
+bool relocate_instruction(tInstruction *i, isa_address_t offset){
 
     isa_address_t operand;
 
@@ -710,7 +710,7 @@ bool retarget_instruction(tInstruction *i, isa_address_t base_address){
     }
 
     //relocate operand
-    operand += base_address;
+    operand += offset;
 
     //check if instruction argument dont overflow
     if(operand > 0x00FFFFFF){

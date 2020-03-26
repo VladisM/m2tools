@@ -73,7 +73,7 @@ typedef struct sInstruction{
 }tInstruction;
 
 /**
- * @brief Retarget direct operand of instruction.
+ * @brief Retarget direct operand of instruction by adding offset.
  *
  * Instruction, when translated and linked by assembler and linker, are
  * located at address 0x000000. When for, example, we have CALL to
@@ -83,12 +83,12 @@ typedef struct sInstruction{
  * Anyway, this can be done only with instruction that have 24bit
  * CONST in opcode. It is imposible to retarget branch using BZI instruction.
  *
- * @param base_address Adress offset given to the instruction.
+ * @param offset Adress offset given to the instruction.
  * @param i Structure with instruction to retarget.
  *
  * @return true if ok, false if failed
  */
-bool retarget_instruction(tInstruction *i, isa_address_t base_address);
+bool relocate_instruction(tInstruction *i, isa_address_t offset);
 
 /**
  * @brief Return error code occured in ISA lib.
