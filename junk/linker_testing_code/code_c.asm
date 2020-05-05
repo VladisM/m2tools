@@ -1,4 +1,4 @@
-.SECTION some_code_section
+.SECTION text
 
 .EXPORT LABEL_A
 .EXPORT LABEL_B

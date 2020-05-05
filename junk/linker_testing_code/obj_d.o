@@ -3,7 +3,7 @@ obj_d.o
 .arch
 MARK_II
 .section
-another_code_section
+text
 .spec
 LABEL_E:0x00000000:export
 LABEL_F:0x00000004:export
