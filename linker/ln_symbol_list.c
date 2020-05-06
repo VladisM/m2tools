@@ -372,6 +372,30 @@ ln_symbol_list_errno_t get_symbol_list_errno(void){
     return symbol_list_errno;
 }
 
+bool search_for_import_symbol_name(section_list_item_t *section, isa_address_t id, symbol_holder_t **result){
+
+    for(symbol_holder_t *head = imported_symbols; head != NULL; head = head->next){
+        if((strcmp(section->section->section_name, head->section->section->section_name) == 0) && (id == head->sym->value)){
+            *result = head;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool search_for_exported_symbol(symbol_holder_t *import_label, symbol_holder_t **result){
+
+    for(symbol_holder_t *head = exported_symbols; head != NULL; head = head->next){
+        if(strcmp(import_label->sym->name, head->sym->name) == 0){
+            *result = head;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 #ifndef NDEBUG
 void print_symbols_lists(void){
     if(exported_symbols == NULL){

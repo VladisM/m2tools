@@ -128,6 +128,27 @@ bool check_imported_symbols_exist(char *entry_point);
  */
 bool mark_section_with_symbol_as_used(char *symbol_name);
 
+/**
+ * @brief Search imported symbol cache and find symbol with same value and from same section.
+ *
+ * @param section We are going to search in this section.
+ * @param id Value that symbol have to had. This is immediate operand from instructions marked as special.
+ * @param result Pointer to empty pointer. Will be set to point on founded symbol.
+ *
+ * @return true if ok.
+ */
+bool search_for_import_symbol_name(section_list_item_t *section, isa_address_t id, symbol_holder_t **result);
+
+/**
+ * @brief Search for exported counterpart symbol to given one.
+ *
+ * @param import_label Pointer to imported symbol to search for.
+ * @param result Pointer that will be set to point at founded symbol.
+ *
+ * @return true if ok.
+ */
+bool search_for_exported_symbol(symbol_holder_t *import_label, symbol_holder_t **result);
+
 #ifndef NDEBUG
 /**
  * @brief Printout all known symbols in cashe. Used only for debug purposes.

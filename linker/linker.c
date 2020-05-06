@@ -365,9 +365,111 @@ int main(int argc, char *argv[]){
     #ifndef NDEBUG
     print_symbols_lists();
     printf("actualize OK\n\n");
+    printf("Linking\n");
     #endif
 
-    printf("Exit!\n");
+    //link all special symbols
+    for(section_list_item_t *head = first_section_item; head != NULL; head = head->next){
+        for(data_symbol_t *data_head = head->section->data_first; data_head != NULL; data_head = data_head->next){
+            if(data_head->type == DATA_IS_INST && data_head->special == true){
+                isa_address_t id_of_label = 0;
+                symbol_holder_t *imp_symbol = NULL;
+                symbol_holder_t *exp_symbol = NULL;
+
+                //get argument
+                if(!get_immediate_address_argument(data_head->payload.inst, &id_of_label)){
+                    fprintf(stderr, "Error! Failed to get immediate argument of instruction! ISAlib errno: %d\n", get_isalib_errno());
+                    fprintf(stderr, "section: %s instruction word: "PRIisa_iw"\n", head->section->section_name, data_head->payload.inst->word);
+                    exit(EXIT_FAILURE);
+                }
+
+                //find name of symbol in imported symbols
+                if(!search_for_import_symbol_name(head, id_of_label, &imp_symbol)){
+                    fprintf(stderr, "Error! Failed to find imported symbol holder in imported symbol table with id: %d\n", id_of_label);
+                    exit(EXIT_FAILURE);
+                }
+
+                //find real address of symbol in exported symbols using name
+                if(!search_for_exported_symbol(imp_symbol, &exp_symbol)){
+                    fprintf(stderr, "Error! Failed to find exported symbol counterpart! Symbol: %s.\n", imp_symbol->sym->name);
+                    exit(EXIT_FAILURE);
+                }
+
+                //put real address into instruction
+                if(!set_immediate_address_argument(data_head->payload.inst, exp_symbol->sym->value)){
+                    fprintf(stderr, "Error! Failed to set immediate argument of instruction! ISAlib errno: %d\n", get_isalib_errno());
+                    fprintf(stderr, "section: %s instruction word: "PRIisa_iw"\n", head->section->section_name, data_head->payload.inst->word);
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+    }
+
+    #ifndef NDEBUG
+    printf("Linking OK\n\n");
+    printf("filling up LDM file...\n");
+    #endif
+
+    for(section_list_item_t *head = first_section_item; head != NULL; head = head->next){
+        for(data_symbol_t *data_head = head->section->data_first; data_head != NULL; data_head = data_head->next){
+
+            if(data_head->type == DATA_IS_INST){
+                ldm_item_t *item = NULL;
+
+                if(!new_item(&item, data_head->address, data_head->payload.inst->word)){
+                    fprintf(stderr, "Failed to create new item for LDM file. LDMlib errno: %d\n", get_ldmlib_errno());
+                    exit(EXIT_FAILURE);
+                }
+
+                if(!append_item_into_mem(item, head->assinged_mem)){
+                    fprintf(stderr, "Failed to add new item into LDM file! LDMlib errno: %d\n", get_ldmlib_errno());
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else{
+                isa_instruction_word_t *data = NULL;
+                unsigned data_len = 0;
+
+                if(!convert_uint8_list_to_isaword_list(data_head->payload.blob->payload, data_head->payload.blob->lenght, &data, &data_len)){
+                    fprintf(stderr, "Failed to create isa format of blob. ISAlib errno: %d\n", get_isalib_errno());
+                    if(get_isalib_errno() == ISAERR_NOT_ALLIGNED) fprintf(stderr, "Blob is not aligned!\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                for(unsigned i = 0; i < data_len; i++){
+                    ldm_item_t *item = NULL;
+
+                    if(!new_item(&item, data_head->address + i, data[i])){
+                        fprintf(stderr, "Failed to create new item for LDM file. LDMlib errno: %d\n", get_ldmlib_errno());
+                        exit(EXIT_FAILURE);
+                    }
+
+                    if(!append_item_into_mem(item, head->assinged_mem)){
+                        fprintf(stderr, "Failed to add new item into LDM file! LDMlib errno: %d\n", get_ldmlib_errno());
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            }
+
+        }
+    }
+
+
+    #ifndef NDEBUG
+    printf("LDM file is filled!\n\n");
+    printf("generating actual file on the disk...\n");
+    #endif
+
+    if(!ldm_write(settings.output_filename, finalLDM)){
+        fprintf(stderr, "Failed to generate output file! LDMlib errno: %d\n", get_ldmlib_errno());
+        exit(EXIT_FAILURE);
+    }
+
+    #ifndef NDEBUG
+    printf("File generated, all done. :)\n");
+    #endif
+
+    exit(EXIT_SUCCESS);
     return 1;
 }
 

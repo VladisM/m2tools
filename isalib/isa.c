@@ -1288,6 +1288,41 @@ bool assemble_instruction(tInstruction * inst, void * section_ptr){
     return true;
 }
 
+bool set_immediate_address_argument(tInstruction *i, isa_address_t value){
+    if(set_instruction_24CONST_operand(i, (uint32_t)value) < 0){
+        return false;
+    }
+    return true;
+}
+
+bool get_immediate_address_argument(tInstruction *i, isa_address_t *value){
+    if(get_instruction_24CONST_operand(i, (uint32_t *)&value) < 0){
+        return false;
+    }
+    return true;
+}
+
+bool convert_uint8_list_to_isaword_list(uint8_t *in_data, unsigned in_data_len, isa_instruction_word_t **out_data, unsigned *out_data_len){
+
+    if(in_data_len % 4 != 0){
+        SET_ERROR(ISAERR_NOT_ALLIGNED);
+        return false;
+    }
+
+    *out_data = (isa_instruction_word_t *)malloc(sizeof(isa_instruction_word_t) * (in_data_len / 4));
+
+    if(*out_data == NULL){
+        SET_ERROR(ISAERR_MALLOC_FAIL);
+        return false;
+    }
+
+    memcpy((void *)(*out_data), (void *)in_data, in_data_len);
+
+    *out_data_len = in_data_len / 4;
+
+    return true;
+}
+
 /*
  *
  * End of exported functions definitions

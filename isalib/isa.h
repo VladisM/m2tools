@@ -45,7 +45,8 @@ typedef enum {
     ISAERR_MISSING_CALLBACK,                 /**< @brief Callback function isn't registered but it was needed. */
     ISAERR_ARG_OVERFLOW,                     /**< @brief Overflow of an argument in assembling instruction. */
     ISAERR_ARG_UNKOWN_SYMBOL,                /**< @brief Cant find symbol when assembling instruction. */
-    ISAERR_INSTRU_SYNTAX_ERR                 /**< @brief Error in instruction syntax. */
+    ISAERR_INSTRU_SYNTAX_ERR,                /**< @brief Error in instruction syntax. */
+    ISAERR_NOT_ALLIGNED                      /**< @brief Wrong allignment of what ever you put in. */
 } tIsaError;
 
 /**
@@ -276,6 +277,50 @@ bool register_callback_convert_to_int( long int (*f)(char *) );
  * Otherwise you may cause error.
  */
 bool register_callback_is_number( int (*f)(char *) );
+
+/**
+ * @brief Put specified value into instructions marked as special.
+ *
+ * In linker there is needed to manipulate value of argument in instruction
+ * that work with direct address like CALL do. To do so, there is this function.
+ *
+ * @param i Instruction to change.
+ * @param value Value to be set.
+ *
+ * @return true if ok, false if failed
+ */
+bool set_immediate_address_argument(tInstruction *i, isa_address_t value);
+
+/**
+ * @brief Get immediate address from instructions marked as special.
+ *
+ * In linker there is needed to manipulate value of argument in instruction
+ * that work with direct address like CALL do. To do so, there is this function.
+ *
+ * @param i Instruction to change.
+ * @param value pointer to variable where result will be stored.
+ *
+ * @return true if ok, false if failed
+ */
+bool get_immediate_address_argument(tInstruction *i, isa_address_t *value);
+
+/**
+ * @brief Converting array of uint8 bytes into array of isa_instruction_word.
+ *
+ * Used in linker, as linker dosn't know anything about CPU arch, it
+ * have to call this function in order to generate LDM file from blobs.
+ *
+ * @param in_data Pointer to array of input data.
+ * @param in_data_len count of bytes in input data array.
+ * @param out_data Poiner that will be set to point to new array. New memory will be allocated.
+ * @param out_data_len count of items in new array.
+ *
+ * @return True if ok.
+ *
+ * @warning This will create new memory allocation that have to be cleaned up at the end!
+ * Don't forget to call free on out_data pointer!
+ */
+bool convert_uint8_list_to_isaword_list(uint8_t *in_data, unsigned in_data_len, isa_instruction_word_t **out_data, unsigned *out_data_len);
 
 /**
  * @}
