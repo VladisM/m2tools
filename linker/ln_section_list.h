@@ -47,10 +47,12 @@ typedef enum{
 /**
  * @brief Structure that hold items in section list.
  */
+ //TODO: rewrite to use double linked list
 typedef struct section_list_item_s{
     section_t *section;                 /**< @b Pointer to section as defined by objlib.*/
     ldm_mem_t *assinged_mem;            /**< @b Pointer to assinged mem structure as defined by ldmlib.*/
     struct section_list_item_s *next;   /**< @b Pointer to next item in the list.*/
+    struct section_list_item_s *prev;   /**< @b Pointer to prev item in the list.*/
     isa_address_t begin_addr;           /**< @b Address offset of this section in assigned memory.*/
     bool used;                          /**< @b Flag that specifies if section is used or not.*/
 }section_list_item_t;

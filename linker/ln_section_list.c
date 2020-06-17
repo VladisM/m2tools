@@ -79,6 +79,19 @@ static bool create_new_section_list_item(section_list_item_t **item_ptr);
  */
 static bool merge_sections(section_t *A, section_t *B);
 
+/**
+ * @brief Clean up memory ocupied by pointed section list item. Also clean-up
+ * associated obj_section.
+ */
+static void free_section_list_item(section_list_item_t *s);
+
+/**
+ * @brief Remove specified section from list of sections.
+ *
+ * List of section si defined by first_section_item variable.
+ */
+static bool remove_section(section_list_item_t *s);
+
 bool append_into_section_list_sl(static_library_t *sl){
     if(sl == NULL){
         SET_ERROR(SECTION_WRONG_ARG);
@@ -220,6 +233,7 @@ static bool append_into_list(section_t *section){
                 new_holder->section = section;
 
                 head->next = new_holder;
+                new_holder->prev = head;
                 break;
             }
         }
@@ -238,6 +252,7 @@ static bool create_new_section_list_item(section_list_item_t **item_ptr){
     tmp->section = NULL;
     tmp->assinged_mem = NULL;
     tmp->next = NULL;
+    tmp->prev = NULL;
     tmp->begin_addr = 0;
     tmp->used = false;
 
@@ -385,8 +400,7 @@ void clean_up_section_list(void){
         tmp = head;
         head = head->next;
 
-        free_obj_section(tmp->section);
-        free(tmp);
+        free_section_list_item(tmp);
     }
 }
 
@@ -397,16 +411,57 @@ bool strip_unused_sections(void){
         SET_ERROR(SECTION_LIST_EMPTY);
         return false;
     }
-    //TODO: finish this
 
-    // this will work like that:
-    //  - go thru all sections
-    //  - if sections is unsued - there is flag called "used" - remove it from list
-    // flag "used" is set by checking if we have all symbols by check_imported_symbols_exist()
+    section_list_item_t *head = first_section_item;
+    section_list_item_t *tmp = NULL;
+
+    while(head != NULL){
+        tmp = head;
+        head = head->next;
+
+        if(tmp->used == false){
+            if(!remove_section(tmp)){
+                return false;
+            }
+        }
+    }
 
     fprintf(stderr, "Strip down unused sections is not implemented yet!\n");
     return false;
 }
+
+static void free_section_list_item(section_list_item_t *s){
+    if(s == NULL){
+        return;
+    }
+
+    free_obj_section(s->section);
+    free(s);
+}
+
+static bool remove_section(section_list_item_t *s){
+    if(first_section_item == NULL || s == NULL){
+        SET_ERROR(SECTION_WRONG_ARG);
+        fprintf(stderr, "Should remove section but there is no section in list or NULL was given.\n");
+        return false;
+    }
+
+    if(first_section_item == s){
+        first_section_item = s->next;
+    }
+
+    if(s->next != NULL){
+        s->next->prev = s->prev;
+    }
+
+    if(s->prev != NULL){
+        s->prev->next = s->next;
+    }
+
+    free_section_list_item(s);
+    return true;
+}
+
 
 #ifndef NDEBUG
 void print_section_list(void){
