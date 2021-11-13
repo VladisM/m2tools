@@ -1,0 +1,6 @@
+[submodule "lib/utillib"]
+	path = lib/utillib
+	url = https://github.com/VladisM/utillib.git
+[submodule "lib/cwalk"]
+	path = lib/cwalk
+	url = https://github.com/likle/cwalk.git

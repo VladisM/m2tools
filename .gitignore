@@ -1,0 +1,6 @@
+build/
+junk/
+.vscode/
+.cache/
+toolchain*.cmake
+*.user
