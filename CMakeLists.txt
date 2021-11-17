@@ -64,18 +64,18 @@ set(linker_sources
 ##############################
 # targets
 
-add_executable(${target_prefix}-assembler ${assembler_sources})
-target_link_libraries(${target_prefix}-assembler PRIVATE utillib-core utillib-utils utillib-cli filelib platformlib)
-target_compile_definitions(${target_prefix}-assembler PRIVATE -DPROG_NAME="${target_prefix}-assembler")
+add_executable(${platformlib_target_prefix}-assembler ${assembler_sources})
+target_link_libraries(${platformlib_target_prefix}-assembler PRIVATE utillib-core utillib-utils utillib-cli filelib platformlib)
+target_compile_definitions(${platformlib_target_prefix}-assembler PRIVATE -DPROG_NAME="${platformlib_target_prefix}-assembler")
 
-add_executable(${target_prefix}-archiver ${archiver_sources})
-target_link_libraries(${target_prefix}-archiver PRIVATE utillib-core utillib-cli filelib)
-target_compile_definitions(${target_prefix}-archiver PRIVATE -DPROG_NAME="${target_prefix}-archiver")
+add_executable(${platformlib_target_prefix}-archiver ${archiver_sources})
+target_link_libraries(${platformlib_target_prefix}-archiver PRIVATE utillib-core utillib-cli filelib)
+target_compile_definitions(${platformlib_target_prefix}-archiver PRIVATE -DPROG_NAME="${platformlib_target_prefix}-archiver")
 
-add_executable(${target_prefix}-objread ${objread_sources})
-target_link_libraries(${target_prefix}-objread PRIVATE utillib-core utillib-cli filelib platformlib)
-target_compile_definitions(${target_prefix}-objread PRIVATE -DPROG_NAME="${target_prefix}-objread")
+add_executable(${platformlib_target_prefix}-objread ${objread_sources})
+target_link_libraries(${platformlib_target_prefix}-objread PRIVATE utillib-core utillib-cli filelib platformlib)
+target_compile_definitions(${platformlib_target_prefix}-objread PRIVATE -DPROG_NAME="${platformlib_target_prefix}-objread")
 
-add_executable(${target_prefix}-linker ${linker_sources})
-target_link_libraries(${target_prefix}-linker PRIVATE utillib-core utillib-utils utillib-cli filelib platformlib)
-target_compile_definitions(${target_prefix}-linker PRIVATE -DPROG_NAME="${target_prefix}-linker")
+add_executable(${platformlib_target_prefix}-linker ${linker_sources})
+target_link_libraries(${platformlib_target_prefix}-linker PRIVATE utillib-core utillib-utils utillib-cli filelib platformlib)
+target_compile_definitions(${platformlib_target_prefix}-linker PRIVATE -DPROG_NAME="${platformlib_target_prefix}-linker")
