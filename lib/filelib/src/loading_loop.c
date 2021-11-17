@@ -145,7 +145,7 @@ bool loading_loop_ldm(queue_t *input, void **output, char *filename){
             token_t *arg_2 = _token_load(input);
 
             isa_address_t address = 0;
-            isa_instruction_word_t word = 0;
+            isa_memory_element_t word = 0;
             ldm_item_t *tmp_item = NULL;
 
             if(!platformlib_read_isa_address(arg_1->token, &address)){
@@ -382,7 +382,7 @@ bool loading_loop_obj(queue_t *input, void **output, char *filename){
                 tokenizer_token_destroy(arg_5);
             }
 
-            if(!platformlib_read_isa_instruction_word(arg_3->token, &special_value)){
+            if(!platformlib_read_isa_address(arg_3->token, &special_value)){
                 _cant_decode_isa_word_error(head->filename, arg_2->line_number);
                 tokenizer_token_destroy(arg_1);
                 tokenizer_token_destroy(arg_2);

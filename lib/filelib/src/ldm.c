@@ -92,7 +92,7 @@ void ldm_mem_destroy(ldm_memory_t *mem){
     dynmem_free(mem);
 }
 
-void ldm_item_new(isa_address_t address, isa_instruction_word_t word, ldm_item_t **item){
+void ldm_item_new(isa_address_t address, isa_memory_element_t word, ldm_item_t **item){
     CHECK_NULL_ARGUMENT(item);
     CHECK_NOT_NULL_ARGUMENT(*item);
 
