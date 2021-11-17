@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.13.0)
 project(m2tools C)
 
-# Config these two variables to your backend
-set(target_prefix "m2")
-set(target_arch_name "MARK_II")
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -24,7 +20,6 @@ set(CMAKE_C_STANDARD 99)
 set(ver_string "v1.0")
 
 add_definitions(-DVERSION="${ver_string}")
-add_definitions(-DTARGET_ARCH_NAME="${target_arch_name}")
 
 add_compile_options(-Wall -Wextra)
 
