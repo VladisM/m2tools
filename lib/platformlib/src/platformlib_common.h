@@ -1,7 +1,7 @@
 #ifndef PLATFORMLIB_COMMON_H_included
 #define PLATFORMLIB_COMMON_H_included
 
-#include "../targets/platformlib_target_specific.h"
+#include <platformlib_target_specific.h>
 
 #include <stdbool.h>
 

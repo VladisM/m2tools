@@ -17,19 +17,44 @@ add_compile_options(-Wall -Wextra)
 # ------------------------------------------------------------------------------
 # target specific sources (to add target, add elseif here)
 
-message(FATAL_ERROR "Target not found in platformlib!")
+if(NOT TARGET_ARCH)
+    message(FATAL_ERROR "TARGET_ARCH is not set! Please specify backend with TARGET_ARCH variable!")
+endif()
+
+if(TARGET_ARCH MATCHES "example")
+    set(platformlib_target_prefix "example" PARENT_SCOPE)
+    set(platformlib_target_sources
+        ${CMAKE_CURRENT_SOURCE_DIR}/targets/example/example.c
+    )
+    set(platformlib_target_includes
+        ${CMAKE_CURRENT_SOURCE_DIR}/targets/example/include/
+    )
+else()
+    message(FATAL_ERROR "Specified target wasn't found in platformlib!")
+endif()
 
 # end of target specific sources
 # ------------------------------------------------------------------------------
 
-add_library(platformlib
-    ${platformlib_target_sources}
+set(platformlib_common_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/src/platformlib_common.c
 )
 
-target_include_directories(platformlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+set(platformlib_common_includes
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/
+)
 
-target_compile_definitions(platformlib PUBLIC -D${platformlib_target_name})
+add_library(platformlib
+    ${platformlib_target_sources}
+    ${platformlib_common_sources}
+)
 
-target_link_libraries(platformlib PRIVATE utillib-core)
-target_link_libraries(platformlib PRIVATE utillib-utils)
+target_include_directories(platformlib PUBLIC
+    ${platformlib_target_includes}
+    ${platformlib_common_includes}
+)
+
+target_link_libraries(platformlib PRIVATE
+    utillib-core
+    utillib-utils
+)
