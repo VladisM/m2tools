@@ -6,6 +6,23 @@ contain everything for writing programs in assembler. Whole toolchain is written
 in pure C99 so, once you will port C compiler for your architecture you should
 be able to run this toolchain on your platform too.
 
+Documentation
+-----------------------
+
+Documentation can be found in form of markdown files in doc folder. See
+[doc Readme](./doc/README.md).
+
+Build
+-----------------------
+
+As build environment CMake is used. So basically you just
+
+```
+$ cmake -S . -B build && cmake --build build/
+```
+
+and you are done. For more details please visit [build help](./doc/build.md).
+
 License
 -----------------------
 
