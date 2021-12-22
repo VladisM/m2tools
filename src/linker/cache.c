@@ -391,6 +391,7 @@ static bool process_symbol(cache_t *this, cache_section_item_t *section_parent, 
     holder->symbol = symbol;
     holder->symbol_type = type;
     holder->assigned_section = section_parent;
+    holder->evaluated = false;
 
     if(type != SYMBOL_IMPORT){
         if(check_if_symbol_exist_by_name(holder->symbol->name, this->symbols.exported, NULL) == true){
@@ -628,6 +629,10 @@ static bool variable_resolve_callback(char *name, long long *result){
         return false;
     }
 
+    if(found_symbol->symbol_type == SYMBOL_LINKER_SCRIPT_EVAL && found_symbol->evaluated == false){
+        return false;
+    }
+
     *result = found_symbol->symbol->value;
     return true;
 }
@@ -667,6 +672,7 @@ bool cache_evaluate_labels(cache_t *this){
         }
 
         symbol->symbol->value = (isa_address_t)result;
+        symbol->evaluated = true;
     }
     context = NULL;
 
@@ -707,7 +713,7 @@ bool cache_relocate_data(cache_t *this){
                 return false;
             }
 
-            data_holder->payload.data_value = output;            
+            data_holder->payload.data_value = output;
         }
     }
     return true;

@@ -29,6 +29,7 @@ typedef struct{
     obj_symbol_t *symbol;
     cache_section_item_t *assigned_section;
     string_t *eval_string;
+    bool evaluated;
 } cache_symbol_item_t;
 
 typedef struct{
