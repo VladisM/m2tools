@@ -15,7 +15,7 @@ follow. This will also recursively clone all submodules.
 $ git clone --recurse-submodules git@github.com:VladisM/m2tools.git
 ```
 
-After successful clone, you can then use cmake to configure toolchaina and build
+After successful clone, you can then use cmake to configure toolchain and build
 it. For configuration there is some variables in cmake to be set. At now, there
 are following variables used.
 
@@ -29,7 +29,7 @@ For example, cmake command that will compile everything into build folder next
 to source one can look like this.
 
 ```
-$ cmake -S m2tools/ -B build/ -DTARGET_ARCH=example -DBUILD_DOC=1
+$ cmake -S m2tools/ -B build/ -DTARGET_ARCH=example
 ```
 
 To build everything you can also use cmake.

@@ -16,7 +16,7 @@ If you are done, you can then use variable *TARGET_ARCH* to tell cmake to
 configure build for your architecture.
 
 ```
-cmake -S . -B build -DTARGET_ARCH=my_awesome_arch
+cmake -S m2tools/ -B build/ -DTARGET_ARCH=my_awesome_arch
 ```
 
 If you are unsure, you can always contact author.

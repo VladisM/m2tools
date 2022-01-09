@@ -80,7 +80,6 @@ relative from current file.
 
 ### Preprocessor #define
 
-
 Using this directive you can define new macro that will replace all instances
 by its value in rest of input files. Even in included one.
 
@@ -92,7 +91,6 @@ When ever PIN\_ADDRESS appears, it will be replaced by value 10. You can also
 replace with string not only with integers.
 
 ### Preprocessor #ifdef #ifndef #endif
-
 
 There three preprocessor commands are used for conditional compilation of input.
 When ever preprocessor encounter false condition it will skip parsing of input
@@ -108,7 +106,6 @@ till corresponding *#endif* command.
 
 ### Pseudo instruction .ORG
 
-
 Pseudo instruction used to change actual value of internal program counter. If
 used, next item will be placed at specified address. Program counter is relative
 to currently active section.
@@ -122,7 +119,6 @@ that you pass into linker.
 
 ### Pseudo instruction .CONS
 
-
 CONS pseudo instruction will create artificial label definition that will be
 fixed in value. That mean, you can for example set top of your ram as constant
 and use it as any other label in instructions.
@@ -134,7 +130,6 @@ LD R1 RAM_0_TOP
 
 ### Pseudo instruction .DAT
 
-
 This will emit binary data into output. It is called blob inside of toolchain
 and is exactly one memory element big according to your target.
 
@@ -143,7 +138,6 @@ and is exactly one memory element big according to your target.
 ```
 
 ### Pseudo instruction .DS
-
 
 DS pseudo instruction is used to create data space in output, there nothing will
 be stored by assembler. Can be used for example to create statically allocated
@@ -155,7 +149,6 @@ FOO:    ; this will create continuous space of 10 memory elements
 ```
 
 ### Pseudo instructions .EXPORT and .IMPORT
-
 
 Symbols, or better say, labels, can be exported or imported from and into
 current module by these two pseudo instructions. Each one take name of symbol
@@ -181,7 +174,6 @@ have to still use these two pseudo instructions as symbols and linking work on
 section basis, not on files.
 
 ### Pseudo instruction .SECTION
-
 
 This one is used to crate and switch sections of your code. For example, in ANSI
 C you have three main sections and these are *text*, *data* and *bss*.
