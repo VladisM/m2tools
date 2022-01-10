@@ -23,6 +23,11 @@ $ cmake -S . -B build && cmake --build build/
 
 and you are done. For more details please visit [build help](./doc/build.md).
 
+Supported architectures
+-----------------------
+
+* i8080
+
 License
 -----------------------
 

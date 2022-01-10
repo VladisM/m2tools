@@ -13,3 +13,14 @@ adding new one. To compile this architecture please set target variable to
 ```
 -DTARGET_ARCH=example
 ```
+
+## i8080
+
+Backend for Intel 8080 CPU. This architecture was selected as easy enough to
+demonstrate function of toolchain. i8080 was launched at 1974, but some hobbyist
+is still using this CPU for nostalgic reasons in many 8bit computers. To compile
+toolchain for this architecture one have to set following variable.
+
+```
+-DTARGET_ARCH=i8080
+```
