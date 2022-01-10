@@ -172,11 +172,19 @@ static bool _append_into_output(token_t *token, queue_t *output, pst_t *symbol_t
     return true;
 }
 
+static bool is_comment_start(tokenizer_t *this){
+    if(this->state.current_char == ';')
+        return true;
+    else
+        return false;
+}
+
 static bool _preprocessor_run(char *input_file, queue_t *output, pst_t *symbol_table, list_t *to_be_cleaned){
     tokenizer_t *tokenizer = NULL;
     queue_t *tokenizer_output = NULL;
 
     tokenizer_init(&tokenizer);
+    tokenizer_config_comment(tokenizer, is_comment_start, tokenizer->methods.is_comment_end);
 
     if(!tokenizer_tokenize_file(tokenizer, input_file)){
         ERROR_WRITE("Failed to read file %s!", input_file);
