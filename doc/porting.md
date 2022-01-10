@@ -19,4 +19,11 @@ configure build for your architecture.
 cmake -S m2tools/ -B build/ -DTARGET_ARCH=my_awesome_arch
 ```
 
+Architecture of this toolchain set some constrains to CPUs that can be
+supported. They are:
+
+ * All instructions have to take fixed amount of arguments.
+ * CPU smallest addressable unit have to be smaller or equal than instruction length.
+ * Instruction width have to be integer multiple of smallest addressable unit.
+
 If you are unsure, you can always contact author.

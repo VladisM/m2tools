@@ -9,8 +9,15 @@ be able to run this toolchain on your platform too.
 Documentation
 -----------------------
 
-Documentation can be found in form of markdown files in doc folder. See
-[doc Readme](./doc/README.md).
+Documentation can be found in form of markdown files in doc folder. Following
+links bring you to individual chapters.
+
+* [introduction](./doc/introduction.md)
+* [build](./doc/build.md)
+* [usage](./doc/usage.md)
+* [architectures](./doc/architectures.md)
+* [porting](./doc/porting.md)
+
 
 Build
 -----------------------
