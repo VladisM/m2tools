@@ -29,6 +29,17 @@ if(TARGET_ARCH MATCHES "example")
     set(platformlib_target_includes
         ${CMAKE_CURRENT_SOURCE_DIR}/targets/example/include/
     )
+elseif(TARGET_ARCH MATCHES "i8080")
+    set(platformlib_target_prefix "i8080" PARENT_SCOPE)
+    set(platformlib_target_sources
+        ${CMAKE_CURRENT_SOURCE_DIR}/targets/i8080/assemble.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/targets/i8080/datatypes.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/targets/i8080/instructions_description.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/targets/i8080/miscellaneous.c
+    )
+    set(platformlib_target_includes
+        ${CMAKE_CURRENT_SOURCE_DIR}/targets/i8080/include/
+    )
 else()
     message(FATAL_ERROR "Specified target wasn't found in platformlib!")
 endif()
