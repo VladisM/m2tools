@@ -67,7 +67,7 @@ void cache_assing_section_into_memory(cache_t *this, char *section_name, ldm_mem
 
 void cache_calculate_real_exported_addresses(cache_t *this);
 
-bool cache_evaluate_labels(cache_t *this);
+bool cache_evaluate_labels(cache_t *this, ldm_file_t *ldm);
 
 bool cache_relocate_data(cache_t *this);
 

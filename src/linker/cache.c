@@ -616,16 +616,33 @@ void cache_calculate_real_exported_addresses(cache_t *this){
 //-----------------------------------------
 // Symbol evaluator
 
-static cache_t *context = NULL;
+typedef struct{
+    cache_t *cache;
+    ldm_file_t *ldm;
+    bool getting_text;
+    char *result_text;
+} context_t;
+
+static context_t context = {NULL, NULL, false, NULL};
+
+#define CHECK_CONTEXT() { \
+    if(context.cache == NULL || context.ldm == NULL){  \
+        error("Called callback without context set!"); \
+    } \
+}
 
 static bool variable_resolve_callback(char *name, long long *result){
-    if(context == NULL){
-        error("Called callback without context set!");
+    CHECK_CONTEXT();
+
+    if(context.getting_text == true){
+        context.result_text = dynmem_strdup(name);
+        result = 0;
+        return true;
     }
 
     cache_symbol_item_t *found_symbol = NULL;
 
-    if(!check_if_symbol_exist_by_name(name, context->symbols.exported, &found_symbol)){
+    if(!check_if_symbol_exist_by_name(name, context.cache->symbols.exported, &found_symbol)){
         return false;
     }
 
@@ -637,7 +654,105 @@ static bool variable_resolve_callback(char *name, long long *result){
     return true;
 }
 
-bool cache_evaluate_labels(cache_t *this){
+static ldm_memory_t *find_mem_in_context(char *name){
+    CHECK_CONTEXT();
+    CHECK_NULL_ARGUMENT(name);
+
+    for(unsigned i = 0; i < list_count(context.ldm->memories); i++){
+        ldm_memory_t *mem = NULL;
+
+        list_at(context.ldm->memories, i, (void *)&mem);
+
+        if(strcmp(mem->memory_name, name) == 0){
+            return mem;
+        }
+    }
+
+    return NULL;
+}
+
+static void get_text_from_stack_arg(evaluator_t *this, list_t *args, int argpos){
+    CHECK_NULL_ARGUMENT(this);
+    CHECK_NULL_ARGUMENT(args);
+
+    long long dump = 0;
+
+    if(context.result_text != NULL || context.getting_text == true){
+        error("Text variable is not null in context or getting_text already set!");
+    }
+
+    context.getting_text = true;
+
+    if(!evaluator_convert(this, args, argpos, &dump)){
+        error("Something went wrong when trying to get text from evaluator args.");
+    }
+
+    context.getting_text = false;
+}
+
+static void get_text_from_stack_cleanup(void){
+    dynmem_free(context.result_text);
+    context.result_text = false;
+}
+
+bool evaluator_function_mem_begin(evaluator_t *this, long long *result, list_t *args){
+    CHECK_CONTEXT();
+    CHECK_NULL_ARGUMENT(this);
+    CHECK_NULL_ARGUMENT(result);
+    CHECK_NULL_ARGUMENT(args);
+
+    if(list_count(args) != 1){
+        error("Received wrong count of arguments!");
+    }
+
+    get_text_from_stack_arg(this, args, 0);
+
+    ldm_memory_t *mem = find_mem_in_context(context.result_text);
+
+    if(mem == NULL){
+        error_buffer_write(this->error_buffer, "Failed to find memory named '%s'.", context.result_text);
+        get_text_from_stack_cleanup();
+        return false;
+    }
+
+    *result = mem->begin_addr;
+    get_text_from_stack_cleanup();
+    return true;
+}
+
+bool evaluator_function_mem_size(evaluator_t *this, long long *result, list_t *args){
+    CHECK_CONTEXT();
+    CHECK_NULL_ARGUMENT(this);
+    CHECK_NULL_ARGUMENT(result);
+    CHECK_NULL_ARGUMENT(args);
+
+    if(list_count(args) != 1){
+        error("Received wrong count of arguments!");
+    }
+
+    get_text_from_stack_arg(this, args, 0);
+
+    ldm_memory_t *mem = find_mem_in_context(context.result_text);
+
+    if(mem == NULL){
+        error_buffer_write(this->error_buffer, "Failed to find memory named '%s'.", context.result_text);
+        get_text_from_stack_cleanup();
+        return false;
+    }
+
+    *result = mem->size;
+    get_text_from_stack_cleanup();
+    return true;
+}
+
+void register_functions_to_evaluator(evaluator_t *this){
+    CHECK_NULL_ARGUMENT(this);
+
+    evaluate_append_function(this, "mem_begin", 1, evaluator_function_mem_begin);
+    evaluate_append_function(this, "mem_size", 1, evaluator_function_mem_size);
+}
+
+bool cache_evaluate_labels(cache_t *this, ldm_file_t *ldm){
     CHECK_NULL_ARGUMENT(this);
 
     evaluator_t *evaluator = NULL;
@@ -645,8 +760,10 @@ bool cache_evaluate_labels(cache_t *this){
 
     evaluate_load_basic_math(evaluator);
     evaluate_register_variable_callback(evaluator, &variable_resolve_callback);
+    register_functions_to_evaluator(evaluator);
 
-    context = this;
+    context.cache = this;
+    context.ldm = ldm;
     for(unsigned int index = 0; index < list_count(this->symbols.exported); index++){
         cache_symbol_item_t *symbol = NULL;
         long long result = 0;
@@ -660,21 +777,24 @@ bool cache_evaluate_labels(cache_t *this){
             ERROR_WRITE("Evaluation of symbol %s failed!", symbol->symbol->name);
             ERROR_WRITE("%s", evaluate_error(evaluator));
             evaluate_destroy(evaluator);
-            context = NULL;
+            context.cache = NULL;
+            context.ldm = NULL;
             return false;
         }
 
         if(!can_fit_in(result, sizeof(isa_address_t))){
             ERROR_WRITE("Result of symbol %s evaluation overflow isa_address_t!", symbol->symbol->name);
             evaluate_destroy(evaluator);
-            context = NULL;
+            context.cache = NULL;
+            context.ldm = NULL;
             return false;
         }
 
         symbol->symbol->value = (isa_address_t)result;
         symbol->evaluated = true;
     }
-    context = NULL;
+    context.cache = NULL;
+    context.ldm = NULL;
 
     evaluate_destroy(evaluator);
     return true;

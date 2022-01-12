@@ -135,7 +135,7 @@ bool linker_link(void){
     LOG_MSG("Exported addresses - OK");
     if(settings.verbose == true) print_cache(cache);
 
-    if(!cache_evaluate_labels(cache)){
+    if(!cache_evaluate_labels(cache, ldm)){
         LOG_MSG("Symbol eval - FAIL");
         return false;
     }
