@@ -671,6 +671,23 @@ static ldm_memory_t *find_mem_in_context(char *name){
     return NULL;
 }
 
+static cache_section_item_t *find_section_in_context(char *name){
+    CHECK_CONTEXT();
+    CHECK_NULL_ARGUMENT(name);
+
+    for(unsigned i = 0; i < list_count(context.cache->all.sections); i++){
+        cache_section_item_t *cache_section = NULL;
+
+        list_at(context.cache->all.sections, i, (void *)&cache_section);
+
+        if(strcmp(cache_section->section->section_name, name) == 0){
+            return cache_section;
+        }
+    }
+
+    return NULL;
+}
+
 static void get_text_from_stack_arg(evaluator_t *this, list_t *args, int argpos){
     CHECK_NULL_ARGUMENT(this);
     CHECK_NULL_ARGUMENT(args);
@@ -745,11 +762,63 @@ bool evaluator_function_mem_size(evaluator_t *this, long long *result, list_t *a
     return true;
 }
 
+bool evaluator_function_section_begin(evaluator_t *this, long long *result, list_t *args){
+    CHECK_CONTEXT();
+    CHECK_NULL_ARGUMENT(this);
+    CHECK_NULL_ARGUMENT(result);
+    CHECK_NULL_ARGUMENT(args);
+
+    if(list_count(args) != 1){
+        error("Received wrong count of arguments!");
+    }
+
+    get_text_from_stack_arg(this, args, 0);
+
+    cache_section_item_t *cache_section = find_section_in_context(context.result_text);
+
+    if(cache_section == NULL){
+        error_buffer_write(this->error_buffer, "Failed to find section named '%s'.", context.result_text);
+        get_text_from_stack_cleanup();
+        return false;
+    }
+
+    *result = cache_section->assigned_memory->begin_addr + cache_section->offset;
+    get_text_from_stack_cleanup();
+    return true;
+}
+
+bool evaluator_function_section_size(evaluator_t *this, long long *result, list_t *args){
+    CHECK_CONTEXT();
+    CHECK_NULL_ARGUMENT(this);
+    CHECK_NULL_ARGUMENT(result);
+    CHECK_NULL_ARGUMENT(args);
+
+    if(list_count(args) != 1){
+        error("Received wrong count of arguments!");
+    }
+
+    get_text_from_stack_arg(this, args, 0);
+
+    cache_section_item_t *cache_section = find_section_in_context(context.result_text);
+
+    if(cache_section == NULL){
+        error_buffer_write(this->error_buffer, "Failed to find section named '%s'.", context.result_text);
+        get_text_from_stack_cleanup();
+        return false;
+    }
+
+    *result = cache_section->size;
+    get_text_from_stack_cleanup();
+    return true;
+}
+
 void register_functions_to_evaluator(evaluator_t *this){
     CHECK_NULL_ARGUMENT(this);
 
     evaluate_append_function(this, "mem_begin", 1, evaluator_function_mem_begin);
     evaluate_append_function(this, "mem_size", 1, evaluator_function_mem_size);
+    evaluate_append_function(this, "section_begin", 1, evaluator_function_section_begin);
+    evaluate_append_function(this, "section_size", 1, evaluator_function_section_size);
 }
 
 bool cache_evaluate_labels(cache_t *this, ldm_file_t *ldm){
