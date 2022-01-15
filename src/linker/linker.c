@@ -1,3 +1,14 @@
+/**
+ * @file linker.c
+ *
+ * @brief Simple linker.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 13.11.2021
+ *
+ * @note This file is part of m2tools project.
+ */
+
 #include "common.h"
 #include "ldparser.h"
 #include "cache.h"

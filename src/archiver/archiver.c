@@ -35,10 +35,6 @@
 
 #include <filelib.h>
 
-#define HELP_STRING "\
-This is archiver utility for "TARGET_ARCH_NAME" CPU that can be used in order \
-to generate static library files for linker."
-
 static void arg_parse(int argc, char **argv);
 static void clean_mem(void);
 static void failure(char *errmsg);
@@ -65,6 +61,9 @@ typedef struct{
 
 settings_t settings;
 options_t *args = NULL;
+
+char *about_string = "This is archiver utility for "TARGET_ARCH_NAME" CPU that \
+can be used in order to generate static library files for linker.";
 
 int main(int argc, char **argv){
     atexit_init();
@@ -207,7 +206,7 @@ static void list_library(char *input_archive){
 
 static void arg_parse(int argc, char **argv){
     options_init(&args, VERSION, PROG_NAME);
-    options_append_about(args, HELP_STRING);
+    options_append_about(args, about_string);
 
     options_append_flag_3(args,
     "h", "help",

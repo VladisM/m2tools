@@ -1,3 +1,14 @@
+/**
+ * @file assembler.c
+ *
+ * @brief Two pass assembler with preprocessor.
+ *
+ * @author Bc. Vladislav Mlejnecký <v.mlejnecky@seznam.cz>
+ * @date 13.11.2021
+ *
+ * @note This file is part of m2tools project.
+ */
+
 #include "preprocessor.h"
 #include "section_table.h"
 #include "symbol_table.h"
@@ -35,6 +46,8 @@ typedef struct{
 
 options_t *args = NULL;
 settings_t settings;
+
+char *about_string = "This is simple two pass assembler for "TARGET_ARCH_NAME" CPU.";
 
 bool argparse(int argc, char **argv);
 void memclean(void);
@@ -91,6 +104,7 @@ int main(int argc, char **argv){
 
 bool argparse(int argc, char **argv){
     options_init(&args, VERSION, PROG_NAME);
+    options_append_about(args, about_string);
 
     bool retVal = true;
 
