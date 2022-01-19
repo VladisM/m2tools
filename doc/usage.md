@@ -320,6 +320,26 @@ register.
 MVI SP RAM_0_END
 ```
 
+### SET EVAL functions
+
+For more convenient usage of eval functionality of set command, there is
+multiple functions build in into evaluator. These are:
+
+* mem_begin(mem_name)
+* mem_size(mem_name)
+* section_begin(sec_name)
+* section_size(sec_name)
+
+All functions will return value of address type. Argument is always only one,
+and it is name of memory or name of section. This feature can be used as follows.
+
+```
+MEM RAM_0 1k 0x000400
+
+SET RAM_0_START EVAL mem_begin(RAM_0) ENDEVAL
+SET RAM_0_END EVAL RAM_0_START + mem_size(RAM_0) - 1 ENDEVAL
+```
+
 ## Archiver
 
 Archiver is verry simple utility that pack together object files generated
