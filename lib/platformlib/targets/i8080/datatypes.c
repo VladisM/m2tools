@@ -13,10 +13,10 @@
 
 #define PRIisa_iw "0x%08"PRIx32
 #define SCNisa_iw "0x%08"SCNx32
-#define PRIisa_addr "0x%08"PRIx16
-#define SCNisa_addr "0x%08"SCNx16
-#define PRIisa_me "0x%08"PRIx8
-#define SCNisa_me "0x%08"SCNx8
+#define PRIisa_addr "0x%04"PRIx16
+#define SCNisa_addr "0x%04"SCNx16
+#define PRIisa_me "0x%02"PRIx8
+#define SCNisa_me "0x%02"SCNx8
 
 bool platformlib_read_isa_address(char *s, isa_address_t *value){
     CHECK_NULL_ARGUMENT(value);
