@@ -40,7 +40,7 @@ if(BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/test/test_common.c
     )
 
-    add_executable(test-${target_prefix}-filelib ${filelib_test_sources})
-    target_link_libraries(test-${target_prefix}-filelib PRIVATE utillib-cli utillib-core filelib)
-    target_compile_definitions(test-${target_prefix}-filelib PRIVATE -DPROG_NAME="test-${target_prefix}-filelib")
+    add_executable(test-${platformlib_target_prefix}-filelib ${filelib_test_sources})
+    target_link_libraries(test-${platformlib_target_prefix}-filelib PRIVATE utillib-cli utillib-core filelib)
+    target_compile_definitions(test-${platformlib_target_prefix}-filelib PRIVATE -DPROG_NAME="test-${platformlib_target_prefix}-filelib")
 endif()
