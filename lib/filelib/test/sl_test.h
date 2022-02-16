@@ -9,11 +9,11 @@ typedef struct{
     bool print;
     bool load_save;
     bool unpack;
-}sl_settings_t;
+}sl_test_settings_t;
 
-void sl_test_args_init(options_t *args, sl_settings_t *settings);
-void sl_test_args_parse(options_t *args, sl_settings_t *settings);
-bool sl_test_should_run(sl_settings_t *settings);
-bool sl_test_run(sl_settings_t *settings, int argc, char **argv);
+void sl_test_args_init(options_t *args, sl_test_settings_t *settings);
+void sl_test_args_parse(options_t *args, sl_test_settings_t *settings);
+bool sl_test_should_run(sl_test_settings_t *settings);
+bool sl_test_run(sl_test_settings_t *settings, int argc, char **argv);
 
 #endif

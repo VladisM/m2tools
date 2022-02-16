@@ -8,7 +8,7 @@
 #include <filelib.h>
 #include <utillib/cli.h>
 
-static bool create_test(sl_settings_t *settings, int argc, char **argv){
+static bool create_test(sl_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_more(argc, 2)){
@@ -47,7 +47,7 @@ static bool create_test(sl_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-static bool print_test(sl_settings_t *settings, int argc, char **argv){
+static bool print_test(sl_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 1)){
@@ -81,7 +81,7 @@ static bool print_test(sl_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-static bool load_save_test(sl_settings_t *settings, int argc, char **argv){
+static bool load_save_test(sl_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 2)){
@@ -108,7 +108,7 @@ static bool load_save_test(sl_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-static bool unpack_test(sl_settings_t *settings, int argc, char **argv){
+static bool unpack_test(sl_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 1)){
@@ -140,7 +140,7 @@ static bool unpack_test(sl_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-void sl_test_args_init(options_t *args, sl_settings_t *settings){
+void sl_test_args_init(options_t *args, sl_test_settings_t *settings){
     options_append_section(args, "SL Tests", NULL);
     options_append_flag_2(args, "sl-create", "Generate static library from given object files.");
     options_append_flag_2(args, "sl-print", "Print content of library.");
@@ -153,7 +153,7 @@ void sl_test_args_init(options_t *args, sl_settings_t *settings){
     settings->unpack = false;
 }
 
-void sl_test_args_parse(options_t *args, sl_settings_t *settings){
+void sl_test_args_parse(options_t *args, sl_test_settings_t *settings){
     if(options_is_flag_set(args, "sl-create")){
         settings->create = true;
     }
@@ -168,11 +168,11 @@ void sl_test_args_parse(options_t *args, sl_settings_t *settings){
     }
 }
 
-bool sl_test_should_run(sl_settings_t *settings){
+bool sl_test_should_run(sl_test_settings_t *settings){
     return (settings->create || settings->load_save || settings->print || settings->unpack);
 }
 
-bool sl_test_run(sl_settings_t *settings, int argc, char **argv){
+bool sl_test_run(sl_test_settings_t *settings, int argc, char **argv){
     if(settings->create == true){
         return create_test(settings, argc, argv);
     }

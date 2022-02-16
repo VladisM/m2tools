@@ -8,11 +8,11 @@ typedef struct{
     bool generate;
     bool print;
     bool load_save;
-}ldm_settings_t;
+}ldm_test_settings_t;
 
-void ldm_test_args_init(options_t *args, ldm_settings_t *settings);
-void ldm_test_args_parse(options_t *args, ldm_settings_t *settings);
-bool ldm_test_should_run(ldm_settings_t *settings);
-bool ldm_test_run(ldm_settings_t *settings, int argc, char **argv);
+void ldm_test_args_init(options_t *args, ldm_test_settings_t *settings);
+void ldm_test_args_parse(options_t *args, ldm_test_settings_t *settings);
+bool ldm_test_should_run(ldm_test_settings_t *settings);
+bool ldm_test_run(ldm_test_settings_t *settings, int argc, char **argv);
 
 #endif

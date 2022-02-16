@@ -36,7 +36,7 @@ bool _load_file(char *filename, void **output, check_structure_t *check_structur
 
 //simplify writing files
 bool _write_file(char *filename, void *data, check_structure_t *check_structure,  writing_loop_t *writing_loop);
-void _write_string(string_t **output, void *data, check_structure_t *check_structure,  writing_loop_t *writing_loop);
+bool _write_string(string_t **output, void *data, check_structure_t *check_structure,  writing_loop_t *writing_loop);
 
 //some common error msgs
 void _multiple_record_error(char *token, char *filename, long line_number);

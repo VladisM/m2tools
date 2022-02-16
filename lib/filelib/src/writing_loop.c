@@ -1,6 +1,6 @@
 #include "_filelib.h"
 
-void writing_loop_ldm(void *input, string_t *output){
+bool writing_loop_ldm(void *input, string_t *output){
     CHECK_NULL_ARGUMENT(input);
     CHECK_NULL_ARGUMENT(output);
 
@@ -41,9 +41,10 @@ void writing_loop_ldm(void *input, string_t *output){
     }
 
     string_appendf(output, "%s\r\n", ".end");
+    return true;
 }
 
-void writing_loop_obj(void *input, string_t *output){
+bool writing_loop_obj(void *input, string_t *output){
     CHECK_NULL_ARGUMENT(input);
     CHECK_NULL_ARGUMENT(output);
 
@@ -109,9 +110,10 @@ void writing_loop_obj(void *input, string_t *output){
     }
 
     string_appendf(output, "%s\r\n", ".end");
+    return true;
 }
 
-void writing_loop_sl(void *input, string_t *output){
+bool writing_loop_sl(void *input, string_t *output){
     CHECK_NULL_ARGUMENT(input);
     CHECK_NULL_ARGUMENT(output);
 
@@ -127,7 +129,10 @@ void writing_loop_sl(void *input, string_t *output){
         list_at(_data->objects, i, (void *)&head);
 
         string_init(&tmp);
-        writing_loop_obj(head->object, tmp);
+        if(!writing_loop_obj(head->object, tmp)){
+            FILELIB_ERROR_WRITE("Error writing out object file from library.");
+            return false;
+        }
 
         string_appendf(output, ".file %s\r\n", head->object_name);
         string_concatenate(output, tmp);
@@ -136,4 +141,5 @@ void writing_loop_sl(void *input, string_t *output){
     }
 
     string_appendf(output, "%s\r\n", ".end");
+    return true;
 }

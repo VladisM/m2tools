@@ -3,7 +3,7 @@
 
 #include <utillib/utils.h>
 
-typedef void (writing_loop_t)(void *input, string_t *output);
+typedef bool (writing_loop_t)(void *input, string_t *output);
 
 writing_loop_t writing_loop_ldm;
 writing_loop_t writing_loop_obj;

@@ -104,7 +104,9 @@ bool _write_file(char *filename, void *data, check_structure_t *check_structure,
     string_t *tmp = NULL;
     FILE *fp = NULL;
 
-    _write_string(&tmp, data, check_structure, writing_loop);
+    if(!_write_string(&tmp, data, check_structure, writing_loop)){
+        return false;
+    }
 
     fp = fopen(filename, "wb");
 
@@ -126,7 +128,7 @@ bool _write_file(char *filename, void *data, check_structure_t *check_structure,
     return true;
 }
 
-void _write_string(string_t **output, void *data, check_structure_t *check_structure,  writing_loop_t *writing_loop){
+bool _write_string(string_t **output, void *data, check_structure_t *check_structure,  writing_loop_t *writing_loop){
     CHECK_NULL_ARGUMENT(data);
     CHECK_NULL_ARGUMENT(output);
     CHECK_NOT_NULL_ARGUMENT(*output);
@@ -136,7 +138,12 @@ void _write_string(string_t **output, void *data, check_structure_t *check_struc
     string_init(output);
 
     (*check_structure)(data);
-    (*writing_loop)(data, *output);
+    if(!(*writing_loop)(data, *output)){
+        string_destroy(*output);
+        *output = NULL;
+        return false;
+    }
+    return true;
 }
 
 void _multiple_record_error(char *token, char *filename, long line_number){

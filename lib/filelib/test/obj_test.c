@@ -8,7 +8,7 @@
 #include <filelib.h>
 #include <utillib/cli.h>
 
-static bool generate_test(obj_settings_t *settings, int argc, char **argv){
+static bool generate_test(obj_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 1)){
@@ -76,7 +76,7 @@ static bool generate_test(obj_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-static bool print_test(obj_settings_t *settings, int argc, char **argv){
+static bool print_test(obj_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 1)){
@@ -185,7 +185,7 @@ static bool print_test(obj_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-static bool load_save_test(obj_settings_t *settings, int argc, char **argv){
+static bool load_save_test(obj_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 2)){
@@ -213,7 +213,7 @@ static bool load_save_test(obj_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-void obj_test_args_init(options_t *args, obj_settings_t *settings){
+void obj_test_args_init(options_t *args, obj_test_settings_t *settings){
     options_append_section(args, "OBJ Tests", NULL);
     options_append_flag_2(args, "obj-generate", "Generate one small object file.");
     options_append_flag_2(args, "obj-print", "Print content of object file.");
@@ -224,7 +224,7 @@ void obj_test_args_init(options_t *args, obj_settings_t *settings){
     settings->load_save = false;
 }
 
-void obj_test_args_parse(options_t *args, obj_settings_t *settings){
+void obj_test_args_parse(options_t *args, obj_test_settings_t *settings){
     if(options_is_flag_set(args, "obj-generate")){
         settings->generate = true;
     }
@@ -236,11 +236,11 @@ void obj_test_args_parse(options_t *args, obj_settings_t *settings){
     }
 }
 
-bool obj_test_should_run(obj_settings_t *settings){
+bool obj_test_should_run(obj_test_settings_t *settings){
     return (settings->generate || settings->load_save || settings->print);
 }
 
-bool obj_test_run(obj_settings_t *settings, int argc, char **argv){
+bool obj_test_run(obj_test_settings_t *settings, int argc, char **argv){
     if(settings->generate == true){
         return generate_test(settings, argc, argv);
     }

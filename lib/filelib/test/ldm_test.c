@@ -8,7 +8,7 @@
 #include <filelib.h>
 #include <utillib/cli.h>
 
-static bool generate_test(ldm_settings_t *settings, int argc, char **argv){
+static bool generate_test(ldm_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 1)){
@@ -42,7 +42,7 @@ static bool generate_test(ldm_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-static bool print_test(ldm_settings_t *settings, int argc, char **argv){
+static bool print_test(ldm_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 1)){
@@ -128,7 +128,7 @@ static bool print_test(ldm_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-static bool load_save_test(ldm_settings_t *settings, int argc, char **argv){
+static bool load_save_test(ldm_test_settings_t *settings, int argc, char **argv){
     UNUSED(settings);
 
     if(!requested_arguments_exact(argc, 2)){
@@ -155,7 +155,7 @@ static bool load_save_test(ldm_settings_t *settings, int argc, char **argv){
     return true;
 }
 
-void ldm_test_args_init(options_t *args, ldm_settings_t *settings){
+void ldm_test_args_init(options_t *args, ldm_test_settings_t *settings){
     options_append_section(args, "LDM Tests", NULL);
     options_append_flag_2(args, "ldm-generate", "Generate one small ldm file.");
     options_append_flag_2(args, "ldm-print", "Print content of ldm file.");
@@ -166,7 +166,7 @@ void ldm_test_args_init(options_t *args, ldm_settings_t *settings){
     settings->load_save = false;
 }
 
-void ldm_test_args_parse(options_t *args, ldm_settings_t *settings){
+void ldm_test_args_parse(options_t *args, ldm_test_settings_t *settings){
     if(options_is_flag_set(args, "ldm-generate")){
         settings->generate = true;
     }
@@ -178,11 +178,11 @@ void ldm_test_args_parse(options_t *args, ldm_settings_t *settings){
     }
 }
 
-bool ldm_test_should_run(ldm_settings_t *settings){
+bool ldm_test_should_run(ldm_test_settings_t *settings){
     return (settings->generate || settings->load_save || settings->print);
 }
 
-bool ldm_test_run(ldm_settings_t *settings, int argc, char **argv){
+bool ldm_test_run(ldm_test_settings_t *settings, int argc, char **argv){
     if(settings->generate == true){
         return generate_test(settings, argc, argv);
     }

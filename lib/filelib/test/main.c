@@ -13,9 +13,10 @@ typedef struct{
     bool version;
     int argc;
     char **argv;
-    ldm_settings_t ldm_settings;
-    obj_settings_t obj_settings;
-    sl_settings_t sl_settings;
+    ldm_test_settings_t ldm_settings;
+    obj_test_settings_t obj_settings;
+    sl_test_settings_t sl_settings;
+    mif_test_settings_t mif_settings;
 }settings_t;
 
 options_t *args = NULL;
