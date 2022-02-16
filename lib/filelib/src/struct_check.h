@@ -6,5 +6,6 @@ typedef void (check_structure_t)(void *input);
 check_structure_t check_structure_ldm;
 check_structure_t check_structure_obj;
 check_structure_t check_structure_sl;
+check_structure_t check_structure_mif;
 
 #endif

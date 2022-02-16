@@ -143,3 +143,155 @@ bool writing_loop_sl(void *input, string_t *output){
     string_appendf(output, "%s\r\n", ".end");
     return true;
 }
+
+/**
+ * @brief Recursive function to print in binary
+ * @warning This is sketchy shit!
+ * @param output At first call, this have to be NULL, subsequent calls have this set to string_t object.
+ * @param input number to deal with it
+ * @return char* first iteration will return char string with converted number ... hopefully ...
+ */
+static char *__printf_mif_number_bin(string_t *output, unsigned long long input){
+    if(output == NULL){
+        string_t *tmp_obj = NULL;
+        string_init(&tmp_obj);
+        __printf_mif_number_bin(tmp_obj, input);
+        char *tmp_char = dynmem_strdup(string_get(tmp_obj));
+        string_destroy(tmp_obj);
+        return tmp_char;
+    }
+    else{
+        if(input > 1) __printf_mif_number_bin(output, input / 2);
+        string_append(output, (input % 2 == 1) ? "1" : "0");
+        return NULL;
+    }
+}
+
+static char *_printf_mif_number_bin(unsigned long long input){
+    return __printf_mif_number_bin(NULL, input);
+}
+
+static char *_printf_mif_number(char *fmt, long long input){
+    CHECK_NULL_ARGUMENT(fmt);
+
+    int len_needed = 0;
+    char *tmp = NULL;
+
+    len_needed = snprintf(NULL, 0, fmt, input);
+    tmp = (char *)dynmem_calloc(len_needed + 1, sizeof(char));
+    sprintf(tmp, fmt, input);
+    return tmp;
+}
+
+static char *printf_mif_number(mif_radix_t number_format, long long input){
+    char *result = NULL;
+
+    switch(number_format){
+        case RADIX_HEX:
+            result = _printf_mif_number("%llX", input);
+            break;
+        case RADIX_OCT:
+            result = _printf_mif_number("%llo", input);
+            break;
+        case RADIX_DEC:
+            result = _printf_mif_number("%lld", input);
+            break;
+        case RADIX_UNS:
+            result = _printf_mif_number("%llu", input);
+            break;
+        case RADIX_BIN:
+            result = _printf_mif_number_bin(input);
+            break;
+        default:
+            error("Wanted to print unsupported format, missing check???");
+            break;
+    }
+
+    return result;
+}
+
+static bool check_if_radix_supported(mif_radix_t radix){
+    switch(radix){
+        case RADIX_HEX:
+        case RADIX_OCT:
+        case RADIX_DEC:
+        case RADIX_UNS:
+        case RADIX_BIN:
+            return true;
+        default:
+            FILELIB_ERROR_WRITE("Unsupported radix to write out MIF file!");
+            return false;
+    }
+}
+
+static char *get_radix_string(mif_radix_t radix){
+    switch(radix){
+        case RADIX_UNK: return "UNK";
+        case RADIX_HEX: return "HEX";
+        case RADIX_BIN: return "BIN";
+        case RADIX_OCT: return "OCT";
+        case RADIX_DEC: return "DEC";
+        case RADIX_UNS: return "UNS";
+        default: return NULL;
+    }
+}
+
+bool writing_loop_mif(void *input, string_t *output){
+    CHECK_NULL_ARGUMENT(input);
+    CHECK_NULL_ARGUMENT(output);
+
+    mif_file_t *_data = (mif_file_t *)input;
+
+    if(!check_if_radix_supported(_data->settings.address_radix))
+        return false;
+
+    if(!check_if_radix_supported(_data->settings.data_radix))
+        return false;
+
+    char *address_radix = get_radix_string(_data->settings.address_radix);
+    char *data_radix = get_radix_string(_data->settings.data_radix);
+
+    string_appendf(output, "-- Intended for %s architecture.\r\n", TARGET_ARCH_NAME);
+
+    string_appendf(output, "DEPTH = %d;\r\n", _data->settings.depth);
+    string_appendf(output, "WIDTH = %d;\r\n", _data->settings.data_width);
+    string_appendf(output, "ADDRESS_RADIX = %s;\r\n", address_radix);
+    string_appendf(output, "DATA_RADIX = %s;\r\n", data_radix);
+
+    string_append(output, "CONTENT\r\nBEGIN\r\n");
+
+    isa_address_t top_address = 0;
+
+    for(unsigned i = 0; i < list_count(_data->content); i++){
+        mif_item_t *head = NULL;
+
+        list_at(_data->content, i, (void *)&head);
+
+        char *addr_string = printf_mif_number(_data->settings.address_radix, head->address);
+        char *data_string = printf_mif_number(_data->settings.data_radix, head->data);
+
+        string_appendf(output, "%s : %s\r\n", addr_string, data_string);
+
+        dynmem_free(addr_string);
+        dynmem_free(data_string);
+
+        if(head->address > top_address)
+            top_address = head->address;
+    }
+
+    if(top_address > _data->settings.depth){
+        FILELIB_ERROR_WRITE("Error! MIF have insufficient depth to hold all required data!");
+        return false;
+    }
+
+    if(top_address < _data->settings.depth){
+        char *addr_1 = printf_mif_number(_data->settings.address_radix, top_address + 1);
+        char *addr_2 = printf_mif_number(_data->settings.address_radix, _data->settings.depth - 1);
+
+        string_appendf(output, "[%s..%s] : 0\r\n", addr_1, addr_2);
+    }
+
+    string_append(output, "END;\r\n");
+
+    return true;
+}
