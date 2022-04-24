@@ -20,7 +20,6 @@ set(filelib_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/src/loading_loop.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/obj.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/mif.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/struct_check.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/writing_loop.c
 )
@@ -39,7 +38,6 @@ if(BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/test/obj_test.c
         ${CMAKE_CURRENT_SOURCE_DIR}/test/sl_test.c
         ${CMAKE_CURRENT_SOURCE_DIR}/test/test_common.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/test/mif_test.c
     )
 
     add_executable(test-${platformlib_target_prefix}-filelib ${filelib_test_sources})

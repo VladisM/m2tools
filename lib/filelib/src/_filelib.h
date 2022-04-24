@@ -4,7 +4,6 @@
 #include "obj.h"
 #include "ldm.h"
 #include "sl.h"
-#include "mif.h"
 
 #include "_obj.h"
 
@@ -16,7 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include <utillib/core.h>
 #include <utillib/utils.h>
@@ -25,7 +23,6 @@
 #include <cwalk.h>
 
 #define FILELIB_ERROR_WRITE(x, ...) error_buffer_write(filelib_error_buffer, (x), ##__VA_ARGS__)
-#define UNUSED(x) (void)x
 
 extern error_t *filelib_error_buffer;
 

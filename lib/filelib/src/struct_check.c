@@ -108,13 +108,3 @@ void check_structure_sl(void *input){
         check_structure_obj((void *)tmp->object);
     }
 }
-
-void check_structure_mif(void *input){
-    CHECK_NULL_ARGUMENT(input);
-
-    mif_file_t *_input = (mif_file_t *)input;
-
-    if(_input->content == NULL){
-        error("Broken mif structure! content == NULL!");
-    }
-}

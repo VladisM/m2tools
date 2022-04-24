@@ -7,7 +7,6 @@
 #include "ldm_test.h"
 #include "obj_test.h"
 #include "sl_test.h"
-#include "mif_test.h"
 
 typedef struct{
     bool help;
@@ -66,14 +65,6 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         }
     }
-    else if(mif_test_should_run(&(settings.mif_settings))){
-        if(mif_test_run(&(settings.mif_settings), settings.argc, settings.argv) == true){
-            exit(EXIT_SUCCESS);
-        }
-        else{
-            exit(EXIT_FAILURE);
-        }
-    }
     else{
         printf("No action specified!\r\n");
         exit(EXIT_FAILURE);
@@ -98,7 +89,6 @@ void argparse(int argc, char **argv){
     ldm_test_args_init(args, &(settings.ldm_settings));
     obj_test_args_init(args, &(settings.obj_settings));
     sl_test_args_init(args, &(settings.sl_settings));
-    mif_test_args_init(args, &(settings.mif_settings));
 
     settings.help = false;
     settings.version = false;
@@ -118,7 +108,6 @@ void argparse(int argc, char **argv){
     ldm_test_args_parse(args, &(settings.ldm_settings));
     obj_test_args_parse(args, &(settings.obj_settings));
     sl_test_args_parse(args, &(settings.sl_settings));
-    mif_test_args_parse(args, &(settings.mif_settings));
 
     return;
 }
