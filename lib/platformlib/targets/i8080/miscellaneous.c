@@ -3,6 +3,9 @@
 #include "../../src/platformlib_common.h"
 #include "../../src/platformlib_private.h"
 
+#include "instructions_description.h"
+#include "opcode_decode.h"
+
 #include <stddef.h>
 #include <string.h>
 
@@ -13,7 +16,9 @@ bool platformlib_get_instruction_opcode(isa_instruction_word_t word, char **opco
     for(int i = 0; platformlib_instruction_signatures[i].opcode != NULL; i++){
         isa_instruction_word_t head = platformlib_instruction_signatures[i].instruction_code;
 
-        if((word && head) == head){
+        head = SHIFT(head, (platformlib_instruction_signatures[i].size - 1) * 8);
+
+        if((word & head) == head){
             *opcode = platformlib_instruction_signatures[i].opcode;
             return true;
         }
