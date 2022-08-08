@@ -413,7 +413,7 @@ bool platformlib_relocate_instruction(
         case INSTRU_LXI:
             addr = GET_HBLB(input);
             addr += offset;
-            *output = APPEND_LB_HB((input & 0xFFFF0000), GET_LB(addr), GET_HB(addr));
+            *output = APPEND_LB_HB(((input & 0xFFFF0000) >> 16), GET_LB(addr), GET_HB(addr));
             break;
         default:
             error("Cannot relocate instruction that doesn't have LB_HB part inside!");  //will crash app
@@ -456,7 +456,7 @@ bool platformlib_retarget_instruction(
         case INSTRU_CP:
         case INSTRU_CM:
         case INSTRU_LXI:
-            *output = APPEND_LB_HB((input & 0xFFFF0000), GET_LB(target), GET_HB(target));
+            *output = APPEND_LB_HB(((input & 0xFFFF0000) >> 16), GET_LB(target), GET_HB(target));
             break;
         default:
             error("Cannot retarget instruction that doesn't have LB_HB part inside!");  //will crash app
