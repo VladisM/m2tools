@@ -61,6 +61,12 @@ set(linker_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/src/linker/link.c
 )
 
+set(ldmdump_sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ldmdump/ldmdump.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ldmdump/mif_backend.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ldmdump/ihex_backend.c
+)
+
 ##############################
 # targets
 
@@ -79,3 +85,7 @@ target_compile_definitions(${platformlib_target_prefix}-objread PRIVATE -DPROG_N
 add_executable(${platformlib_target_prefix}-linker ${linker_sources})
 target_link_libraries(${platformlib_target_prefix}-linker PRIVATE utillib-core utillib-utils utillib-cli filelib platformlib)
 target_compile_definitions(${platformlib_target_prefix}-linker PRIVATE -DPROG_NAME="${platformlib_target_prefix}-linker")
+
+add_executable(${platformlib_target_prefix}-ldmdump ${ldmdump_sources})
+target_link_libraries(${platformlib_target_prefix}-ldmdump PRIVATE utillib-core utillib-cli filelib utillib-files)
+target_compile_definitions(${platformlib_target_prefix}-ldmdump PRIVATE -DPROG_NAME="${platformlib_target_prefix}-ldmdump")
