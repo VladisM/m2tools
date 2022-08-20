@@ -356,3 +356,9 @@ implemented.
 
 Object read utility is intended to inspect object files. It can print out
 defined symbols in file, it can also dump their values and data symbols (code).
+
+## ldmDump
+
+Tool used for converting output of linker to various other formats. For example
+to Intel Hex. Different format have different parameters to modify output file.
+See build in help for more information.
